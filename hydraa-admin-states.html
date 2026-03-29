@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>States — HYDRAA Telangana</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --teal:#0097a7; --teal-dark:#006978; --teal-light:#e0f7fa;
+      --navy:#0b1f3a; --navy-mid:#122944; --gold:#f4a820;
+      --green:#10b981; --red:#ef4444; --orange:#f59e0b;
+      --purple:#8b5cf6; --blue:#3b82f6;
+      --white:#fff; --bg:#f2f6f9; --text:#0d1e2e;
+      --text-2:#3d5a72; --text-3:#7a9baf; --border:#d0e4ec;
+      --shadow:0 2px 16px rgba(0,30,60,0.08);
+      --shadow-md:0 6px 32px rgba(0,30,60,0.12);
+      --radius:12px; --radius-sm:8px; --sidebar-w:256px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;}
+
+    /* ── SIDEBAR ── */
+    .sidebar{width:var(--sidebar-w);background:var(--navy);position:fixed;height:100vh;top:0;left:0;display:flex;flex-direction:column;overflow-y:auto;z-index:100;box-shadow:2px 0 20px rgba(0,0,0,0.2);}
+    .sb-hdr{padding:1.4rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.15);}
+    .sb-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .sb-logo{width:38px;height:38px;border-radius:9px;background:linear-gradient(145deg,var(--teal),#00bcd4);display:flex;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:0 0 0 2px rgba(0,188,212,0.25);}
+    .sb-bt .t1{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;color:#fff;letter-spacing:0.08em;line-height:1;}
+    .sb-bt .t2{font-size:0.58rem;color:rgba(0,188,212,0.85);letter-spacing:0.12em;text-transform:uppercase;}
+    .sb-badge{margin:0.8rem 1rem;background:rgba(0,188,212,0.12);border:1px solid rgba(0,188,212,0.25);border-radius:20px;padding:0.3rem 0.8rem;font-size:0.72rem;color:rgba(0,188,212,0.9);font-weight:600;letter-spacing:0.06em;text-align:center;}
+    .sb-user{display:flex;align-items:center;gap:10px;padding:0.9rem 1rem;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:0.5rem;}
+    .sb-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:0.9rem;flex-shrink:0;}
+    .sb-ui .un{font-size:0.82rem;font-weight:600;color:#e0f7fa;line-height:1.2;}
+    .sb-ui .ur{font-size:0.68rem;color:var(--text-3);margin-top:1px;}
+    .sb-nav{flex:1;padding:0.5rem 0;}
+    .sb-sec{font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.3);padding:1rem 1.2rem 0.3rem;}
+    .sb-a{display:flex;align-items:center;gap:10px;padding:0.62rem 1.2rem;color:rgba(255,255,255,0.65);text-decoration:none;font-size:0.83rem;font-weight:500;transition:all .18s;border-left:3px solid transparent;}
+    .sb-a:hover{background:rgba(255,255,255,0.06);color:#fff;border-left-color:rgba(0,188,212,0.4);}
+    .sb-a.active{background:rgba(0,188,212,0.15);color:#00e5ff;border-left-color:var(--teal);font-weight:600;}
+    .si{font-size:1rem;width:22px;text-align:center;}
+    .sb-ft{padding:1rem;border-top:1px solid rgba(255,255,255,0.06);}
+    .btn-logout{width:100%;padding:0.6rem;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);border-radius:var(--radius-sm);color:#f87171;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all .18s;font-family:inherit;}
+    .btn-logout:hover{background:rgba(239,68,68,0.22);color:#fca5a5;}
+
+    /* ── MAIN ── */
+    .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+    .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0.9rem 2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:var(--shadow);}
+    .tb-title{font-family:'Rajdhani',sans-serif;font-size:1.3rem;font-weight:700;letter-spacing:0.06em;color:var(--navy);}
+    .tb-sub{font-size:0.72rem;color:var(--text-3);}
+    .tb-right{display:flex;align-items:center;gap:1rem;}
+    .tb-date{font-size:0.78rem;color:var(--text-3);}
+    .content{padding:2rem;flex:1;}
+
+    /* ── STATS ROW ── */
+    .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin-bottom:1.8rem;}
+    .stat-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);padding:1.2rem 1.4rem;display:flex;align-items:center;gap:1rem;}
+    .sc-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+    .ic-teal{background:linear-gradient(135deg,#e0f7fa,#b2ebf2);}
+    .ic-green{background:linear-gradient(135deg,#d1fae5,#a7f3d0);}
+    .ic-blue{background:linear-gradient(135deg,#dbeafe,#bfdbfe);}
+    .sc-val{font-family:'Rajdhani',sans-serif;font-size:1.6rem;font-weight:700;color:var(--navy);line-height:1;}
+    .sc-lbl{font-size:0.72rem;color:var(--text-3);margin-top:2px;}
+
+    /* ── CARD ── */
+    .card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden;}
+    .card-hdr{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);background:linear-gradient(135deg,#f8fbfd,#eef5f8);}
+    .card-title{font-family:'Rajdhani',sans-serif;font-size:1.05rem;font-weight:700;letter-spacing:0.04em;color:var(--navy);}
+    .card-body{padding:1.4rem 1.5rem;}
+
+    /* ── ADD FORM ── */
+    .add-form{display:flex;gap:0.6rem;margin-bottom:1.4rem;flex-wrap:wrap;}
+    .add-form input{flex:1;min-width:140px;padding:0.6rem 0.9rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:0.83rem;font-family:inherit;outline:none;transition:border-color .18s;}
+    .add-form input:focus{border-color:var(--teal);}
+    .add-form input.code-input{flex:0 0 100px;text-transform:uppercase;}
+    .btn-add{padding:0.6rem 1.2rem;background:var(--teal);color:#fff;border:none;border-radius:var(--radius-sm);font-size:0.82rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .18s;white-space:nowrap;}
+    .btn-add:hover{background:var(--teal-dark);}
+
+    /* ── TABLE ── */
+    .tbl-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;font-size:0.83rem;}
+    thead th{background:var(--bg);color:var(--text-3);font-weight:700;font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.7rem 1rem;text-align:left;border-bottom:1px solid var(--border);}
+    tbody tr{border-bottom:1px solid #f0f4f7;transition:background .12s;}
+    tbody tr:hover{background:#f8fbfd;}
+    tbody td{padding:0.75rem 1rem;color:var(--text);}
+    .code-badge{display:inline-flex;align-items:center;justify-content:center;background:var(--teal-light);color:var(--teal-dark);font-weight:700;font-size:0.72rem;padding:0.2rem 0.6rem;border-radius:20px;letter-spacing:0.06em;}
+    .complaint-count{font-weight:600;color:var(--blue);}
+    .btn-del{padding:0.3rem 0.65rem;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:6px;color:#ef4444;font-size:0.72rem;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit;}
+    .btn-del:hover{background:rgba(239,68,68,0.2);}
+    .no-del{font-size:0.7rem;color:var(--text-3);font-style:italic;}
+    .empty-state{text-align:center;color:var(--text-3);font-size:0.82rem;padding:2.5rem 0;}
+
+    /* ── TOAST ── */
+    .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--navy);color:#fff;padding:0.75rem 1.2rem;border-radius:var(--radius-sm);font-size:0.83rem;font-weight:500;box-shadow:var(--shadow-md);opacity:0;transform:translateY(12px);transition:all .25s;pointer-events:none;z-index:9999;}
+    .toast.show{opacity:1;transform:translateY(0);}
+    .toast.success{border-left:3px solid var(--green);}
+    .toast.error{border-left:3px solid var(--red);}
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-hdr">
+    <a href="/hydraa-admin-dashboard.html" class="sb-brand">
+      <div class="sb-logo">🏛️</div>
+      <div class="sb-bt"><div class="t1">HYDRAA</div><div class="t2">Government of Telangana</div></div>
+    </a>
+  </div>
+  <div class="sb-badge">🛡️ &nbsp;Admin Panel</div>
+  <div class="sb-user">
+    <div class="sb-av" id="sb-av">A</div>
+    <div class="sb-ui"><div class="un" id="sb-un">Administrator</div><div class="ur">System Admin</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Overview</div>
+    <a href="/hydraa-admin-dashboard.html" class="sb-a"><span class="si">📊</span> Dashboard</a>
+    <a href="/hydraa-admin-dashboard.html" class="sb-a"><span class="si">📋</span> All Complaints</a>
+    <a href="/hydraa-admin-analytics.html" class="sb-a"><span class="si">📈</span> Analytics</a>
+    <a href="/hydraa-admin-heatmap.html" class="sb-a"><span class="si">🗺️</span> Heatmap</a>
+    <div class="sb-sec">Management</div>
+    <a href="/hydraa-admin-management.html" class="sb-a"><span class="si">👷</span> Manage Officials</a>
+    <a href="/hydraa-admin-users.html" class="sb-a"><span class="si">👥</span> Manage Users</a>
+    <a href="/hydraa-admin-categories.html" class="sb-a"><span class="si">🗂️</span> Categories</a>
+    <a href="/hydraa-admin-states.html" class="sb-a active"><span class="si">📍</span> States</a>
+    <div class="sb-sec">Account</div>
+    <a href="/hydraa-change-password.html" class="sb-a"><span class="si">🔒</span> Change Password</a>
+  </nav>
+  <div class="sb-ft">
+    <button class="btn-logout" onclick="logout()">⬅ Logout</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="tb-title">📍 States / Regions</div>
+      <div class="tb-sub">Manage states for complaint classification</div>
+    </div>
+    <div class="tb-right">
+      <div class="tb-date" id="tb-date"></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="sc-icon ic-teal">📍</div>
+        <div class="sc-info"><div class="sc-val" id="s-total">—</div><div class="sc-lbl">Total States</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-icon ic-blue">📋</div>
+        <div class="sc-info"><div class="sc-val" id="s-complaints">—</div><div class="sc-lbl">Total Complaints Mapped</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-icon ic-green">🏆</div>
+        <div class="sc-info"><div class="sc-val" id="s-top">—</div><div class="sc-lbl">Most Active State</div></div>
+      </div>
+    </div>
+
+    <!-- STATES TABLE -->
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title">All States</div>
+      </div>
+      <div class="card-body">
+        <div class="add-form">
+          <input type="text" id="state-name" placeholder="State name (e.g. Telangana)"/>
+          <input type="text" id="state-code" class="code-input" placeholder="Code (e.g. TG)" maxlength="10"/>
+          <button class="btn-add" onclick="addState()">+ Add State</button>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>State Name</th>
+                <th>Code</th>
+                <th>Complaints</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="states-tbody">
+              <tr><td colspan="5"><div class="empty-state">Loading...</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="http-client.js"></script>
+<script src="app.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!Auth.isLoggedIn()) { window.location.href = '/hydraa-admin-login.html'; return; }
+    const info = Auth.getUser();
+    if (info) {
+      const n = info.username || info.full_name || 'Admin';
+      document.getElementById('sb-un').textContent = n;
+      document.getElementById('sb-av').textContent = n[0].toUpperCase();
+    }
+    const d = new Date();
+    document.getElementById('tb-date').textContent = d.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+    loadStates();
+  });
+
+  function showToast(msg, type='success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  function escHtml(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  let states = [];
+
+  async function loadStates() {
+    const res = await http.get('/api/admin/states');
+    if (!res.success) { showToast('Failed to load states', 'error'); return; }
+    states = res.data || [];
+    renderStates();
+  }
+
+  function renderStates() {
+    document.getElementById('s-total').textContent = states.length;
+    const total = states.reduce((s, r) => s + (parseInt(r.complaint_count) || 0), 0);
+    document.getElementById('s-complaints').textContent = total;
+    const top = states.reduce((a, b) => (parseInt(b.complaint_count)||0) > (parseInt(a.complaint_count)||0) ? b : a, states[0] || {});
+    document.getElementById('s-top').textContent = top?.state_name || '—';
+
+    const tbody = document.getElementById('states-tbody');
+    if (!states.length) {
+      tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">No states yet.</div></td></tr>';
+      return;
+    }
+    tbody.innerHTML = states.map((s, i) => `
+      <tr>
+        <td style="color:var(--text-3);font-size:0.76rem;">${i+1}</td>
+        <td style="font-weight:600;">${escHtml(s.state_name)}</td>
+        <td>${s.code ? `<span class="code-badge">${escHtml(s.code)}</span>` : '<span style="color:var(--text-3);font-size:0.75rem;">—</span>'}</td>
+        <td><span class="complaint-count">${s.complaint_count || 0}</span></td>
+        <td>
+          ${parseInt(s.complaint_count) > 0
+            ? `<span class="no-del">Has complaints</span>`
+            : `<button class="btn-del" onclick="deleteState(${s.id},'${escHtml(s.state_name)}')">🗑 Delete</button>`
+          }
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  async function addState() {
+    const name = document.getElementById('state-name').value.trim();
+    const code = document.getElementById('state-code').value.trim().toUpperCase();
+    if (!name) { showToast('State name is required', 'error'); return; }
+    const res = await http.post('/api/admin/states', { state_name: name, code: code || undefined });
+    if (!res.success) { showToast(res.message || 'Failed to add state', 'error'); return; }
+    document.getElementById('state-name').value = '';
+    document.getElementById('state-code').value = '';
+    showToast('State added');
+    loadStates();
+  }
+
+  async function deleteState(id, name) {
+    if (!confirm(`Delete state "${name}"?`)) return;
+    const res = await http.delete(`/api/admin/states/${id}`);
+    if (!res.success) { showToast(res.message || 'Failed to delete', 'error'); return; }
+    showToast('State deleted');
+    loadStates();
+  }
+</script>
+</body>
+</html>

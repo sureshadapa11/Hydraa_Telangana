@@ -19,6 +19,8 @@ const {
   deactivateUser,
   getUserLogs,
   getStates,
+  createState,
+  deleteState,
   getAnalytics,
   getHeatmapData,
 } = require('../controllers/adminController');
@@ -46,6 +48,8 @@ router.put('/users/:id/deactivate', verifyToken, deactivateUser);
 
 // ── States ──
 router.get('/states', verifyToken, getStates);
+router.post('/states', verifyToken, createState);
+router.delete('/states/:id', verifyToken, deleteState);
 
 // ── Analytics ──
 router.get('/analytics', verifyToken, getAnalytics);

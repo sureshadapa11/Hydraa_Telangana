@@ -302,7 +302,12 @@ const getUserLogs = async (req, res) => {
 const getStates = async (req, res) => {
   try {
     const [states] = await db.query(`
-      SELECT id, state_name FROM states ORDER BY state_name ASC
+      SELECT s.id, s.state_name, s.code,
+             COUNT(c.id) AS complaint_count
+      FROM states s
+      LEFT JOIN complaints c ON c.state_id = s.id
+      GROUP BY s.id, s.state_name, s.code
+      ORDER BY s.state_name ASC
     `);
 
     res.json({
@@ -311,6 +316,45 @@ const getStates = async (req, res) => {
     });
   } catch (err) {
     console.error('Get states error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+// ────────────────────────────────────────────────────
+//  STATES: CREATE
+// ────────────────────────────────────────────────────
+const createState = async (req, res) => {
+  const { state_name, code } = req.body;
+  if (!state_name) return res.status(400).json({ success: false, message: 'State name required.' });
+
+  try {
+    const [result] = await db.query(
+      'INSERT INTO states (state_name, code) VALUES (?, ?)',
+      [state_name, code || null]
+    );
+    res.status(201).json({
+      success: true,
+      message: 'State created.',
+      data: { id: result.insertId, state_name, code: code || null },
+    });
+  } catch (err) {
+    if (err.code === 'ER_DUP_ENTRY') return res.status(409).json({ success: false, message: 'State already exists.' });
+    console.error('Create state error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+// ────────────────────────────────────────────────────
+//  STATES: DELETE
+// ────────────────────────────────────────────────────
+const deleteState = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [result] = await db.query('DELETE FROM states WHERE id = ?', [id]);
+    if (result.affectedRows === 0) return res.status(404).json({ success: false, message: 'State not found.' });
+    res.json({ success: true, message: 'State deleted.' });
+  } catch (err) {
+    console.error('Delete state error:', err);
     res.status(500).json({ success: false, message: 'Server error.' });
   }
 };
@@ -467,6 +511,8 @@ module.exports = {
   deactivateUser,
   getUserLogs,
   getStates,
+  createState,
+  deleteState,
   getAnalytics,
   getHeatmapData,
 };
