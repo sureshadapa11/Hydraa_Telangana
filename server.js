@@ -14,8 +14,16 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
 // Serve static files from root directory
 app.use(express.static(__dirname));
+
+
+// ── Root Route (FIXES YOUR ERROR) ──
+app.get('/', (req, res) => {
+  res.send('HYDRAA API running successfully 🚀');
+});
+
 
 // ── Routes ──
 const authRoutes = require('./routes/authRoutes');
@@ -27,6 +35,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/admin', adminRoutes);
 
+
 // ── Health Check ──
 app.get('/api/health', (req, res) => {
   res.json({
@@ -36,6 +45,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+
 // ── 404 Handler ──
 app.use((req, res) => {
   res.status(404).json({
@@ -44,26 +54,33 @@ app.use((req, res) => {
   });
 });
 
+
 // ── Error Handler ──
 app.use((err, req, res, next) => {
   console.error('Server error:', err);
+
   res.status(500).json({
     success: false,
     message: 'Internal server error.',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined,
+    error:
+      process.env.NODE_ENV === 'development'
+        ? err.message
+        : undefined,
   });
 });
 
+
 // ── Start Server ──
 const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
   console.log(`
-    ╔════════════════════════════════════════╗
-    ║   HYDRAA API Server Started            ║
-    ║   Port: ${PORT}                          ║
-    ║   Environment: ${process.env.NODE_ENV || 'development'}               ║
-    ║   Status: ✅ Running                   ║
-    ╚════════════════════════════════════════╝
+╔════════════════════════════════════════╗
+║   HYDRAA API Server Started            ║
+║   Port: ${PORT}                         
+║   Environment: ${process.env.NODE_ENV || 'development'}               
+║   Status: ✅ Running                   
+╚════════════════════════════════════════╝
   `);
 });
 
