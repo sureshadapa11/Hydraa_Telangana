@@ -209,7 +209,7 @@ const createOfficial = async (req, res) => {
     });
   } catch (err) {
     console.error('Create official error:', err);
-    res.status(500).json({ success: false, message: 'Server error.' });
+    res.status(500).json({ success: false, message: err.message || 'Server error.' });
   }
 };
 

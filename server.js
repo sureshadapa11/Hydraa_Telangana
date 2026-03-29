@@ -147,6 +147,43 @@ async function seedDefaultAdmin() {
   }
 }
 
+// ── Fix Officials Table (recreate if missing required columns) ──
+async function fixOfficialsTable() {
+  try {
+    const db = require('./utils/db');
+    const [cols] = await db.query(
+      `SELECT COLUMN_NAME FROM information_schema.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'officials'`
+    );
+    const colNames = cols.map(c => c.COLUMN_NAME);
+    const required = ['id', 'full_name', 'email', 'phone', 'department', 'password', 'is_active'];
+    const missing  = required.filter(c => !colNames.includes(c));
+
+    if (missing.length > 0) {
+      console.log('⚠️  Officials table missing columns:', missing.join(', '), '— recreating...');
+      await db.query('DROP TABLE IF EXISTS officials');
+      await db.query(`
+        CREATE TABLE officials (
+          id INT PRIMARY KEY AUTO_INCREMENT,
+          full_name VARCHAR(100) NOT NULL,
+          email VARCHAR(100) UNIQUE NOT NULL,
+          phone VARCHAR(15),
+          department VARCHAR(100) NOT NULL,
+          password VARCHAR(255) NOT NULL,
+          is_active BOOLEAN DEFAULT 1,
+          last_login TIMESTAMP NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      console.log('✅ Officials table recreated');
+    } else {
+      console.log('✅ Officials table OK');
+    }
+  } catch (err) {
+    console.warn('⚠️  Officials table check skipped:', err.message);
+  }
+}
+
 // ── Start Server ──
 const PORT = process.env.PORT || 5000;
 
@@ -160,6 +197,7 @@ app.listen(PORT, async () => {
 ╚════════════════════════════════════════╝
   `);
   await runSchema();
+  await fixOfficialsTable();
   await seedDefaultAdmin();
 });
 
