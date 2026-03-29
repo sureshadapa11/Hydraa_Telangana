@@ -220,9 +220,7 @@
   <div class="content">
     <!-- Page tabs -->
     <div class="page-tabs">
-      <button class="ptab active" onclick="switchView('officials')">👷 Officials</button>
-      <button class="ptab" onclick="switchView('users')">👥 Citizens</button>
-      <button class="ptab" onclick="switchView('categories')">🗂️ Categories</button>
+      <button class="ptab active">👷 Officials</button>
     </div>
 
     <!-- ═══ OFFICIALS VIEW ═══ -->
@@ -282,82 +280,10 @@
       </div>
     </div>
 
-    <!-- ═══ USERS VIEW ═══ -->
-    <div class="view" id="view-users">
-      <div class="sec-hdr">
-        <div class="sh-left">
-          <div class="sh-tag">Citizen Registry</div>
-          <div class="sh-title">Registered Citizens</div>
-          <div class="sh-sub">All citizens registered on HYDRAA portal</div>
-        </div>
-        <button class="btn-add" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)" onclick="window.print()">🖨️ Print</button>
-      </div>
-
-      <div class="table-card">
-        <div class="tc-hdr">
-          <div class="tc-title">All Citizens</div>
-          <div class="tc-count" id="users-count">Loading...</div>
-        </div>
-        <div id="usersTable"><div class="empty"><div class="empty-icon">⏳</div><p>Loading citizens...</p></div></div>
-      </div>
-    </div>
-
-    <!-- ═══ CATEGORIES VIEW ═══ -->
-    <div class="view" id="view-categories">
-      <div class="sec-hdr">
-        <div class="sh-left">
-          <div class="sh-tag">Complaint Types</div>
-          <div class="sh-title">Categories & Sub-Categories</div>
-          <div class="sh-sub">Manage complaint categories used across HYDRAA</div>
-        </div>
-      </div>
-
-      <div class="cat-grid">
-        <!-- Categories -->
-        <div class="cat-col">
-          <div class="cat-col-hdr">
-            <div class="cat-col-title">📁 Main Categories</div>
-          </div>
-          <div class="cat-add-row">
-            <input type="text" id="catName" class="cat-input" placeholder="New category name..." onkeydown="if(event.key==='Enter') addCategory()"/>
-            <button class="cat-add-btn" onclick="addCategory()">+ Add</button>
-          </div>
-          <div id="catList"><div class="empty"><div class="empty-icon">⏳</div><p>Loading...</p></div></div>
-        </div>
-
-        <!-- Sub-categories -->
-        <div class="cat-col">
-          <div class="cat-col-hdr">
-            <div class="cat-col-title">📂 Sub-Categories</div>
-          </div>
-          <div class="cat-add-row" style="flex-direction:column;gap:0.5rem;">
-            <select id="subCatParent" class="cat-input" onchange="loadSubcats()">
-              <option value="">— Select Parent Category —</option>
-            </select>
-            <div style="display:flex;gap:0.6rem;">
-              <input type="text" id="subCatName" class="cat-input" placeholder="Sub-category name..." onkeydown="if(event.key==='Enter') addSubcat()"/>
-              <button class="cat-add-btn" onclick="addSubcat()">+ Add</button>
-            </div>
-          </div>
-          <div id="subcatList"><div class="empty"><p style="font-size:0.82rem">Select a category to view sub-categories</p></div></div>
-        </div>
-      </div>
-    </div>
 
   </div>
 </div>
 
-<!-- LOGS MODAL -->
-<div id="logsModal" class="modal">
-  <div class="modal-box">
-    <div class="modal-hdr">
-      <div class="mh-icon">📋</div>
-      <div><div class="mh-title" id="logs-title">User Logs</div><div class="mh-sub">Activity history</div></div>
-    </div>
-    <div class="modal-body" id="logsBody"></div>
-    <div class="modal-ftr"><button class="mb-close" onclick="document.getElementById('logsModal').classList.remove('open')">Close</button></div>
-  </div>
-</div>
 
 <script src="http-client.js"></script><script src="app.js"></script>
 <script>
@@ -373,19 +299,6 @@
     document.getElementById('tp-nm').textContent = name;
   }
 
-  // ── VIEW SWITCHING ──
-  function switchView(v) {
-    document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.ptab').forEach(el => el.classList.remove('active'));
-    document.getElementById('view-'+v).classList.add('active');
-    const idx = {officials:0,users:1,categories:2}[v];
-    document.querySelectorAll('.ptab')[idx].classList.add('active');
-    const titles = {officials:['Manage Officials','Officials Management'],users:['Manage Citizens','Citizen Registry'],categories:['Categories','Complaint Categories']};
-    document.getElementById('tb-title').textContent = titles[v][0];
-    document.getElementById('tb-sub').textContent = titles[v][1];
-    if (v==='users' && !usersLoaded) loadUsers();
-    if (v==='categories' && !catsLoaded) loadCategories();
-  }
 
   function toggleAddForm(view) {
     const el = document.getElementById('add-'+view);
@@ -415,8 +328,8 @@
             <tr>
               <td>
                 <div style="display:flex;align-items:center;gap:0.6rem">
-                  <div class="av">${o.full_name[0].toUpperCase()}</div>
-                  <strong>${o.full_name}</strong>
+                  <div class="av">${(o.full_name||'?')[0].toUpperCase()}</div>
+                  <strong>${o.full_name||'—'}</strong>
                 </div>
               </td>
               <td style="font-size:0.78rem">${o.email}</td>
@@ -426,7 +339,7 @@
               <td style="font-size:0.78rem;white-space:nowrap">${formatDate(o.created_at)}</td>
               <td>
                 <button class="act-btn ${o.is_active?'ab-deactivate':'ab-activate'}"
-                  onclick="toggleOfficialStatus(${o.id},${o.is_active},'${o.full_name}','${o.phone||''}','${o.department||''}')">
+                  onclick="toggleOfficialStatus(${o.id},${o.is_active},this)">
                   ${o.is_active?'Deactivate':'Activate'}
                 </button>
               </td>
@@ -452,120 +365,16 @@
     } catch(e) { alert_el.textContent='Server error.'; alert_el.className='add-alert err'; }
   }
 
-  async function toggleOfficialStatus(id, current, name, phone, dept) {
+  async function toggleOfficialStatus(id, current, btn) {
+    const row = btn.closest('tr');
+    const name = row.cells[0].querySelector('strong').textContent;
+    const phone = row.cells[2].textContent.trim().replace('—','');
+    const dept  = row.cells[3].textContent.trim();
     if (!confirm(`${current?'Deactivate':'Activate'} official "${name}"?`)) return;
     const res = await http.put(`/api/admin/officials/${id}`, {full_name:name,phone,department:dept,is_active:current?0:1});
     if (res.success) loadOfficials(); else alert(res.message);
   }
 
-  // ── USERS ──
-  var usersLoaded = false;
-  async function loadUsers() {
-    try {
-      const res = await http.get('/api/admin/users');
-      if (!res.success) return;
-      usersLoaded = true;
-      document.getElementById('users-count').textContent = res.data.length + ' citizens';
-      document.getElementById('usersTable').innerHTML = `
-        <table>
-          <thead><tr><th>#</th><th>Citizen</th><th>Email</th><th>Phone</th><th>Verified</th><th>Registered</th><th>Action</th></tr></thead>
-          <tbody>${res.data.map((u,i) => `
-            <tr>
-              <td style="color:var(--text-3);font-size:0.78rem">${i+1}</td>
-              <td>
-                <div style="display:flex;align-items:center;gap:0.6rem">
-                  <div class="av" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">${u.full_name[0].toUpperCase()}</div>
-                  <strong>${u.full_name}</strong>
-                </div>
-              </td>
-              <td style="font-size:0.78rem">${u.email}</td>
-              <td style="font-size:0.78rem">${u.phone||'—'}</td>
-              <td><span class="badge ${u.is_verified?'b-verified':'b-unverified'}">${u.is_verified?'✓ Verified':'✗ Pending'}</span></td>
-              <td style="font-size:0.78rem;white-space:nowrap">${formatDate(u.created_at)}</td>
-              <td><button class="act-btn ab-logs" onclick="viewLogs(${u.id},'${u.full_name}')">📋 Logs</button></td>
-            </tr>`).join('')}
-          </tbody>
-        </table>`;
-    } catch(err) { console.error(err); }
-  }
-
-  async function viewLogs(id, name) {
-    document.getElementById('logs-title').textContent = name + ' — Activity Logs';
-    document.getElementById('logsBody').innerHTML = '<div style="text-align:center;padding:1rem;color:var(--text-3)">Loading...</div>';
-    document.getElementById('logsModal').classList.add('open');
-    try {
-      const res = await http.get(`/api/admin/users/${id}/logs`);
-      document.getElementById('logsBody').innerHTML = !res.data||res.data.length===0
-        ? '<div class="empty"><div class="empty-icon">📭</div><p>No activity logs found</p></div>'
-        : res.data.map(l=>`<div class="log-item"><span class="log-date">${formatDate(l.created_at)}</span><span class="log-action">${l.action}</span></div>`).join('');
-    } catch(e) { document.getElementById('logsBody').innerHTML = '<p style="color:var(--red);padding:1rem">Failed to load logs.</p>'; }
-  }
-
-  // ── CATEGORIES ──
-  var catsLoaded = false;
-  async function loadCategories() {
-    try {
-      const res = await http.get('/api/admin/categories');
-      catsLoaded = true;
-      const sel = document.getElementById('subCatParent');
-      sel.innerHTML = '<option value="">— Select Parent Category —</option>';
-      res.data.forEach(c => sel.innerHTML += `<option value="${c.id}">${c.name}</option>`);
-
-      document.getElementById('catList').innerHTML = res.data.length===0
-        ? '<div class="empty"><div class="empty-icon">📁</div><p>No categories yet. Add one above.</p></div>'
-        : res.data.map(c=>`
-          <div class="cat-item">
-            <div class="cat-item-name">📁 ${c.name}</div>
-            <button class="act-btn ab-delete" onclick="deleteCategory(${c.id})">Delete</button>
-          </div>`).join('');
-    } catch(err) { console.error(err); }
-  }
-
-  async function addCategory() {
-    const name = document.getElementById('catName').value.trim();
-    if (!name) return;
-    const res = await http.post('/api/admin/categories',{name});
-    if (res.success) { document.getElementById('catName').value=''; loadCategories(); }
-    else alert(res.message);
-  }
-
-  async function deleteCategory(id) {
-    if (!confirm('Delete this category? Sub-categories will also be removed.')) return;
-    const res = await http.delete(`/api/admin/categories/${id}`);
-    if (res.success) loadCategories(); else alert(res.message);
-  }
-
-  async function loadSubcats() {
-    const catId = document.getElementById('subCatParent').value;
-    if (!catId) { document.getElementById('subcatList').innerHTML='<div class="empty"><p style="font-size:0.82rem">Select a category above</p></div>'; return; }
-    const res = await http.get(`/api/admin/subcategories?category_id=${catId}`);
-    document.getElementById('subcatList').innerHTML = res.data.length===0
-      ? '<div class="empty"><div class="empty-icon">📂</div><p>No sub-categories yet. Add one above.</p></div>'
-      : res.data.map(s=>`
-        <div class="cat-item">
-          <div class="cat-item-name" style="padding-left:0.5rem">↳ ${s.name}</div>
-          <button class="act-btn ab-delete" onclick="deleteSubcat(${s.id})">Delete</button>
-        </div>`).join('');
-  }
-
-  async function addSubcat() {
-    const catId = document.getElementById('subCatParent').value;
-    const name  = document.getElementById('subCatName').value.trim();
-    if (!catId) return alert('Please select a parent category first.');
-    if (!name)  return;
-    const res = await http.post('/api/admin/subcategories',{name,category_id:catId});
-    if (res.success) { document.getElementById('subCatName').value=''; loadSubcats(); }
-    else alert(res.message);
-  }
-
-  async function deleteSubcat(id) {
-    if (!confirm('Delete this sub-category?')) return;
-    const res = await http.delete(`/api/admin/subcategories/${id}`);
-    if (res.success) loadSubcats(); else alert(res.message);
-  }
-
-  // Close logs modal on backdrop
-  document.getElementById('logsModal').addEventListener('click', e => { if(e.target===e.currentTarget) e.currentTarget.classList.remove('open'); });
 
   loadOfficials();
 </script>
