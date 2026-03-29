@@ -91,6 +91,13 @@ function debounce(func, delay) {
 }
 
 /**
+ * Logout — clears session and redirects to login
+ */
+function logout() {
+  Auth.logout();
+}
+
+/**
  * Copy to clipboard
  */
 function copyToClipboard(text) {
