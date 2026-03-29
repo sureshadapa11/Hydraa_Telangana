@@ -2,7 +2,10 @@
 //   Main Server — HYDRAA
 //   Backend API server with Express
 // =====================================================
-
+const ADMIN_EMAIL = 'admin@hydraa.telangana';
+const ADMIN_PASSWORD = 'Hydraatelangana@9511';
+const ADMIN_USERNAME = 'Admin';
+const ADMIN_ROLE = 'admin';
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
