@@ -99,7 +99,14 @@ async function seedDefaultAdmin() {
     const db     = require('./utils/db');
 
     // Ensure username column exists (in case table was created without it)
-    await db.query('ALTER TABLE admins ADD COLUMN IF NOT EXISTS username VARCHAR(100)').catch(() => {});
+    const [cols] = await db.query(
+      `SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'admins' AND COLUMN_NAME = 'username'`
+    );
+    if (cols[0].cnt === 0) {
+      await db.query('ALTER TABLE admins ADD COLUMN username VARCHAR(100)');
+      console.log('✅ Added username column to admins table');
+    }
 
     const [rows] = await db.query('SELECT id FROM admins LIMIT 1');
     if (rows.length > 0) return; // admin already exists
