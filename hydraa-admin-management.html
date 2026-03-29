@@ -241,7 +241,23 @@
         <div class="add-card-title">👷 Add New Official</div>
         <div class="f-row">
           <div class="f-group"><label class="f-label">Full Name <span>*</span></label><input type="text" id="of_name" class="f-input" placeholder="Official's full name"/></div>
-          <div class="f-group"><label class="f-label">Department</label><input type="text" id="of_dept" class="f-input" placeholder="e.g. Lake Protection Wing"/></div>
+          <div class="f-group"><label class="f-label">Department <span>*</span></label>
+            <select id="of_dept" class="f-input">
+              <option value="">— Select Department —</option>
+              <option>Lake Protection Wing</option>
+              <option>Anti-Encroachment Wing</option>
+              <option>Illegal Construction Wing</option>
+              <option>Park & Open Space Wing</option>
+              <option>Roads & Infrastructure Wing</option>
+              <option>Drainage & Flood Control Wing</option>
+              <option>Government Land Protection Wing</option>
+              <option>Advertisement Regulation Wing</option>
+              <option>Disaster Response Wing</option>
+              <option>Legal & Enforcement Wing</option>
+              <option>Survey & Mapping Wing</option>
+              <option>Administration</option>
+            </select>
+          </div>
         </div>
         <div class="f-row">
           <div class="f-group"><label class="f-label">Email <span>*</span></label><input type="email" id="of_email" class="f-input" placeholder="official@hydraa.gov.in" autocomplete="off"/></div>
@@ -425,9 +441,10 @@
     const email    = document.getElementById('of_email').value.trim();
     const password = document.getElementById('of_password').value;
     const alert_el = document.getElementById('addOfficialAlert');
-    if (!name||!email||!password) { alert_el.textContent='Name, email and password are required.'; alert_el.className='add-alert err'; return; }
+    const dept = document.getElementById('of_dept').value;
+    if (!name||!email||!password||!dept) { alert_el.textContent='Name, email, department and password are required.'; alert_el.className='add-alert err'; return; }
     try {
-      const res = await http.post('/api/admin/officials', {full_name:name,email,phone:document.getElementById('of_phone').value,department:document.getElementById('of_dept').value,password});
+      const res = await http.post('/api/admin/officials', {full_name:name,email,phone:document.getElementById('of_phone').value,department:dept,password});
       if (res.success) {
         alert_el.textContent='Official added successfully!'; alert_el.className='add-alert ok';
         setTimeout(()=>{ toggleAddForm('officials'); ['of_name','of_dept','of_email','of_phone','of_password'].forEach(id=>document.getElementById(id).value=''); alert_el.className='add-alert'; loadOfficials(); },1200);
