@@ -55,6 +55,8 @@ function formatDate(dateStr) {
 function getStatusBadge(status) {
   const colors = {
     'open': '#0097a7',
+    'assigned': '#3b82f6',
+    'in_progress': '#f59e0b',
     'in-progress': '#f59e0b',
     'resolved': '#10b981',
     'rejected': '#ef4444',
@@ -71,7 +73,8 @@ function getPriorityBadge(priority) {
   const icons = {
     'low': '🟢',
     'medium': '🟡',
-    'high': '🔴'
+    'high': '🔴',
+    'urgent': '🚨'
   };
   return `${icons[priority] || '⚪'} ${priority?.toUpperCase() || 'N/A'}`;
 }
@@ -92,7 +95,7 @@ function debounce(func, delay) {
  */
 function copyToClipboard(text) {
   navigator.clipboard.writeText(text).then(() => {
-    console.log('Copied to clipboard');
+    showAlert('copyAlert', 'success', 'Copied to clipboard!');
   });
 }
 

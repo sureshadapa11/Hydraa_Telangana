@@ -2,10 +2,6 @@
 //   Main Server — HYDRAA
 //   Backend API server with Express
 // =====================================================
-const ADMIN_EMAIL = 'admin@hydraa.telangana';
-const ADMIN_PASSWORD = 'Hydraatelangana@9511';
-const ADMIN_USERNAME = 'Admin';
-const ADMIN_ROLE = 'admin';
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -71,10 +67,35 @@ app.use((err, req, res, next) => {
   });
 });
 
+// ── Seed Default Admin (runs once on startup if no admin exists) ──
+async function seedDefaultAdmin() {
+  try {
+    const bcrypt = require('bcryptjs');
+    const db     = require('./utils/db');
+
+    const [rows] = await db.query('SELECT id FROM admins LIMIT 1');
+    if (rows.length > 0) return; // admin already exists
+
+    const email    = process.env.ADMIN_EMAIL     || 'admin@hydraa.telangana';
+    const password = process.env.ADMIN_PASSWORD  || 'Hydraatelangana@9511';
+    const username = process.env.ADMIN_USERNAME  || 'Admin';
+    const fullName = process.env.ADMIN_FULL_NAME || 'HYDRAA Administrator';
+
+    const hashed = await bcrypt.hash(password, 12);
+    await db.query(
+      'INSERT INTO admins (username, email, password, full_name, is_active) VALUES (?, ?, ?, ?, 1)',
+      [username, email, hashed, fullName]
+    );
+    console.log('✅ Default admin seeded:', email);
+  } catch (err) {
+    console.warn('⚠️  Admin seed skipped (DB may not be ready):', err.message);
+  }
+}
+
 // ── Start Server ──
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`
 ╔════════════════════════════════════════╗
 ║   HYDRAA API Server Started            ║
@@ -83,6 +104,7 @@ app.listen(PORT, () => {
 ║   Status: ✅ Running                    ║
 ╚════════════════════════════════════════╝
   `);
+  await seedDefaultAdmin();
 });
 
 module.exports = app;

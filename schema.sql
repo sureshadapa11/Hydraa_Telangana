@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS complaints (
   description TEXT NOT NULL,
   category_id INT,
   subcategory_id INT,
-  priority ENUM('low', 'medium', 'high') DEFAULT 'medium',
+  priority ENUM('low', 'medium', 'high', 'urgent') DEFAULT 'medium',
   state_id INT,
   address TEXT NOT NULL,
   status ENUM('open', 'assigned', 'in_progress', 'resolved', 'rejected', 'closed') DEFAULT 'open',

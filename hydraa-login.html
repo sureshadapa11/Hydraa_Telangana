@@ -382,7 +382,7 @@
         </div>
 
         <div class="forgot-row">
-          <a href="hydraa-forgot-password.html" class="forgot-link">Forgot password?</a>
+          <a href="/hydraa-forgot-password.html" class="forgot-link">Forgot password?</a>
         </div>
 
         <button type="submit" class="submit-btn">Login to HYDRAA →</button>
@@ -485,7 +485,7 @@
       
       if (res.success && res.token) {
         Auth.setUser(res.user, res.token);
-        window.location.href = 'hydraa-user-dashboard.html';
+        window.location.href = '/hydraa-user-dashboard.html';
       } else {
         alert(res.message || 'Login failed. Please try again.');
       }

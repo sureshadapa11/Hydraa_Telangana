@@ -428,12 +428,12 @@
 
   <nav class="sb-nav">
     <div class="sb-section-label">Main Menu</div>
-    <a href="user-dashboard.html" class="sb-link"><span class="sbi">🏠</span> Dashboard</a>
-    <a href="lodge-complaint.html" class="sb-link active"><span class="sbi">📝</span> Lodge Complaint</a>
-    <a href="my-complaints.html" class="sb-link"><span class="sbi">📋</span> My Complaints</a>
-    <a href="track-complaint.html" class="sb-link"><span class="sbi">🔍</span> Track Complaint</a>
+    <a href="/hydraa-user-dashboard.html" class="sb-link"><span class="sbi">🏠</span> Dashboard</a>
+    <a href="/hydraa-lodge-complaint.html" class="sb-link active"><span class="sbi">📝</span> Lodge Complaint</a>
+    <a href="/hydraa-my-complaints.html" class="sb-link"><span class="sbi">📋</span> My Complaints</a>
+    <a href="/hydraa-track-complaint.html" class="sb-link"><span class="sbi">🔍</span> Track Complaint</a>
     <div class="sb-section-label">Account</div>
-    <a href="change-password.html" class="sb-link"><span class="sbi">🔒</span> Change Password</a>
+    <a href="/hydraa-change-password.html" class="sb-link"><span class="sbi">🔒</span> Change Password</a>
   </nav>
 
   <div class="sb-footer">
@@ -805,7 +805,7 @@
         showAlert('alertBox', `✅ Complaint lodged successfully! Your Complaint No: ${res.complaint_no}`, 'success');
         document.getElementById('complaintForm').reset();
         document.getElementById('aiPreview').style.display = 'none';
-        setTimeout(() => window.location.href = 'my-complaints.html', 3000);
+        setTimeout(() => window.location.href = '/hydraa-my-complaints.html', 3000);
       } else {
         showAlert('alertBox', res.message || 'Something went wrong.', 'error');
       }

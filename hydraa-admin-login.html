@@ -208,7 +208,7 @@
 <script src="app.js"></script>
 <script>
   if (Auth.isLoggedIn() && Auth.getUser()?.role === 'admin') {
-    window.location.href = 'admin-dashboard.html';
+    window.location.href = '/hydraa-admin-dashboard.html';
   }
 
   function togglePw() {
@@ -236,7 +236,7 @@
       if (res.success) {
         Auth.setUser(res.user, res.token);
         showAlert('success', '✅ Welcome, Admin! Redirecting to dashboard...');
-        setTimeout(() => window.location.href = 'hydraa-admin-dashboard.html', 1000);
+        setTimeout(() => window.location.href = '/hydraa-admin-dashboard.html', 1000);
       } else {
         showAlert('error', res.message || 'Invalid credentials.');
       }
