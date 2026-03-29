@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Analytics — HYDRAA Telangana</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --teal:#0097a7; --teal-dark:#006978; --teal-light:#e0f7fa;
+      --navy:#0b1f3a; --navy-mid:#122944; --gold:#f4a820;
+      --green:#10b981; --red:#ef4444; --orange:#f59e0b;
+      --purple:#8b5cf6; --blue:#3b82f6;
+      --white:#fff; --bg:#f2f6f9; --text:#0d1e2e;
+      --text-2:#3d5a72; --text-3:#7a9baf; --border:#d0e4ec;
+      --shadow:0 2px 16px rgba(0,30,60,0.08);
+      --shadow-md:0 6px 32px rgba(0,30,60,0.12);
+      --radius:12px; --radius-sm:8px; --sidebar-w:256px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;}
+
+    /* SIDEBAR */
+    .sidebar{width:var(--sidebar-w);background:var(--navy);position:fixed;height:100vh;top:0;left:0;display:flex;flex-direction:column;overflow-y:auto;z-index:100;box-shadow:2px 0 20px rgba(0,0,0,0.2);}
+    .sb-hdr{padding:1.4rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.15);}
+    .sb-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .sb-logo{width:38px;height:38px;border-radius:9px;background:linear-gradient(145deg,var(--teal),#00bcd4);display:flex;align-items:center;justify-content:center;font-size:1.2rem;}
+    .sb-bt .t1{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;color:#fff;letter-spacing:0.08em;line-height:1;}
+    .sb-bt .t2{font-size:0.58rem;color:rgba(0,188,212,0.85);letter-spacing:0.12em;text-transform:uppercase;}
+    .sb-badge{margin:0.8rem 1.2rem 0;background:rgba(244,168,32,0.15);border:1px solid rgba(244,168,32,0.25);border-radius:6px;padding:0.4rem 0.8rem;display:flex;align-items:center;gap:6px;font-size:0.7rem;color:var(--gold);font-weight:700;letter-spacing:0.08em;text-transform:uppercase;}
+    .sb-user{margin:0.8rem 1.2rem 0;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-sm);padding:0.7rem;display:flex;align-items:center;gap:0.7rem;}
+    .sb-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.82rem;color:#fff;flex-shrink:0;}
+    .sb-ui .un{font-size:0.8rem;font-weight:600;color:#fff;}
+    .sb-ui .ur{font-size:0.62rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.08em;}
+    .sb-nav{padding:0.8rem 0;flex:1;}
+    .sb-sec{font-size:0.6rem;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:0.14em;font-weight:700;padding:0.6rem 1.2rem;margin-top:0.4rem;}
+    .sb-a{display:flex;align-items:center;gap:0.7rem;padding:0.65rem 1.2rem;color:rgba(255,255,255,0.58);text-decoration:none;font-size:0.83rem;font-weight:500;transition:all 0.18s;border-right:3px solid transparent;}
+    .sb-a:hover{color:#fff;background:rgba(255,255,255,0.06);}
+    .sb-a.active{color:#fff;background:rgba(0,151,167,0.18);border-right-color:var(--teal);}
+    .sb-a .si{font-size:0.95rem;width:18px;text-align:center;}
+    .sb-ft{padding:1rem 1.2rem;border-top:1px solid rgba(255,255,255,0.08);}
+    .btn-logout{width:100%;padding:0.55rem;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:rgba(239,68,68,0.8);border-radius:var(--radius-sm);font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .btn-logout:hover{background:rgba(239,68,68,0.2);color:#ef4444;}
+
+    /* MAIN */
+    .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+    .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 10px rgba(0,30,60,0.06);}
+    .tb-title{font-family:'Rajdhani',sans-serif;font-size:1.15rem;font-weight:700;color:var(--navy);}
+    .tb-sub{font-size:0.7rem;color:var(--text-3);margin-top:1px;}
+    .tb-pill{display:flex;align-items:center;gap:0.5rem;background:var(--bg);border:1px solid var(--border);border-radius:100px;padding:0.28rem 0.9rem 0.28rem 0.3rem;}
+    .tp-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;font-weight:700;font-size:0.72rem;display:flex;align-items:center;justify-content:center;}
+    .tp-nm{font-size:0.78rem;font-weight:600;color:var(--text);}
+    .content{padding:1.8rem 2rem;flex:1;}
+
+    /* STAT CARDS */
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
+    .stat-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:1.3rem 1.4rem;box-shadow:var(--shadow);display:flex;align-items:center;gap:1rem;}
+    .sc-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+    .ic-teal{background:rgba(0,151,167,0.1);}
+    .ic-green{background:rgba(16,185,129,0.1);}
+    .ic-orange{background:rgba(245,158,11,0.1);}
+    .ic-purple{background:rgba(139,92,246,0.1);}
+    .ic-blue{background:rgba(59,130,246,0.1);}
+    .ic-red{background:rgba(239,68,68,0.1);}
+    .ic-gold{background:rgba(244,168,32,0.1);}
+    .sc-val{font-family:'Rajdhani',sans-serif;font-size:2rem;font-weight:700;color:var(--text);line-height:1;}
+    .sc-lbl{font-size:0.73rem;color:var(--text-2);margin-top:2px;font-weight:500;}
+    .sc-sub{font-size:0.68rem;color:var(--green);font-weight:600;margin-top:2px;}
+
+    /* CHARTS GRID */
+    .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.5rem;}
+    .charts-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.2rem;margin-bottom:1.5rem;}
+    .chart-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:1.4rem;box-shadow:var(--shadow);}
+    .chart-card.full{grid-column:1/-1;}
+    .cc-title{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:0.3rem;}
+    .cc-sub{font-size:0.72rem;color:var(--text-3);margin-bottom:1.2rem;}
+    .chart-wrap{position:relative;height:240px;}
+    .chart-wrap.tall{height:300px;}
+
+    /* OFFICIALS TABLE */
+    .table-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;margin-bottom:1.5rem;}
+    .tc-hdr{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);}
+    .tc-title{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);}
+    .tc-sub{font-size:0.72rem;color:var(--text-3);margin-top:2px;}
+    table{width:100%;border-collapse:collapse;}
+    th{background:var(--bg);padding:0.7rem 1rem;text-align:left;font-size:0.72rem;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid var(--border);}
+    td{padding:0.8rem 1rem;font-size:0.83rem;border-bottom:1px solid var(--border);color:var(--text);}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:var(--bg);}
+
+    /* PERF BAR */
+    .perf-bar{height:6px;border-radius:100px;background:var(--border);overflow:hidden;margin-top:4px;}
+    .perf-fill{height:100%;border-radius:100px;background:linear-gradient(to right,var(--teal),#00bcd4);}
+
+    /* LOADING */
+    .loading{text-align:center;padding:3rem;color:var(--text-3);font-size:0.9rem;}
+
+    @media(max-width:900px){
+      .stats-grid{grid-template-columns:repeat(2,1fr);}
+      .charts-grid,.charts-grid-3{grid-template-columns:1fr;}
+    }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sb-hdr">
+    <a href="/hydraa-index.html" class="sb-brand">
+      <div class="sb-logo">💧</div>
+      <div class="sb-bt"><div class="t1">HYDRAA</div><div class="t2">Government of Telangana</div></div>
+    </a>
+  </div>
+  <div class="sb-badge">🛡️ &nbsp;Admin Panel</div>
+  <div class="sb-user">
+    <div class="sb-av" id="sb-av">A</div>
+    <div class="sb-ui"><div class="un" id="sb-un">Administrator</div><div class="ur">System Admin</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Overview</div>
+    <a href="/hydraa-admin-dashboard.html" class="sb-a"><span class="si">📊</span> Dashboard</a>
+    <a href="/hydraa-admin-dashboard.html" class="sb-a"><span class="si">📋</span> All Complaints</a>
+    <a href="/hydraa-admin-analytics.html" class="sb-a active"><span class="si">📈</span> Analytics</a>
+    <a href="#" class="sb-a"><span class="si">🗺️</span> Heatmap</a>
+    <div class="sb-sec">Management</div>
+    <a href="/hydraa-admin-management.html" class="sb-a"><span class="si">👷</span> Manage Officials</a>
+    <a href="#" class="sb-a"><span class="si">👥</span> Manage Users</a>
+    <a href="#" class="sb-a"><span class="si">🗂️</span> Categories</a>
+    <a href="#" class="sb-a"><span class="si">📍</span> States</a>
+    <div class="sb-sec">Account</div>
+    <a href="/hydraa-change-password.html" class="sb-a"><span class="si">🔒</span> Change Password</a>
+  </nav>
+  <div class="sb-ft">
+    <button class="btn-logout" onclick="logout()">⬅ Logout</button>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="tb-title">Analytics</div>
+      <div class="tb-sub">Complaint performance & insights</div>
+    </div>
+    <div class="tb-pill">
+      <div class="tp-av" id="tp-av">A</div>
+      <span class="tp-nm" id="tp-nm">Admin</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- KEY METRICS -->
+    <div class="stats-grid" id="statsGrid">
+      <div class="loading" style="grid-column:1/-1">Loading analytics...</div>
+    </div>
+
+    <!-- CHARTS ROW 1: Status + Priority -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="cc-title">Complaint Status Distribution</div>
+        <div class="cc-sub">Breakdown by current status</div>
+        <div class="chart-wrap"><canvas id="statusChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="cc-title">Priority Distribution</div>
+        <div class="cc-sub">Complaints by priority level</div>
+        <div class="chart-wrap"><canvas id="priorityChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- CHART ROW 2: Monthly Trend (full width) -->
+    <div class="chart-card full" style="margin-bottom:1.2rem;">
+      <div class="cc-title">Monthly Complaints Trend</div>
+      <div class="cc-sub">Filed vs Resolved over last 6 months</div>
+      <div class="chart-wrap tall"><canvas id="trendChart"></canvas></div>
+    </div>
+
+    <!-- CHART ROW 3: Category -->
+    <div class="chart-card full" style="margin-bottom:1.2rem;">
+      <div class="cc-title">Complaints by Category</div>
+      <div class="cc-sub">Volume per complaint category</div>
+      <div class="chart-wrap"><canvas id="categoryChart"></canvas></div>
+    </div>
+
+    <!-- OFFICIAL PERFORMANCE TABLE -->
+    <div class="table-card">
+      <div class="tc-hdr">
+        <div>
+          <div class="tc-title">Official Performance</div>
+          <div class="tc-sub">Complaints assigned vs resolved per official</div>
+        </div>
+      </div>
+      <div id="officialsTable"><div class="loading">Loading...</div></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="http-client.js"></script>
+<script src="app.js"></script>
+<script>
+  const user = Auth.getUser();
+  if (!user || user.role !== 'admin') window.location.href = '/hydraa-admin-login.html';
+
+  if (user) {
+    const init = (user.full_name || user.username || 'A')[0].toUpperCase();
+    document.getElementById('sb-av').textContent = init;
+    document.getElementById('sb-un').textContent = user.full_name || user.username || 'Admin';
+    document.getElementById('tp-av').textContent = init;
+    document.getElementById('tp-nm').textContent = user.full_name || user.username || 'Admin';
+  }
+
+  const CHART_COLORS = {
+    teal:   '#0097a7', green:  '#10b981', orange: '#f59e0b',
+    red:    '#ef4444', purple: '#8b5cf6', blue:   '#3b82f6',
+    gold:   '#f4a820', navy:   '#0b1f3a',
+  };
+
+  async function loadAnalytics() {
+    const res = await http.get('/api/admin/analytics');
+    if (!res.success) return;
+
+    const d = res.data;
+
+    // ── KEY METRICS ──
+    const total      = d.totals.total || 0;
+    const resolved   = d.totals.resolved || 0;
+    const pending    = d.totals.pending || 0;
+    const resRate    = total ? Math.round((resolved / total) * 100) : 0;
+    const avgHours   = d.totals.avg_resolution_hours ? Math.round(d.totals.avg_resolution_hours) : 0;
+    const avgDays    = avgHours ? (avgHours / 24).toFixed(1) : '—';
+
+    document.getElementById('statsGrid').innerHTML = `
+      <div class="stat-card"><div class="sc-icon ic-teal">📋</div><div><div class="sc-val">${total}</div><div class="sc-lbl">Total Complaints</div></div></div>
+      <div class="stat-card"><div class="sc-icon ic-green">✅</div><div><div class="sc-val">${resRate}%</div><div class="sc-lbl">Resolution Rate</div><div class="sc-sub">${resolved} resolved</div></div></div>
+      <div class="stat-card"><div class="sc-icon ic-orange">⏳</div><div><div class="sc-val">${pending}</div><div class="sc-lbl">Pending</div></div></div>
+      <div class="stat-card"><div class="sc-icon ic-purple">⚡</div><div><div class="sc-val">${avgDays}</div><div class="sc-lbl">Avg Resolution (days)</div></div></div>
+      <div class="stat-card"><div class="sc-icon ic-gold">⭐</div><div><div class="sc-val">${d.totals.avg_rating || '—'}</div><div class="sc-lbl">Avg Satisfaction</div><div class="sc-sub">${d.totals.total_ratings} ratings</div></div></div>
+      <div class="stat-card"><div class="sc-icon ic-blue">👤</div><div><div class="sc-val">${d.totals.total_users}</div><div class="sc-lbl">Registered Citizens</div></div></div>
+      <div class="stat-card"><div class="sc-icon ic-teal">👷</div><div><div class="sc-val">${d.totals.total_officials}</div><div class="sc-lbl">Field Officials</div></div></div>
+      <div class="stat-card"><div class="sc-icon ic-red">❌</div><div><div class="sc-val">${total - resolved - pending}</div><div class="sc-lbl">Closed / Rejected</div></div></div>
+    `;
+
+    // ── STATUS CHART ──
+    const statusMap = { open:'Open', assigned:'Assigned', in_progress:'In Progress', resolved:'Resolved', rejected:'Rejected', closed:'Closed' };
+    const statusColors = ['#0097a7','#3b82f6','#f59e0b','#10b981','#ef4444','#6b7280'];
+    const sLabels = d.statusCounts.map(s => statusMap[s.status] || s.status);
+    const sData   = d.statusCounts.map(s => s.count);
+    new Chart(document.getElementById('statusChart'), {
+      type: 'doughnut',
+      data: { labels: sLabels, datasets: [{ data: sData, backgroundColor: statusColors, borderWidth: 2, borderColor: '#fff' }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 12, font: { size: 12 } } } } }
+    });
+
+    // ── PRIORITY CHART ──
+    const priMap    = { low:'Low', medium:'Medium', high:'High', urgent:'Urgent' };
+    const priColors = ['#10b981','#f59e0b','#ef4444','#7c3aed'];
+    const pLabels   = d.priorityCounts.map(p => priMap[p.priority] || p.priority);
+    const pData     = d.priorityCounts.map(p => p.count);
+    new Chart(document.getElementById('priorityChart'), {
+      type: 'doughnut',
+      data: { labels: pLabels, datasets: [{ data: pData, backgroundColor: priColors, borderWidth: 2, borderColor: '#fff' }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 12, font: { size: 12 } } } } }
+    });
+
+    // ── TREND CHART ──
+    const tLabels   = d.monthlyTrend.map(m => m.month);
+    const tFiled    = d.monthlyTrend.map(m => m.total);
+    const tResolved = d.monthlyTrend.map(m => m.resolved);
+    new Chart(document.getElementById('trendChart'), {
+      type: 'line',
+      data: {
+        labels: tLabels,
+        datasets: [
+          { label: 'Filed', data: tFiled, borderColor: '#0097a7', backgroundColor: 'rgba(0,151,167,0.1)', fill: true, tension: 0.4, pointRadius: 5 },
+          { label: 'Resolved', data: tResolved, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.4, pointRadius: 5 },
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+    });
+
+    // ── CATEGORY CHART ──
+    const cLabels = d.categoryCounts.map(c => c.name);
+    const cData   = d.categoryCounts.map(c => c.count);
+    new Chart(document.getElementById('categoryChart'), {
+      type: 'bar',
+      data: { labels: cLabels, datasets: [{ label: 'Complaints', data: cData, backgroundColor: 'rgba(0,151,167,0.8)', borderRadius: 6 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+    });
+
+    // ── OFFICIALS TABLE ──
+    if (!d.officialStats.length) {
+      document.getElementById('officialsTable').innerHTML = '<div class="loading">No officials assigned yet.</div>';
+      return;
+    }
+    const maxAssigned = Math.max(...d.officialStats.map(o => o.assigned), 1);
+    document.getElementById('officialsTable').innerHTML = `
+      <table>
+        <thead><tr><th>Official</th><th>Department</th><th>Assigned</th><th>Resolved</th><th>In Progress</th><th>Performance</th></tr></thead>
+        <tbody>${d.officialStats.map(o => {
+          const pct = Math.round((o.assigned / maxAssigned) * 100);
+          const resPct = o.assigned ? Math.round((o.resolved / o.assigned) * 100) : 0;
+          return `<tr>
+            <td><strong>${o.full_name}</strong></td>
+            <td style="color:var(--text-2)">${o.department}</td>
+            <td>${o.assigned}</td>
+            <td style="color:var(--green);font-weight:600">${o.resolved}</td>
+            <td style="color:var(--orange);font-weight:600">${o.in_progress}</td>
+            <td style="min-width:120px">
+              <div style="font-size:0.72rem;color:var(--text-2);margin-bottom:3px">${resPct}% resolved</div>
+              <div class="perf-bar"><div class="perf-fill" style="width:${resPct}%"></div></div>
+            </td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>`;
+  }
+
+  loadAnalytics();
+</script>
+</body>
+</html>

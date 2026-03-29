@@ -301,6 +301,95 @@ const getStates = async (req, res) => {
   }
 };
 
+// ────────────────────────────────────────────────────
+//  ANALYTICS
+// ────────────────────────────────────────────────────
+const getAnalytics = async (req, res) => {
+  try {
+    // Status counts
+    const [statusCounts] = await db.query(`
+      SELECT status, COUNT(*) AS count FROM complaints GROUP BY status
+    `);
+
+    // Priority counts
+    const [priorityCounts] = await db.query(`
+      SELECT priority, COUNT(*) AS count FROM complaints GROUP BY priority
+    `);
+
+    // Category breakdown
+    const [categoryCounts] = await db.query(`
+      SELECT c.name, COUNT(comp.id) AS count
+      FROM categories c
+      LEFT JOIN complaints comp ON comp.category_id = c.id
+      GROUP BY c.id, c.name ORDER BY count DESC
+    `);
+
+    // Monthly trend (last 6 months)
+    const [monthlyTrend] = await db.query(`
+      SELECT DATE_FORMAT(created_at, '%b %Y') AS month,
+             DATE_FORMAT(created_at, '%Y-%m') AS sort_key,
+             COUNT(*) AS total,
+             SUM(status = 'resolved') AS resolved
+      FROM complaints
+      WHERE created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+      GROUP BY month, sort_key
+      ORDER BY sort_key ASC
+    `);
+
+    // Official performance
+    const [officialStats] = await db.query(`
+      SELECT o.full_name, o.department,
+             COUNT(c.id) AS assigned,
+             SUM(c.status = 'resolved') AS resolved,
+             SUM(c.status = 'in_progress') AS in_progress
+      FROM officials o
+      LEFT JOIN complaints c ON c.official_id = o.id
+      GROUP BY o.id, o.full_name, o.department
+      ORDER BY resolved DESC LIMIT 10
+    `);
+
+    // Key metrics
+    const [[totals]] = await db.query(`
+      SELECT
+        COUNT(*) AS total,
+        SUM(status = 'resolved') AS resolved,
+        SUM(status IN ('open','assigned','in_progress')) AS pending,
+        AVG(CASE WHEN resolved_at IS NOT NULL THEN TIMESTAMPDIFF(HOUR, created_at, resolved_at) END) AS avg_resolution_hours
+      FROM complaints
+    `);
+
+    // Avg rating
+    const [[ratingData]] = await db.query(`
+      SELECT ROUND(AVG(rating), 1) AS avg_rating, COUNT(*) AS total_ratings FROM complaint_ratings
+    `);
+
+    // Total users & officials
+    const [[userCount]]     = await db.query('SELECT COUNT(*) AS count FROM users');
+    const [[officialCount]] = await db.query('SELECT COUNT(*) AS count FROM officials');
+
+    res.json({
+      success: true,
+      data: {
+        totals: {
+          ...totals,
+          avg_rating: ratingData.avg_rating || 0,
+          total_ratings: ratingData.total_ratings || 0,
+          total_users: userCount.count,
+          total_officials: officialCount.count,
+        },
+        statusCounts,
+        priorityCounts,
+        categoryCounts,
+        monthlyTrend,
+        officialStats,
+      },
+    });
+  } catch (err) {
+    console.error('Analytics error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
 module.exports = {
   getCategories,
   createCategory,
@@ -314,4 +403,5 @@ module.exports = {
   getUsers,
   getUserLogs,
   getStates,
+  getAnalytics,
 };

@@ -18,6 +18,7 @@ const {
   getUsers,
   getUserLogs,
   getStates,
+  getAnalytics,
 } = require('../controllers/adminController');
 const { verifyToken } = require('../middleware/auth');
 
@@ -42,5 +43,8 @@ router.get('/users/:id/logs', verifyToken, getUserLogs);
 
 // ── States ──
 router.get('/states', verifyToken, getStates);
+
+// ── Analytics ──
+router.get('/analytics', verifyToken, getAnalytics);
 
 module.exports = router;
