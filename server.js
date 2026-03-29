@@ -108,13 +108,18 @@ async function seedDefaultAdmin() {
       console.log('✅ Added username column to admins table');
     }
 
-    const [rows] = await db.query('SELECT id FROM admins LIMIT 1');
-    if (rows.length > 0) return; // admin already exists
-
     const email    = process.env.ADMIN_EMAIL     || 'admin@hydraa.telangana';
     const password = process.env.ADMIN_PASSWORD  || 'Hydraatelangana@9511';
     const username = process.env.ADMIN_USERNAME  || 'Admin';
     const fullName = process.env.ADMIN_FULL_NAME || 'HYDRAA Administrator';
+
+    // Delete any broken rows (no password set) then check if valid admin exists
+    await db.query('DELETE FROM admins WHERE password IS NULL OR password = ""');
+    const [rows] = await db.query('SELECT id FROM admins WHERE email = ?', [email]);
+    if (rows.length > 0) {
+      console.log('✅ Admin already exists:', email);
+      return;
+    }
 
     const hashed = await bcrypt.hash(password, 12);
     await db.query(
