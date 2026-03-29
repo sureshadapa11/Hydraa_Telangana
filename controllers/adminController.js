@@ -243,16 +243,30 @@ const updateOfficial = async (req, res) => {
 const getUsers = async (req, res) => {
   try {
     const [users] = await db.query(`
-      SELECT id, full_name, email, phone, is_verified, created_at 
-      FROM users ORDER BY created_at DESC
+      SELECT u.id, u.full_name, u.email, u.phone, u.is_verified, u.created_at,
+             COUNT(c.id) AS complaint_count,
+             SUM(c.status = 'resolved') AS resolved_count
+      FROM users u
+      LEFT JOIN complaints c ON c.user_id = u.id
+      GROUP BY u.id
+      ORDER BY u.created_at DESC
     `);
 
-    res.json({
-      success: true,
-      data: users,
-    });
+    res.json({ success: true, data: users });
   } catch (err) {
     console.error('Get users error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+const deactivateUser = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [result] = await db.query('UPDATE users SET is_verified = 0 WHERE id = ?', [id]);
+    if (result.affectedRows === 0)
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    res.json({ success: true, message: 'User deactivated.' });
+  } catch (err) {
     res.status(500).json({ success: false, message: 'Server error.' });
   }
 };
@@ -450,6 +464,7 @@ module.exports = {
   createOfficial,
   updateOfficial,
   getUsers,
+  deactivateUser,
   getUserLogs,
   getStates,
   getAnalytics,

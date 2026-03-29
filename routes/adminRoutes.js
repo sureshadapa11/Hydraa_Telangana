@@ -16,6 +16,7 @@ const {
   createOfficial,
   updateOfficial,
   getUsers,
+  deactivateUser,
   getUserLogs,
   getStates,
   getAnalytics,
@@ -41,6 +42,7 @@ router.put('/officials/:id', verifyToken, updateOfficial);
 // ── Users ──
 router.get('/users', verifyToken, getUsers);
 router.get('/users/:id/logs', verifyToken, getUserLogs);
+router.put('/users/:id/deactivate', verifyToken, deactivateUser);
 
 // ── States ──
 router.get('/states', verifyToken, getStates);
