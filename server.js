@@ -15,26 +15,27 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// Serve static files from root directory
+// ── Serve static files (HTML, CSS, JS, images) ──
 app.use(express.static(__dirname));
 
-
-// ── Root Route (FIXES YOUR ERROR) ──
+// ── Root Route — serve your main HTML page ──
 app.get('/', (req, res) => {
-  res.send('HYDRAA API running successfully 🚀');
+  res.sendFile(path.join(__dirname, 'hydraa-index.html'));
 });
 
+// Optional: redirect old URL to root
+app.get('/hydraa-index.html', (req, res) => {
+  res.redirect('/');
+});
 
-// ── Routes ──
+// ── API Routes ──
 const authRoutes = require('./routes/authRoutes');
 const complaintRoutes = require('./routes/complaintRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 
-// Mount routes with /api prefix
 app.use('/api/auth', authRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/admin', adminRoutes);
-
 
 // ── Health Check ──
 app.get('/api/health', (req, res) => {
@@ -45,7 +46,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-
 // ── 404 Handler ──
 app.use((req, res) => {
   res.status(404).json({
@@ -53,7 +53,6 @@ app.use((req, res) => {
     message: 'Endpoint not found.',
   });
 });
-
 
 // ── Error Handler ──
 app.use((err, req, res, next) => {
@@ -69,7 +68,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-
 // ── Start Server ──
 const PORT = process.env.PORT || 5000;
 
@@ -77,9 +75,9 @@ app.listen(PORT, () => {
   console.log(`
 ╔════════════════════════════════════════╗
 ║   HYDRAA API Server Started            ║
-║   Port: ${PORT}                         
-║   Environment: ${process.env.NODE_ENV || 'development'}               
-║   Status: ✅ Running                   
+║   Port: ${PORT}                          ║
+║   Environment: ${process.env.NODE_ENV || 'development'} ║
+║   Status: ✅ Running                    ║
 ╚════════════════════════════════════════╝
   `);
 });
