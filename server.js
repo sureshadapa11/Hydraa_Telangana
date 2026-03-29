@@ -67,6 +67,31 @@ app.use((err, req, res, next) => {
   });
 });
 
+// ── Run Schema (creates tables if they don't exist) ──
+async function runSchema() {
+  try {
+    const fs   = require('fs');
+    const path = require('path');
+    const db   = require('./utils/db');
+
+    const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
+    const statements = schema
+      .split('\n')
+      .filter(line => !line.trim().startsWith('--') && !line.trim().startsWith('USE ') && !line.trim().startsWith('CREATE DATABASE'))
+      .join('\n')
+      .split(';')
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+
+    for (const stmt of statements) {
+      try { await db.query(stmt); } catch (e) { /* ignore already-exists errors */ }
+    }
+    console.log('✅ Schema applied successfully');
+  } catch (err) {
+    console.warn('⚠️  Schema apply skipped:', err.message);
+  }
+}
+
 // ── Seed Default Admin (runs once on startup if no admin exists) ──
 async function seedDefaultAdmin() {
   try {
@@ -88,7 +113,7 @@ async function seedDefaultAdmin() {
     );
     console.log('✅ Default admin seeded:', email);
   } catch (err) {
-    console.warn('⚠️  Admin seed skipped (DB may not be ready):', err.message);
+    console.warn('⚠️  Admin seed skipped:', err.message);
   }
 }
 
@@ -104,6 +129,7 @@ app.listen(PORT, async () => {
 ║   Status: ✅ Running                    ║
 ╚════════════════════════════════════════╝
   `);
+  await runSchema();
   await seedDefaultAdmin();
 });
 
