@@ -184,6 +184,50 @@ async function fixOfficialsTable() {
   }
 }
 
+// ── Seed Correct Categories ──
+async function seedCategories() {
+  try {
+    const db = require('./utils/db');
+
+    const correctCategories = [
+      { name: 'Lake / Water Body Encroachment', description: 'Illegal construction within FTL or 30m buffer zones around lakes and nalas' },
+      { name: 'Illegal Construction',           description: 'Unauthorized buildings violating GHMC or town planning regulations' },
+      { name: 'Park / Open Space Violation',    description: 'Encroachment on designated parks, playgrounds, or open layout spaces' },
+      { name: 'Road / Footpath Obstruction',    description: 'Blocking of carriageways, footpaths, or public roads by unauthorized structures' },
+      { name: 'Flooding & Drainage Issue',      description: 'Blocked drains, waterlogging, or flood-risk due to encroachment' },
+      { name: 'Government Land Encroachment',   description: 'Unauthorized occupation of government-owned land parcels in Hyderabad' },
+      { name: 'Illegal Advertisements',         description: 'Unauthorized hoardings, banners, or flex boards on public property' },
+      { name: 'Disaster / Emergency',           description: 'Fire, collapse, or flood emergency requiring immediate HYDRAA response' },
+    ];
+
+    const oldNames = ['Water Supply','Drainage','Roads','Electricity','Sanitation','Other'];
+
+    // Remove old wrong categories that have no complaints attached
+    for (const old of oldNames) {
+      const [[row]] = await db.query(
+        `SELECT COUNT(c.id) AS cnt FROM categories cat
+         LEFT JOIN complaints c ON c.category_id = cat.id
+         WHERE cat.name = ?`, [old]
+      );
+      if (row.cnt === 0) {
+        await db.query('DELETE FROM categories WHERE name = ?', [old]);
+      }
+    }
+
+    // Insert correct categories if not already present
+    for (const cat of correctCategories) {
+      const [[exists]] = await db.query('SELECT id FROM categories WHERE name = ?', [cat.name]);
+      if (!exists) {
+        await db.query('INSERT INTO categories (name, description) VALUES (?, ?)', [cat.name, cat.description]);
+      }
+    }
+
+    console.log('✅ Categories seeded correctly');
+  } catch (err) {
+    console.warn('⚠️  Category seed skipped:', err.message);
+  }
+}
+
 // ── Start Server ──
 const PORT = process.env.PORT || 5000;
 
@@ -198,6 +242,7 @@ app.listen(PORT, async () => {
   `);
   await runSchema();
   await fixOfficialsTable();
+  await seedCategories();
   await seedDefaultAdmin();
 });
 

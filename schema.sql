@@ -154,9 +154,11 @@ INSERT INTO states (state_name, code) VALUES
 ('Tamil Nadu', 'TN');
 
 INSERT INTO categories (name, description) VALUES
-('Water Supply', 'Issues related to water distribution and supply'),
-('Drainage', 'Drainage and sewerage issues'),
-('Roads', 'Road damage, potholes, and infrastructure'),
-('Electricity', 'Power supply and electricity issues'),
-('Sanitation', 'Cleanliness and waste management'),
-('Other', 'Other miscellaneous issues');
+('Lake / Water Body Encroachment', 'Illegal construction within FTL or 30m buffer zones around lakes and nalas'),
+('Illegal Construction', 'Unauthorized buildings violating GHMC or town planning regulations'),
+('Park / Open Space Violation', 'Encroachment on designated parks, playgrounds, or open layout spaces'),
+('Road / Footpath Obstruction', 'Blocking of carriageways, footpaths, or public roads by unauthorized structures'),
+('Flooding & Drainage Issue', 'Blocked drains, waterlogging, or flood-risk due to encroachment'),
+('Government Land Encroachment', 'Unauthorized occupation of government-owned land parcels in Hyderabad'),
+('Illegal Advertisements', 'Unauthorized hoardings, banners, or flex boards on public property'),
+('Disaster / Emergency', 'Fire, collapse, or flood emergency requiring immediate HYDRAA response');
