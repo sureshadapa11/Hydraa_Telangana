@@ -160,22 +160,23 @@ async function fixOfficialsTable() {
     const missing  = required.filter(c => !colNames.includes(c));
 
     if (missing.length > 0) {
-      console.log('⚠️  Officials table missing columns:', missing.join(', '), '— recreating...');
-      await db.query('DROP TABLE IF EXISTS officials');
-      await db.query(`
-        CREATE TABLE officials (
-          id INT PRIMARY KEY AUTO_INCREMENT,
-          full_name VARCHAR(100) NOT NULL,
-          email VARCHAR(100) UNIQUE NOT NULL,
-          phone VARCHAR(15),
-          department VARCHAR(100) NOT NULL,
-          password VARCHAR(255) NOT NULL,
-          is_active BOOLEAN DEFAULT 1,
-          last_login TIMESTAMP NULL,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-      console.log('✅ Officials table recreated');
+      console.log('⚠️  Officials table missing columns:', missing.join(', '), '— fixing with ALTER TABLE...');
+      for (const col of missing) {
+        try {
+          let def = '';
+          if (col === 'email')      def = 'VARCHAR(100) UNIQUE NOT NULL DEFAULT ""';
+          if (col === 'phone')      def = 'VARCHAR(15)';
+          if (col === 'department') def = 'VARCHAR(100) NOT NULL DEFAULT ""';
+          if (col === 'password')   def = 'VARCHAR(255) NOT NULL DEFAULT ""';
+          if (col === 'is_active')  def = 'BOOLEAN DEFAULT 1';
+          if (col === 'last_login') def = 'TIMESTAMP NULL';
+          if (col === 'full_name')  def = 'VARCHAR(100) NOT NULL DEFAULT ""';
+          if (def) await db.query(`ALTER TABLE officials ADD COLUMN ${col} ${def}`);
+        } catch (e) {
+          console.warn(`  Could not add column ${col}:`, e.message);
+        }
+      }
+      console.log('✅ Officials table altered');
     } else {
       console.log('✅ Officials table OK');
     }
@@ -222,7 +223,46 @@ async function seedCategories() {
       }
     }
 
-    console.log('✅ Categories seeded correctly');
+    // Seed subcategories for each category
+    const subcategoryMap = {
+      'Lake / Water Body Encroachment': [
+        'FTL Zone Encroachment', 'Nala / Drain Encroachment', 'Buffer Zone Violation', 'Lake Bund Damage', 'Illegal Filling of Water Body',
+      ],
+      'Illegal Construction': [
+        'Residential Illegal Building', 'Commercial Illegal Building', 'Building Without Permission', 'Violation of Setback Rules', 'Excess Floor Area',
+      ],
+      'Park / Open Space Violation': [
+        'Park Land Encroachment', 'Playground Encroachment', 'Open Layout Space Misuse', 'Unauthorized Structure in Park', 'Dumping in Open Space',
+      ],
+      'Road / Footpath Obstruction': [
+        'Footpath Encroachment', 'Road Blocked by Structure', 'Unauthorized Parking Area', 'Construction Material on Road', 'Vendor Encroachment on Road',
+      ],
+      'Flooding & Drainage Issue': [
+        'Blocked Storm Drain', 'Waterlogging', 'Sewage Overflow', 'Drain Encroachment Causing Flood', 'Nala Blockage',
+      ],
+      'Government Land Encroachment': [
+        'Poramboke Land Occupied', 'Revenue Land Encroachment', 'GHMC Land Misuse', 'Unauthorized Fence / Wall', 'Long-term Unauthorized Occupation',
+      ],
+      'Illegal Advertisements': [
+        'Unauthorized Hoarding', 'Illegal Flex / Banner', 'Wall Painting Without Permission', 'Digital Sign Without NOC', 'Temporary Structure for Advertisement',
+      ],
+      'Disaster / Emergency': [
+        'Building Collapse', 'Fire Incident', 'Flood Emergency', 'Tree Fall', 'Structural Instability',
+      ],
+    };
+
+    for (const [catName, subs] of Object.entries(subcategoryMap)) {
+      const [[cat]] = await db.query('SELECT id FROM categories WHERE name = ?', [catName]);
+      if (!cat) continue;
+      for (const subName of subs) {
+        const [[exists]] = await db.query('SELECT id FROM subcategories WHERE name = ? AND category_id = ?', [subName, cat.id]);
+        if (!exists) {
+          await db.query('INSERT INTO subcategories (name, category_id) VALUES (?, ?)', [subName, cat.id]);
+        }
+      }
+    }
+
+    console.log('✅ Categories and subcategories seeded correctly');
   } catch (err) {
     console.warn('⚠️  Category seed skipped:', err.message);
   }

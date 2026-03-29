@@ -380,7 +380,10 @@
   async function loadOfficials() {
     try {
       const res = await http.get('/api/admin/officials');
-      if (!res.success) return;
+      if (!res.success) {
+        document.getElementById('officialsTable').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><p>${res.message || 'Failed to load officials.'}</p></div>`;
+        return;
+      }
       const officials = res.data;
       document.getElementById('officials-count').textContent = officials.length + ' officials';
 
