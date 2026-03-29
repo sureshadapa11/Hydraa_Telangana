@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Categories — HYDRAA Telangana</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --teal:#0097a7; --teal-dark:#006978; --teal-light:#e0f7fa;
+      --navy:#0b1f3a; --navy-mid:#122944; --gold:#f4a820;
+      --green:#10b981; --red:#ef4444; --orange:#f59e0b;
+      --purple:#8b5cf6; --blue:#3b82f6;
+      --white:#fff; --bg:#f2f6f9; --text:#0d1e2e;
+      --text-2:#3d5a72; --text-3:#7a9baf; --border:#d0e4ec;
+      --shadow:0 2px 16px rgba(0,30,60,0.08);
+      --shadow-md:0 6px 32px rgba(0,30,60,0.12);
+      --radius:12px; --radius-sm:8px; --sidebar-w:256px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;}
+
+    /* ── SIDEBAR ── */
+    .sidebar{width:var(--sidebar-w);background:var(--navy);position:fixed;height:100vh;top:0;left:0;display:flex;flex-direction:column;overflow-y:auto;z-index:100;box-shadow:2px 0 20px rgba(0,0,0,0.2);}
+    .sb-hdr{padding:1.4rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.15);}
+    .sb-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .sb-logo{width:38px;height:38px;border-radius:9px;background:linear-gradient(145deg,var(--teal),#00bcd4);display:flex;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:0 0 0 2px rgba(0,188,212,0.25);}
+    .sb-bt .t1{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;color:#fff;letter-spacing:0.08em;line-height:1;}
+    .sb-bt .t2{font-size:0.58rem;color:rgba(0,188,212,0.85);letter-spacing:0.12em;text-transform:uppercase;}
+    .sb-badge{margin:0.8rem 1rem;background:rgba(0,188,212,0.12);border:1px solid rgba(0,188,212,0.25);border-radius:20px;padding:0.3rem 0.8rem;font-size:0.72rem;color:rgba(0,188,212,0.9);font-weight:600;letter-spacing:0.06em;text-align:center;}
+    .sb-user{display:flex;align-items:center;gap:10px;padding:0.9rem 1rem;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:0.5rem;}
+    .sb-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:0.9rem;flex-shrink:0;}
+    .sb-ui .un{font-size:0.82rem;font-weight:600;color:#e0f7fa;line-height:1.2;}
+    .sb-ui .ur{font-size:0.68rem;color:var(--text-3);margin-top:1px;}
+    .sb-nav{flex:1;padding:0.5rem 0;}
+    .sb-sec{font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.3);padding:1rem 1.2rem 0.3rem;}
+    .sb-a{display:flex;align-items:center;gap:10px;padding:0.62rem 1.2rem;color:rgba(255,255,255,0.65);text-decoration:none;font-size:0.83rem;font-weight:500;transition:all .18s;border-left:3px solid transparent;}
+    .sb-a:hover{background:rgba(255,255,255,0.06);color:#fff;border-left-color:rgba(0,188,212,0.4);}
+    .sb-a.active{background:rgba(0,188,212,0.15);color:#00e5ff;border-left-color:var(--teal);font-weight:600;}
+    .si{font-size:1rem;width:22px;text-align:center;}
+    .sb-ft{padding:1rem;border-top:1px solid rgba(255,255,255,0.06);}
+    .btn-logout{width:100%;padding:0.6rem;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);border-radius:var(--radius-sm);color:#f87171;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all .18s;font-family:inherit;}
+    .btn-logout:hover{background:rgba(239,68,68,0.22);color:#fca5a5;}
+
+    /* ── MAIN ── */
+    .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+    .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0.9rem 2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:var(--shadow);}
+    .tb-title{font-family:'Rajdhani',sans-serif;font-size:1.3rem;font-weight:700;letter-spacing:0.06em;color:var(--navy);}
+    .tb-sub{font-size:0.72rem;color:var(--text-3);}
+    .tb-right{display:flex;align-items:center;gap:1rem;}
+    .tb-date{font-size:0.78rem;color:var(--text-3);}
+    .content{padding:2rem;flex:1;}
+
+    /* ── GRID ── */
+    .page-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+
+    /* ── CARD ── */
+    .card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden;}
+    .card-hdr{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);background:linear-gradient(135deg,#f8fbfd,#eef5f8);}
+    .card-title{font-family:'Rajdhani',sans-serif;font-size:1.05rem;font-weight:700;letter-spacing:0.04em;color:var(--navy);}
+    .card-count{font-size:0.72rem;color:var(--text-3);background:var(--teal-light);padding:0.2rem 0.6rem;border-radius:20px;font-weight:600;}
+    .card-body{padding:1.2rem 1.5rem;}
+
+    /* ── ADD FORM ── */
+    .add-form{display:flex;gap:0.6rem;margin-bottom:1rem;}
+    .add-form input{flex:1;padding:0.55rem 0.9rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:0.83rem;font-family:inherit;outline:none;transition:border-color .18s;}
+    .add-form input:focus{border-color:var(--teal);}
+    .btn-add{padding:0.55rem 1rem;background:var(--teal);color:#fff;border:none;border-radius:var(--radius-sm);font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;transition:background .18s;}
+    .btn-add:hover{background:var(--teal-dark);}
+
+    /* ── SELECT for subcategory ── */
+    .sub-select-row{display:flex;gap:0.6rem;margin-bottom:0.8rem;}
+    .sub-select-row select{flex:1;padding:0.55rem 0.9rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:0.83rem;font-family:inherit;outline:none;background:var(--white);}
+    .sub-select-row select:focus{border-color:var(--teal);}
+
+    /* ── LIST ── */
+    .item-list{display:flex;flex-direction:column;gap:0.5rem;max-height:420px;overflow-y:auto;}
+    .item-list::-webkit-scrollbar{width:4px;}
+    .item-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+    .item-row{display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0.8rem;background:var(--bg);border-radius:var(--radius-sm);border:1px solid transparent;transition:border-color .15s;}
+    .item-row:hover{border-color:var(--border);}
+    .item-info{display:flex;flex-direction:column;gap:2px;}
+    .item-name{font-size:0.85rem;font-weight:600;color:var(--text);}
+    .item-desc{font-size:0.73rem;color:var(--text-3);}
+    .item-sub-badge{font-size:0.65rem;color:var(--teal-dark);background:var(--teal-light);padding:0.15rem 0.4rem;border-radius:10px;font-weight:600;}
+    .btn-del{padding:0.3rem 0.6rem;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:6px;color:#ef4444;font-size:0.72rem;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit;}
+    .btn-del:hover{background:rgba(239,68,68,0.2);}
+    .empty-state{text-align:center;color:var(--text-3);font-size:0.82rem;padding:2rem 0;}
+
+    /* ── TOAST ── */
+    .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--navy);color:#fff;padding:0.75rem 1.2rem;border-radius:var(--radius-sm);font-size:0.83rem;font-weight:500;box-shadow:var(--shadow-md);opacity:0;transform:translateY(12px);transition:all .25s;pointer-events:none;z-index:9999;}
+    .toast.show{opacity:1;transform:translateY(0);}
+    .toast.success{border-left:3px solid var(--green);}
+    .toast.error{border-left:3px solid var(--red);}
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-hdr">
+    <a href="/hydraa-admin-dashboard.html" class="sb-brand">
+      <div class="sb-logo">🏛️</div>
+      <div class="sb-bt"><div class="t1">HYDRAA</div><div class="t2">Government of Telangana</div></div>
+    </a>
+  </div>
+  <div class="sb-badge">🛡️ &nbsp;Admin Panel</div>
+  <div class="sb-user">
+    <div class="sb-av" id="sb-av">A</div>
+    <div class="sb-ui"><div class="un" id="sb-un">Administrator</div><div class="ur">System Admin</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Overview</div>
+    <a href="/hydraa-admin-dashboard.html" class="sb-a"><span class="si">📊</span> Dashboard</a>
+    <a href="/hydraa-admin-dashboard.html" class="sb-a"><span class="si">📋</span> All Complaints</a>
+    <a href="/hydraa-admin-analytics.html" class="sb-a"><span class="si">📈</span> Analytics</a>
+    <a href="/hydraa-admin-heatmap.html" class="sb-a"><span class="si">🗺️</span> Heatmap</a>
+    <div class="sb-sec">Management</div>
+    <a href="/hydraa-admin-management.html" class="sb-a"><span class="si">👷</span> Manage Officials</a>
+    <a href="/hydraa-admin-users.html" class="sb-a"><span class="si">👥</span> Manage Users</a>
+    <a href="/hydraa-admin-categories.html" class="sb-a active"><span class="si">🗂️</span> Categories</a>
+    <a href="/hydraa-admin-states.html" class="sb-a"><span class="si">📍</span> States</a>
+    <div class="sb-sec">Account</div>
+    <a href="/hydraa-change-password.html" class="sb-a"><span class="si">🔒</span> Change Password</a>
+  </nav>
+  <div class="sb-ft">
+    <button class="btn-logout" onclick="logout()">⬅ Logout</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="tb-title">🗂️ Categories & Subcategories</div>
+      <div class="tb-sub">Manage complaint classification</div>
+    </div>
+    <div class="tb-right">
+      <div class="tb-date" id="tb-date"></div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="page-grid">
+
+      <!-- CATEGORIES CARD -->
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">Categories</div>
+          <span class="card-count" id="cat-count">0</span>
+        </div>
+        <div class="card-body">
+          <div class="add-form">
+            <input type="text" id="cat-name" placeholder="Category name"/>
+            <input type="text" id="cat-desc" placeholder="Description (optional)"/>
+            <button class="btn-add" onclick="addCategory()">+ Add</button>
+          </div>
+          <div class="item-list" id="cat-list">
+            <div class="empty-state">Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBCATEGORIES CARD -->
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">Subcategories</div>
+          <span class="card-count" id="sub-count">0</span>
+        </div>
+        <div class="card-body">
+          <div class="sub-select-row">
+            <select id="sub-cat-select" onchange="loadSubcategories()">
+              <option value="">— Select a Category —</option>
+            </select>
+          </div>
+          <div class="add-form" id="sub-add-form" style="display:none;">
+            <input type="text" id="sub-name" placeholder="Subcategory name"/>
+            <button class="btn-add" onclick="addSubcategory()">+ Add</button>
+          </div>
+          <div class="item-list" id="sub-list">
+            <div class="empty-state">Select a category to view subcategories</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="http-client.js"></script>
+<script src="app.js"></script>
+<script>
+  // ── Init ──
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!Auth.isLoggedIn()) { window.location.href = '/hydraa-admin-login.html'; return; }
+    const info = Auth.getUser();
+    if (info) {
+      const n = info.username || info.full_name || 'Admin';
+      document.getElementById('sb-un').textContent = n;
+      document.getElementById('sb-av').textContent = n[0].toUpperCase();
+    }
+    const d = new Date();
+    document.getElementById('tb-date').textContent = d.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+    loadCategories();
+  });
+
+  // ── Toast ──
+  function showToast(msg, type='success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // ── CATEGORIES ──
+  let categories = [];
+
+  async function loadCategories() {
+    const res = await http.get('/api/admin/categories');
+    if (!res.success) { showToast('Failed to load categories', 'error'); return; }
+    categories = res.data || [];
+    renderCategories();
+    populateCategoryDropdown();
+  }
+
+  function renderCategories() {
+    const list = document.getElementById('cat-list');
+    document.getElementById('cat-count').textContent = categories.length;
+    if (!categories.length) {
+      list.innerHTML = '<div class="empty-state">No categories yet. Add one above.</div>';
+      return;
+    }
+    list.innerHTML = categories.map(c => `
+      <div class="item-row" id="cat-row-${c.id}">
+        <div class="item-info">
+          <div class="item-name">${escHtml(c.name)}</div>
+          ${c.description ? `<div class="item-desc">${escHtml(c.description)}</div>` : ''}
+        </div>
+        <button class="btn-del" onclick="deleteCategory(${c.id},'${escHtml(c.name)}')">🗑 Delete</button>
+      </div>
+    `).join('');
+  }
+
+  function populateCategoryDropdown() {
+    const sel = document.getElementById('sub-cat-select');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">— Select a Category —</option>';
+    categories.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = c.name;
+      if (String(c.id) === String(cur)) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+
+  async function addCategory() {
+    const name = document.getElementById('cat-name').value.trim();
+    const desc = document.getElementById('cat-desc').value.trim();
+    if (!name) { showToast('Category name is required', 'error'); return; }
+    const res = await http.post('/api/admin/categories', { name, description: desc || undefined });
+    if (!res.success) { showToast(res.message || 'Failed to create category', 'error'); return; }
+    document.getElementById('cat-name').value = '';
+    document.getElementById('cat-desc').value = '';
+    showToast('Category created');
+    loadCategories();
+  }
+
+  async function deleteCategory(id, name) {
+    if (!confirm(`Delete category "${name}"? All subcategories under it will also be removed.`)) return;
+    const res = await http.delete(`/api/admin/categories/${id}`);
+    if (!res.success) { showToast(res.message || 'Failed to delete', 'error'); return; }
+    showToast('Category deleted');
+    // If this category was selected in subcategory dropdown, reset
+    const sel = document.getElementById('sub-cat-select');
+    if (String(sel.value) === String(id)) {
+      sel.value = '';
+      document.getElementById('sub-add-form').style.display = 'none';
+      document.getElementById('sub-list').innerHTML = '<div class="empty-state">Select a category to view subcategories</div>';
+    }
+    loadCategories();
+  }
+
+  // ── SUBCATEGORIES ──
+  let subcategories = [];
+
+  async function loadSubcategories() {
+    const catId = document.getElementById('sub-cat-select').value;
+    document.getElementById('sub-add-form').style.display = catId ? 'flex' : 'none';
+    if (!catId) {
+      document.getElementById('sub-list').innerHTML = '<div class="empty-state">Select a category to view subcategories</div>';
+      document.getElementById('sub-count').textContent = '0';
+      return;
+    }
+    const res = await http.get(`/api/admin/subcategories?category_id=${catId}`);
+    if (!res.success) { showToast('Failed to load subcategories', 'error'); return; }
+    subcategories = res.data || [];
+    renderSubcategories();
+  }
+
+  function renderSubcategories() {
+    const list = document.getElementById('sub-list');
+    document.getElementById('sub-count').textContent = subcategories.length;
+    const catId = document.getElementById('sub-cat-select').value;
+    const catName = categories.find(c => String(c.id) === String(catId))?.name || '';
+    if (!subcategories.length) {
+      list.innerHTML = '<div class="empty-state">No subcategories yet. Add one above.</div>';
+      return;
+    }
+    list.innerHTML = subcategories.map(s => `
+      <div class="item-row" id="sub-row-${s.id}">
+        <div class="item-info">
+          <div class="item-name">${escHtml(s.name)}</div>
+          <div class="item-sub-badge">under ${escHtml(catName)}</div>
+        </div>
+        <button class="btn-del" onclick="deleteSubcategory(${s.id},'${escHtml(s.name)}')">🗑 Delete</button>
+      </div>
+    `).join('');
+  }
+
+  async function addSubcategory() {
+    const name = document.getElementById('sub-name').value.trim();
+    const catId = document.getElementById('sub-cat-select').value;
+    if (!name) { showToast('Subcategory name is required', 'error'); return; }
+    if (!catId) { showToast('Select a category first', 'error'); return; }
+    const res = await http.post('/api/admin/subcategories', { name, category_id: catId });
+    if (!res.success) { showToast(res.message || 'Failed to create subcategory', 'error'); return; }
+    document.getElementById('sub-name').value = '';
+    showToast('Subcategory created');
+    loadSubcategories();
+  }
+
+  async function deleteSubcategory(id, name) {
+    if (!confirm(`Delete subcategory "${name}"?`)) return;
+    const res = await http.delete(`/api/admin/subcategories/${id}`);
+    if (!res.success) { showToast(res.message || 'Failed to delete', 'error'); return; }
+    showToast('Subcategory deleted');
+    loadSubcategories();
+  }
+
+  // ── Escape HTML ──
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+</script>
+</body>
+</html>
