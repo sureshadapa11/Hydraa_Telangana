@@ -98,6 +98,9 @@ async function seedDefaultAdmin() {
     const bcrypt = require('bcryptjs');
     const db     = require('./utils/db');
 
+    // Ensure username column exists (in case table was created without it)
+    await db.query('ALTER TABLE admins ADD COLUMN IF NOT EXISTS username VARCHAR(100)').catch(() => {});
+
     const [rows] = await db.query('SELECT id FROM admins LIMIT 1');
     if (rows.length > 0) return; // admin already exists
 
