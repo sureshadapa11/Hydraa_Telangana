@@ -154,6 +154,7 @@ const Auth = {
   logout() {
     localStorage.removeItem('hydraa_user');
     http.clearToken();
-    window.location.href = '/hydraa-login.html';
+    const isAdmin = window.location.pathname.includes('admin');
+    window.location.href = isAdmin ? '/hydraa-admin-login.html' : '/hydraa-login.html';
   },
 };
