@@ -205,7 +205,7 @@
   </div>
 </div>
 
-<script src="app.js"></script>
+<script src="http-client.js"></script><script src="app.js"></script>
 <script>
   if (Auth.isLoggedIn() && Auth.getUser()?.role === 'admin') {
     window.location.href = '/hydraa-admin-dashboard.html';
@@ -247,6 +247,5 @@
     }
   });
 </script>
-<script src="http-client.js"></script>
 </body>
 </html>
