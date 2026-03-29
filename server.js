@@ -185,6 +185,44 @@ async function fixOfficialsTable() {
   }
 }
 
+// ── Fix Users Table (add missing columns) ──
+async function fixUsersTable() {
+  try {
+    const db = require('./utils/db');
+    const [cols] = await db.query(
+      `SELECT COLUMN_NAME FROM information_schema.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users'`
+    );
+    const colNames = cols.map(c => c.COLUMN_NAME);
+    const required = [
+      { name: 'full_name',           def: "VARCHAR(100) NOT NULL DEFAULT ''" },
+      { name: 'email',               def: "VARCHAR(100) UNIQUE NOT NULL DEFAULT ''" },
+      { name: 'phone',               def: 'VARCHAR(15)' },
+      { name: 'address',             def: 'VARCHAR(255)' },
+      { name: 'password',            def: "VARCHAR(255) NOT NULL DEFAULT ''" },
+      { name: 'is_verified',         def: 'BOOLEAN DEFAULT 0' },
+      { name: 'verification_token',  def: 'VARCHAR(255)' },
+      { name: 'created_at',          def: 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP' },
+    ];
+    const missing = required.filter(c => !colNames.includes(c.name));
+    if (missing.length > 0) {
+      console.log('⚠️  Users table missing columns:', missing.map(c => c.name).join(', '), '— fixing...');
+      for (const col of missing) {
+        try {
+          await db.query(`ALTER TABLE users ADD COLUMN ${col.name} ${col.def}`);
+        } catch (e) {
+          console.warn(`  Could not add column ${col.name}:`, e.message);
+        }
+      }
+      console.log('✅ Users table altered');
+    } else {
+      console.log('✅ Users table OK');
+    }
+  } catch (err) {
+    console.warn('⚠️  Users table check skipped:', err.message);
+  }
+}
+
 // ── Seed Correct Categories ──
 async function seedCategories() {
   try {
@@ -281,6 +319,7 @@ app.listen(PORT, async () => {
 ╚════════════════════════════════════════╝
   `);
   await runSchema();
+  await fixUsersTable();
   await fixOfficialsTable();
   await seedCategories();
   await seedDefaultAdmin();
