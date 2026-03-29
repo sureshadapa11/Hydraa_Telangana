@@ -40,10 +40,14 @@ const http = {
       data = { success: false, message: res.statusText };
     }
 
-    // 401 Unauthorized — redirect to login
+    // 401 Unauthorized — redirect to login (unless already on a login page)
     if (res.status === 401) {
-      this.clearToken();
-      window.location.href = '/login.html';
+      const onLoginPage = window.location.pathname.includes('login') ||
+                          window.location.pathname.includes('forgot-password');
+      if (!onLoginPage) {
+        this.clearToken();
+        window.location.href = '/hydraa-login.html';
+      }
       return data;
     }
 
@@ -150,6 +154,6 @@ const Auth = {
   logout() {
     localStorage.removeItem('hydraa_user');
     http.clearToken();
-    window.location.href = '/login.html';
+    window.location.href = '/hydraa-login.html';
   },
 };
