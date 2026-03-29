@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Management — HYDRAA Telangana</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --teal:#0097a7;--teal-dark:#006978;--teal-light:#e0f7fa;
+      --navy:#0b1f3a;--navy-mid:#122944;--gold:#f4a820;
+      --green:#10b981;--red:#ef4444;--orange:#f59e0b;
+      --purple:#8b5cf6;--blue:#3b82f6;
+      --white:#fff;--bg:#f2f6f9;--text:#0d1e2e;
+      --text-2:#3d5a72;--text-3:#7a9baf;--border:#d0e4ec;
+      --shadow:0 2px 16px rgba(0,30,60,0.08);
+      --shadow-md:0 8px 36px rgba(0,30,60,0.13);
+      --radius:12px;--radius-sm:8px;--sidebar-w:256px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;}
+
+    /* SIDEBAR */
+    .sidebar{width:var(--sidebar-w);background:var(--navy);position:fixed;height:100vh;top:0;left:0;display:flex;flex-direction:column;overflow-y:auto;z-index:100;box-shadow:2px 0 20px rgba(0,0,0,0.2);}
+    .sb-hdr{padding:1.4rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.15);}
+    .sb-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .sb-logo{width:38px;height:38px;border-radius:9px;background:linear-gradient(145deg,var(--teal),#00bcd4);display:flex;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:0 0 0 2px rgba(0,188,212,0.25);}
+    .sb-bt .t1{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;color:#fff;letter-spacing:0.08em;line-height:1;}
+    .sb-bt .t2{font-size:0.58rem;color:rgba(0,188,212,0.85);letter-spacing:0.12em;text-transform:uppercase;}
+    .sb-badge{margin:0.8rem 1.2rem 0;background:rgba(244,168,32,0.12);border:1px solid rgba(244,168,32,0.2);border-radius:6px;padding:0.4rem 0.8rem;font-size:0.7rem;color:var(--gold);font-weight:700;letter-spacing:0.08em;text-transform:uppercase;}
+    .sb-user{margin:0.8rem 1.2rem 0;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-sm);padding:0.7rem;display:flex;align-items:center;gap:0.7rem;}
+    .sb-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:#fff;flex-shrink:0;}
+    .sb-ui .un{font-size:0.82rem;font-weight:600;color:#fff;}
+    .sb-ui .ur{font-size:0.62rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.08em;}
+    .sb-nav{padding:0.8rem 0;flex:1;}
+    .sb-sec{font-size:0.6rem;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:0.14em;font-weight:700;padding:0.6rem 1.2rem;margin-top:0.4rem;}
+    .sb-a{display:flex;align-items:center;gap:0.7rem;padding:0.65rem 1.2rem;color:rgba(255,255,255,0.58);text-decoration:none;font-size:0.83rem;font-weight:500;transition:all 0.18s;border-right:3px solid transparent;}
+    .sb-a:hover{color:#fff;background:rgba(255,255,255,0.06);}
+    .sb-a.active{color:#fff;background:rgba(0,151,167,0.18);border-right-color:var(--teal);}
+    .sb-a .si{font-size:0.95rem;width:18px;text-align:center;}
+    .sb-ft{padding:1rem 1.2rem;border-top:1px solid rgba(255,255,255,0.08);}
+    .btn-logout{width:100%;padding:0.55rem;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:rgba(239,68,68,0.8);border-radius:var(--radius-sm);font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .btn-logout:hover{background:rgba(239,68,68,0.2);color:#ef4444;}
+
+    /* MAIN */
+    .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+    .topbar{background:#fff;border-bottom:1px solid var(--border);padding:0 2rem;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 10px rgba(0,30,60,0.06);}
+    .tb-title{font-family:'Rajdhani',sans-serif;font-size:1.15rem;font-weight:700;color:var(--navy);line-height:1;}
+    .tb-sub{font-size:0.7rem;color:var(--text-3);margin-top:1px;}
+    .tb-sub span{color:var(--teal);font-weight:600;}
+    .tb-right{display:flex;align-items:center;gap:0.7rem;}
+    .tb-pill{display:flex;align-items:center;gap:0.5rem;background:var(--bg);border:1px solid var(--border);border-radius:100px;padding:0.28rem 0.9rem 0.28rem 0.3rem;}
+    .tp-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;font-weight:700;font-size:0.72rem;display:flex;align-items:center;justify-content:center;}
+    .tp-nm{font-size:0.78rem;font-weight:600;color:var(--text);}
+
+    /* Content */
+    .content{padding:1.8rem 2rem;flex:1;}
+
+    /* Page tabs */
+    .page-tabs{display:flex;gap:0.5rem;margin-bottom:1.8rem;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:5px;box-shadow:var(--shadow);}
+    .ptab{flex:1;text-align:center;padding:0.65rem;border-radius:var(--radius-sm);font-size:0.83rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text-2);font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .ptab.active{background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;box-shadow:0 3px 12px rgba(0,151,167,0.35);}
+
+    /* View */
+    .view{display:none;} .view.active{display:block;}
+
+    /* Section header */
+    .sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:1rem;}
+    .sh-left .sh-tag{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--teal);margin-bottom:0.2rem;}
+    .sh-left .sh-title{font-family:'Rajdhani',sans-serif;font-size:1.4rem;font-weight:700;color:var(--navy);}
+    .sh-left .sh-sub{font-size:0.78rem;color:var(--text-2);margin-top:2px;}
+    .btn-add{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:var(--radius-sm);padding:0.6rem 1.3rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 3px 12px rgba(0,151,167,0.35);transition:all 0.2s;}
+    .btn-add:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,151,167,0.5);}
+
+    /* Add form card */
+    .add-card{background:#fff;border:1px solid rgba(0,151,167,0.2);border-radius:var(--radius);padding:1.4rem;margin-bottom:1.2rem;box-shadow:var(--shadow);display:none;animation:slideDown 0.2s ease;}
+    .add-card.open{display:block;}
+    @keyframes slideDown{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+    .add-card-title{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;}
+    .f-row{display:grid;grid-template-columns:1fr 1fr;gap:0.9rem;margin-bottom:0.9rem;}
+    .f-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.9rem;margin-bottom:0.9rem;}
+    .f-group{display:flex;flex-direction:column;gap:0.3rem;}
+    .f-label{font-size:0.75rem;font-weight:700;color:var(--text);letter-spacing:0.01em;}
+    .f-label span{color:#e53935;}
+    .f-input,.f-select{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0.68rem 0.9rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.85rem;color:var(--text);background:var(--bg);outline:none;transition:all 0.2s;width:100%;}
+    .f-input:focus,.f-select:focus{border-color:var(--teal);background:#fff;box-shadow:0 0 0 3px rgba(0,151,167,0.1);}
+    .f-input::placeholder{color:var(--text-3);}
+    .add-actions{display:flex;gap:0.7rem;margin-top:1rem;}
+    .btn-save{background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:var(--radius-sm);padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 3px 10px rgba(0,151,167,0.35);transition:all 0.2s;}
+    .btn-save:hover{transform:translateY(-1px);}
+    .btn-cancel-sm{background:none;color:var(--text-2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0.65rem 1.2rem;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.18s;}
+    .btn-cancel-sm:hover{border-color:var(--text-2);}
+    .add-alert{padding:0.6rem 0.9rem;border-radius:var(--radius-sm);font-size:0.8rem;margin-top:0.6rem;display:none;}
+    .add-alert.err{background:rgba(239,68,68,0.08);color:#b91c1c;border-left:3px solid #ef4444;display:block;}
+    .add-alert.ok{background:rgba(16,185,129,0.08);color:#065f46;border-left:3px solid #10b981;display:block;}
+
+    /* Table card */
+    .table-card{background:#fff;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;}
+    .tc-hdr{padding:1rem 1.4rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to right,rgba(0,151,167,0.03),transparent);}
+    .tc-title{font-family:'Rajdhani',sans-serif;font-size:0.95rem;font-weight:700;color:var(--navy);}
+    .tc-count{font-size:0.72rem;color:var(--text-3);font-weight:500;}
+    table{width:100%;border-collapse:collapse;}
+    th,td{padding:0.75rem 1rem;text-align:left;font-size:0.82rem;}
+    th{background:var(--bg);font-weight:700;color:var(--text-3);text-transform:uppercase;font-size:0.67rem;letter-spacing:0.07em;border-bottom:1px solid var(--border);}
+    td{border-bottom:1px solid rgba(208,228,236,0.5);color:var(--text-2);}
+    td strong{color:var(--text);font-weight:700;}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:rgba(0,151,167,0.02);}
+
+    /* Badges */
+    .badge{padding:3px 10px;border-radius:100px;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;display:inline-block;}
+    .b-active{background:rgba(16,185,129,0.12);color:#065f46;}
+    .b-inactive{background:rgba(239,68,68,0.12);color:#b91c1c;}
+    .b-verified{background:rgba(16,185,129,0.12);color:#065f46;}
+    .b-unverified{background:rgba(245,158,11,0.12);color:#b45309;}
+
+    /* Action buttons */
+    .act-btn{padding:4px 10px;border-radius:6px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.18s;border:1px solid;}
+    .ab-deactivate{background:rgba(239,68,68,0.08);color:#b91c1c;border-color:rgba(239,68,68,0.2);}
+    .ab-deactivate:hover{background:rgba(239,68,68,0.18);}
+    .ab-activate{background:rgba(16,185,129,0.08);color:#065f46;border-color:rgba(16,185,129,0.2);}
+    .ab-activate:hover{background:rgba(16,185,129,0.18);}
+    .ab-delete{background:rgba(239,68,68,0.08);color:#b91c1c;border-color:rgba(239,68,68,0.2);}
+    .ab-delete:hover{background:rgba(239,68,68,0.18);}
+    .ab-logs{background:rgba(59,130,246,0.08);color:#1d4ed8;border-color:rgba(59,130,246,0.2);}
+    .ab-logs:hover{background:rgba(59,130,246,0.18);}
+
+    /* Avatar initials */
+    .av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;font-weight:700;font-size:0.8rem;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+    /* Categories two-col */
+    .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;}
+    .cat-col{background:#fff;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;}
+    .cat-col-hdr{padding:1rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to right,rgba(0,151,167,0.03),transparent);}
+    .cat-col-title{font-family:'Rajdhani',sans-serif;font-size:0.95rem;font-weight:700;color:var(--navy);}
+    .cat-add-row{padding:1rem 1.2rem;border-bottom:1px solid var(--border);display:flex;gap:0.6rem;}
+    .cat-input{flex:1;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0.6rem 0.85rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.83rem;color:var(--text);background:var(--bg);outline:none;transition:all 0.2s;}
+    .cat-input:focus{border-color:var(--teal);background:#fff;}
+    .cat-input::placeholder{color:var(--text-3);}
+    .cat-add-btn{background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:var(--radius-sm);padding:0.6rem 1rem;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;transition:all 0.2s;}
+    .cat-add-btn:hover{transform:translateY(-1px);}
+    .cat-list{}
+    .cat-item{display:flex;align-items:center;justify-content:space-between;padding:0.7rem 1.2rem;border-bottom:1px solid rgba(208,228,236,0.4);transition:background 0.15s;}
+    .cat-item:last-child{border-bottom:none;}
+    .cat-item:hover{background:rgba(0,151,167,0.03);}
+    .cat-item-name{font-size:0.83rem;font-weight:600;color:var(--text);display:flex;align-items:center;gap:0.5rem;}
+    .cat-item-name .num{font-size:0.65rem;color:var(--text-3);background:var(--bg);border:1px solid var(--border);border-radius:100px;padding:1px 7px;}
+
+    /* Empty */
+    .empty{text-align:center;padding:2.5rem 2rem;color:var(--text-3);}
+    .empty-icon{font-size:2rem;margin-bottom:0.5rem;}
+
+    /* Modal */
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(4px);}
+    .modal.open{display:flex;}
+    .modal-box{background:#fff;border-radius:var(--radius);width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.3);animation:mIn 0.22s ease;}
+    @keyframes mIn{from{opacity:0;transform:scale(0.96) translateY(10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+    .modal-hdr{padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.7rem;}
+    .mh-icon{width:36px;height:36px;border-radius:9px;background:rgba(59,130,246,0.1);display:flex;align-items:center;justify-content:center;font-size:1rem;}
+    .mh-title{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;color:var(--navy);}
+    .mh-sub{font-size:0.72rem;color:var(--text-3);}
+    .modal-body{padding:1.2rem 1.5rem;font-size:0.85rem;color:var(--text-2);line-height:1.6;max-height:300px;overflow-y:auto;}
+    .log-item{display:flex;gap:0.8rem;padding:0.6rem 0;border-bottom:1px solid rgba(208,228,236,0.4);}
+    .log-item:last-child{border-bottom:none;}
+    .log-date{font-size:0.72rem;color:var(--text-3);white-space:nowrap;min-width:100px;}
+    .log-action{font-size:0.8rem;color:var(--text);}
+    .modal-ftr{padding:1rem 1.5rem;border-top:1px solid var(--border);}
+    .mb-close{width:100%;padding:0.72rem;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);font-size:0.88rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-hdr">
+    <a href="/hydraa-index.html" class="sb-brand">
+      <div class="sb-logo">💧</div>
+      <div class="sb-bt"><div class="t1">HYDRAA</div><div class="t2">Government of Telangana</div></div>
+    </a>
+  </div>
+  <div class="sb-badge">🛡️ Admin Panel</div>
+  <div class="sb-user">
+    <div class="sb-av" id="sb-av">A</div>
+    <div class="sb-ui"><div class="un" id="sb-un">Administrator</div><div class="ur">System Admin</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Overview</div>
+    <a href="admin-dashboard.html" class="sb-a"><span class="si">📊</span> Dashboard</a>
+    <a href="admin-complaints.html" class="sb-a"><span class="si">📋</span> All Complaints</a>
+    <a href="admin-analytics.html" class="sb-a"><span class="si">📈</span> Analytics</a>
+    <div class="sb-sec">Management</div>
+    <a href="admin-officials.html" class="sb-a active"><span class="si">👷</span> Manage Officials</a>
+    <a href="admin-users.html" class="sb-a"><span class="si">👥</span> Manage Users</a>
+    <a href="admin-categories.html" class="sb-a"><span class="si">🗂️</span> Categories</a>
+    <a href="admin-states.html" class="sb-a"><span class="si">📍</span> States</a>
+    <div class="sb-sec">Account</div>
+    <a href="change-password.html" class="sb-a"><span class="si">🔒</span> Change Password</a>
+  </nav>
+  <div class="sb-ft">
+    <button class="btn-logout" onclick="logout()">⬅ Logout</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="tb-title" id="tb-title">Manage Officials</div>
+      <div class="tb-sub">HYDRAA Admin · <span id="tb-sub">Officials Management</span></div>
+    </div>
+    <div class="tb-right">
+      <div class="tb-pill">
+        <div class="tp-av" id="tp-av">A</div>
+        <div class="tp-nm" id="tp-nm">Admin</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Page tabs -->
+    <div class="page-tabs">
+      <button class="ptab active" onclick="switchView('officials')">👷 Officials</button>
+      <button class="ptab" onclick="switchView('users')">👥 Citizens</button>
+      <button class="ptab" onclick="switchView('categories')">🗂️ Categories</button>
+    </div>
+
+    <!-- ═══ OFFICIALS VIEW ═══ -->
+    <div class="view active" id="view-officials">
+      <div class="sec-hdr">
+        <div class="sh-left">
+          <div class="sh-tag">Personnel Management</div>
+          <div class="sh-title">Field Officials</div>
+          <div class="sh-sub">Add and manage HYDRAA field officials</div>
+        </div>
+        <button class="btn-add" onclick="toggleAddForm('officials')">+ Add Official</button>
+      </div>
+
+      <!-- Add form -->
+      <div class="add-card" id="add-officials">
+        <div class="add-card-title">👷 Add New Official</div>
+        <div class="f-row">
+          <div class="f-group"><label class="f-label">Full Name <span>*</span></label><input type="text" id="of_name" class="f-input" placeholder="Official's full name"/></div>
+          <div class="f-group"><label class="f-label">Department</label><input type="text" id="of_dept" class="f-input" placeholder="e.g. Lake Protection Wing"/></div>
+        </div>
+        <div class="f-row">
+          <div class="f-group"><label class="f-label">Email <span>*</span></label><input type="email" id="of_email" class="f-input" placeholder="official@hydraa.gov.in"/></div>
+          <div class="f-group"><label class="f-label">Phone</label><input type="tel" id="of_phone" class="f-input" placeholder="Mobile number"/></div>
+        </div>
+        <div class="f-row">
+          <div class="f-group"><label class="f-label">Password <span>*</span></label><input type="password" id="of_password" class="f-input" placeholder="Min 6 characters"/></div>
+        </div>
+        <div id="addOfficialAlert" class="add-alert"></div>
+        <div class="add-actions">
+          <button class="btn-save" onclick="addOfficial()">✅ Add Official</button>
+          <button class="btn-cancel-sm" onclick="toggleAddForm('officials')">Cancel</button>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="tc-hdr">
+          <div class="tc-title">All Officials</div>
+          <div class="tc-count" id="officials-count">Loading...</div>
+        </div>
+        <div id="officialsTable"><div class="empty"><div class="empty-icon">⏳</div><p>Loading officials...</p></div></div>
+      </div>
+    </div>
+
+    <!-- ═══ USERS VIEW ═══ -->
+    <div class="view" id="view-users">
+      <div class="sec-hdr">
+        <div class="sh-left">
+          <div class="sh-tag">Citizen Registry</div>
+          <div class="sh-title">Registered Citizens</div>
+          <div class="sh-sub">All citizens registered on HYDRAA portal</div>
+        </div>
+        <button class="btn-add" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)" onclick="window.print()">🖨️ Print</button>
+      </div>
+
+      <div class="table-card">
+        <div class="tc-hdr">
+          <div class="tc-title">All Citizens</div>
+          <div class="tc-count" id="users-count">Loading...</div>
+        </div>
+        <div id="usersTable"><div class="empty"><div class="empty-icon">⏳</div><p>Loading citizens...</p></div></div>
+      </div>
+    </div>
+
+    <!-- ═══ CATEGORIES VIEW ═══ -->
+    <div class="view" id="view-categories">
+      <div class="sec-hdr">
+        <div class="sh-left">
+          <div class="sh-tag">Complaint Types</div>
+          <div class="sh-title">Categories & Sub-Categories</div>
+          <div class="sh-sub">Manage complaint categories used across HYDRAA</div>
+        </div>
+      </div>
+
+      <div class="cat-grid">
+        <!-- Categories -->
+        <div class="cat-col">
+          <div class="cat-col-hdr">
+            <div class="cat-col-title">📁 Main Categories</div>
+          </div>
+          <div class="cat-add-row">
+            <input type="text" id="catName" class="cat-input" placeholder="New category name..." onkeydown="if(event.key==='Enter') addCategory()"/>
+            <button class="cat-add-btn" onclick="addCategory()">+ Add</button>
+          </div>
+          <div id="catList"><div class="empty"><div class="empty-icon">⏳</div><p>Loading...</p></div></div>
+        </div>
+
+        <!-- Sub-categories -->
+        <div class="cat-col">
+          <div class="cat-col-hdr">
+            <div class="cat-col-title">📂 Sub-Categories</div>
+          </div>
+          <div class="cat-add-row" style="flex-direction:column;gap:0.5rem;">
+            <select id="subCatParent" class="cat-input" onchange="loadSubcats()">
+              <option value="">— Select Parent Category —</option>
+            </select>
+            <div style="display:flex;gap:0.6rem;">
+              <input type="text" id="subCatName" class="cat-input" placeholder="Sub-category name..." onkeydown="if(event.key==='Enter') addSubcat()"/>
+              <button class="cat-add-btn" onclick="addSubcat()">+ Add</button>
+            </div>
+          </div>
+          <div id="subcatList"><div class="empty"><p style="font-size:0.82rem">Select a category to view sub-categories</p></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- LOGS MODAL -->
+<div id="logsModal" class="modal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div class="mh-icon">📋</div>
+      <div><div class="mh-title" id="logs-title">User Logs</div><div class="mh-sub">Activity history</div></div>
+    </div>
+    <div class="modal-body" id="logsBody"></div>
+    <div class="modal-ftr"><button class="mb-close" onclick="document.getElementById('logsModal').classList.remove('open')">Close</button></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+  Auth.requireLogin('admin');
+
+  const user = Auth.getUser();
+  if (user) {
+    const init = (user.full_name||user.username||'A')[0].toUpperCase();
+    const name = user.full_name||user.username||'Admin';
+    document.getElementById('sb-av').textContent = init;
+    document.getElementById('sb-un').textContent = name;
+    document.getElementById('tp-av').textContent = init;
+    document.getElementById('tp-nm').textContent = name;
+  }
+
+  // ── VIEW SWITCHING ──
+  function switchView(v) {
+    document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.ptab').forEach(el => el.classList.remove('active'));
+    document.getElementById('view-'+v).classList.add('active');
+    const idx = {officials:0,users:1,categories:2}[v];
+    document.querySelectorAll('.ptab')[idx].classList.add('active');
+    const titles = {officials:['Manage Officials','Officials Management'],users:['Manage Citizens','Citizen Registry'],categories:['Categories','Complaint Categories']};
+    document.getElementById('tb-title').textContent = titles[v][0];
+    document.getElementById('tb-sub').textContent = titles[v][1];
+    if (v==='users' && !usersLoaded) loadUsers();
+    if (v==='categories' && !catsLoaded) loadCategories();
+  }
+
+  function toggleAddForm(view) {
+    const el = document.getElementById('add-'+view);
+    el.classList.toggle('open');
+  }
+
+  // ── OFFICIALS ──
+  async function loadOfficials() {
+    try {
+      const res = await http.get('/api/admin/officials');
+      if (!res.success) return;
+      const officials = res.data;
+      document.getElementById('officials-count').textContent = officials.length + ' officials';
+
+      if (officials.length === 0) {
+        document.getElementById('officialsTable').innerHTML = `<div class="empty"><div class="empty-icon">👷</div><p>No officials added yet. Click "Add Official" to get started.</p></div>`;
+        return;
+      }
+
+      document.getElementById('officialsTable').innerHTML = `
+        <table>
+          <thead><tr><th>Official</th><th>Email</th><th>Phone</th><th>Department</th><th>Status</th><th>Added On</th><th>Action</th></tr></thead>
+          <tbody>${officials.map(o => `
+            <tr>
+              <td>
+                <div style="display:flex;align-items:center;gap:0.6rem">
+                  <div class="av">${o.full_name[0].toUpperCase()}</div>
+                  <strong>${o.full_name}</strong>
+                </div>
+              </td>
+              <td style="font-size:0.78rem">${o.email}</td>
+              <td style="font-size:0.78rem">${o.phone||'—'}</td>
+              <td style="font-size:0.78rem">${o.department||'—'}</td>
+              <td><span class="badge ${o.is_active?'b-active':'b-inactive'}">${o.is_active?'Active':'Inactive'}</span></td>
+              <td style="font-size:0.78rem;white-space:nowrap">${formatDate(o.created_at)}</td>
+              <td>
+                <button class="act-btn ${o.is_active?'ab-deactivate':'ab-activate'}"
+                  onclick="toggleOfficialStatus(${o.id},${o.is_active},'${o.full_name}','${o.phone||''}','${o.department||''}')">
+                  ${o.is_active?'Deactivate':'Activate'}
+                </button>
+              </td>
+            </tr>`).join('')}
+          </tbody>
+        </table>`;
+    } catch(err) { console.error(err); }
+  }
+
+  async function addOfficial() {
+    const name     = document.getElementById('of_name').value.trim();
+    const email    = document.getElementById('of_email').value.trim();
+    const password = document.getElementById('of_password').value;
+    const alert_el = document.getElementById('addOfficialAlert');
+    if (!name||!email||!password) { alert_el.textContent='Name, email and password are required.'; alert_el.className='add-alert err'; return; }
+    try {
+      const res = await http.post('/api/admin/officials', {full_name:name,email,phone:document.getElementById('of_phone').value,department:document.getElementById('of_dept').value,password});
+      if (res.success) {
+        alert_el.textContent='Official added successfully!'; alert_el.className='add-alert ok';
+        setTimeout(()=>{ toggleAddForm('officials'); ['of_name','of_dept','of_email','of_phone','of_password'].forEach(id=>document.getElementById(id).value=''); alert_el.className='add-alert'; loadOfficials(); },1200);
+      } else { alert_el.textContent=res.message; alert_el.className='add-alert err'; }
+    } catch(e) { alert_el.textContent='Server error.'; alert_el.className='add-alert err'; }
+  }
+
+  async function toggleOfficialStatus(id, current, name, phone, dept) {
+    if (!confirm(`${current?'Deactivate':'Activate'} official "${name}"?`)) return;
+    const res = await http.put(`/api/admin/officials/${id}`, {full_name:name,phone,department:dept,is_active:current?0:1});
+    if (res.success) loadOfficials(); else alert(res.message);
+  }
+
+  // ── USERS ──
+  var usersLoaded = false;
+  async function loadUsers() {
+    try {
+      const res = await http.get('/api/admin/users');
+      if (!res.success) return;
+      usersLoaded = true;
+      document.getElementById('users-count').textContent = res.data.length + ' citizens';
+      document.getElementById('usersTable').innerHTML = `
+        <table>
+          <thead><tr><th>#</th><th>Citizen</th><th>Email</th><th>Phone</th><th>Verified</th><th>Registered</th><th>Action</th></tr></thead>
+          <tbody>${res.data.map((u,i) => `
+            <tr>
+              <td style="color:var(--text-3);font-size:0.78rem">${i+1}</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:0.6rem">
+                  <div class="av" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">${u.full_name[0].toUpperCase()}</div>
+                  <strong>${u.full_name}</strong>
+                </div>
+              </td>
+              <td style="font-size:0.78rem">${u.email}</td>
+              <td style="font-size:0.78rem">${u.phone||'—'}</td>
+              <td><span class="badge ${u.is_verified?'b-verified':'b-unverified'}">${u.is_verified?'✓ Verified':'✗ Pending'}</span></td>
+              <td style="font-size:0.78rem;white-space:nowrap">${formatDate(u.created_at)}</td>
+              <td><button class="act-btn ab-logs" onclick="viewLogs(${u.id},'${u.full_name}')">📋 Logs</button></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>`;
+    } catch(err) { console.error(err); }
+  }
+
+  async function viewLogs(id, name) {
+    document.getElementById('logs-title').textContent = name + ' — Activity Logs';
+    document.getElementById('logsBody').innerHTML = '<div style="text-align:center;padding:1rem;color:var(--text-3)">Loading...</div>';
+    document.getElementById('logsModal').classList.add('open');
+    try {
+      const res = await http.get(`/api/admin/users/${id}/logs`);
+      document.getElementById('logsBody').innerHTML = !res.data||res.data.length===0
+        ? '<div class="empty"><div class="empty-icon">📭</div><p>No activity logs found</p></div>'
+        : res.data.map(l=>`<div class="log-item"><span class="log-date">${formatDate(l.created_at)}</span><span class="log-action">${l.action}</span></div>`).join('');
+    } catch(e) { document.getElementById('logsBody').innerHTML = '<p style="color:var(--red);padding:1rem">Failed to load logs.</p>'; }
+  }
+
+  // ── CATEGORIES ──
+  var catsLoaded = false;
+  async function loadCategories() {
+    try {
+      const res = await http.get('/api/admin/categories');
+      catsLoaded = true;
+      const sel = document.getElementById('subCatParent');
+      sel.innerHTML = '<option value="">— Select Parent Category —</option>';
+      res.data.forEach(c => sel.innerHTML += `<option value="${c.id}">${c.name}</option>`);
+
+      document.getElementById('catList').innerHTML = res.data.length===0
+        ? '<div class="empty"><div class="empty-icon">📁</div><p>No categories yet. Add one above.</p></div>'
+        : res.data.map(c=>`
+          <div class="cat-item">
+            <div class="cat-item-name">📁 ${c.name}</div>
+            <button class="act-btn ab-delete" onclick="deleteCategory(${c.id})">Delete</button>
+          </div>`).join('');
+    } catch(err) { console.error(err); }
+  }
+
+  async function addCategory() {
+    const name = document.getElementById('catName').value.trim();
+    if (!name) return;
+    const res = await http.post('/api/admin/categories',{name});
+    if (res.success) { document.getElementById('catName').value=''; loadCategories(); }
+    else alert(res.message);
+  }
+
+  async function deleteCategory(id) {
+    if (!confirm('Delete this category? Sub-categories will also be removed.')) return;
+    const res = await http.delete(`/api/admin/categories/${id}`);
+    if (res.success) loadCategories(); else alert(res.message);
+  }
+
+  async function loadSubcats() {
+    const catId = document.getElementById('subCatParent').value;
+    if (!catId) { document.getElementById('subcatList').innerHTML='<div class="empty"><p style="font-size:0.82rem">Select a category above</p></div>'; return; }
+    const res = await http.get(`/api/admin/subcategories?category_id=${catId}`);
+    document.getElementById('subcatList').innerHTML = res.data.length===0
+      ? '<div class="empty"><div class="empty-icon">📂</div><p>No sub-categories yet. Add one above.</p></div>'
+      : res.data.map(s=>`
+        <div class="cat-item">
+          <div class="cat-item-name" style="padding-left:0.5rem">↳ ${s.name}</div>
+          <button class="act-btn ab-delete" onclick="deleteSubcat(${s.id})">Delete</button>
+        </div>`).join('');
+  }
+
+  async function addSubcat() {
+    const catId = document.getElementById('subCatParent').value;
+    const name  = document.getElementById('subCatName').value.trim();
+    if (!catId) return alert('Please select a parent category first.');
+    if (!name)  return;
+    const res = await http.post('/api/admin/subcategories',{name,category_id:catId});
+    if (res.success) { document.getElementById('subCatName').value=''; loadSubcats(); }
+    else alert(res.message);
+  }
+
+  async function deleteSubcat(id) {
+    if (!confirm('Delete this sub-category?')) return;
+    const res = await http.delete(`/api/admin/subcategories/${id}`);
+    if (res.success) loadSubcats(); else alert(res.message);
+  }
+
+  // Close logs modal on backdrop
+  document.getElementById('logsModal').addEventListener('click', e => { if(e.target===e.currentTarget) e.currentTarget.classList.remove('open'); });
+
+  loadOfficials();
+</script>
+<script src="http-client.js"></script>
+</body>
+</html>

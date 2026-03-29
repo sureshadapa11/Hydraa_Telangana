@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Official Portal — HYDRAA Telangana</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --teal:#0097a7;--teal-dark:#006978;--teal-light:#e0f7fa;
+      --navy:#0b1f3a;--navy-mid:#122944;--gold:#f4a820;
+      --green:#10b981;--red:#ef4444;--orange:#f59e0b;
+      --purple:#8b5cf6;--blue:#3b82f6;
+      --white:#fff;--bg:#f2f6f9;--text:#0d1e2e;
+      --text-2:#3d5a72;--text-3:#7a9baf;--border:#d0e4ec;
+      --shadow:0 2px 16px rgba(0,30,60,0.08);
+      --shadow-md:0 8px 36px rgba(0,30,60,0.14);
+      --radius:12px;--radius-sm:8px;--sidebar-w:256px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);overflow-x:hidden;}
+
+    /* ══ SCREENS ══ */
+    .screen{display:none;min-height:100vh;}
+    .screen.active{display:flex;}
+
+    /* ══════════════ LOGIN SCREEN ══════════════ */
+    #screen-login{
+      background:
+        radial-gradient(ellipse 70% 80% at 72% 50%,rgba(0,151,167,0.13) 0%,transparent 65%),
+        radial-gradient(ellipse 40% 50% at 15% 70%,rgba(0,118,138,0.16) 0%,transparent 55%),
+        linear-gradient(160deg,#061426 0%,#0b2040 45%,#0e2d52 100%);
+      grid-template-columns:1fr 1fr;
+      align-items:center;
+      padding:3rem;
+      gap:3rem;
+      position:relative;
+      overflow:hidden;
+    }
+    .login-grid-bg{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,151,167,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,151,167,0.04) 1px,transparent 1px);background-size:60px 60px;}
+    .login-orb{position:absolute;right:5%;top:50%;transform:translateY(-50%);width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(0,151,167,0.1) 0%,transparent 70%);border:1px solid rgba(0,188,212,0.07);animation:breathe 5s ease-in-out infinite;pointer-events:none;}
+    @keyframes breathe{0%,100%{transform:translateY(-50%) scale(1);}50%{transform:translateY(-50%) scale(1.04);}}
+
+    .login-left{position:relative;z-index:2;}
+    .login-logo{display:flex;align-items:center;gap:12px;text-decoration:none;margin-bottom:2.5rem;}
+    .ll-icon{width:44px;height:44px;border-radius:10px;background:linear-gradient(145deg,var(--teal),#00bcd4);display:flex;align-items:center;justify-content:center;font-size:1.5rem;box-shadow:0 0 0 3px rgba(0,188,212,0.2),0 4px 16px rgba(0,151,167,0.4);}
+    .ll-text .n1{font-family:'Rajdhani',sans-serif;font-size:1.3rem;font-weight:700;color:#fff;letter-spacing:0.1em;line-height:1;}
+    .ll-text .n2{font-size:0.6rem;color:rgba(0,188,212,0.85);letter-spacing:0.14em;text-transform:uppercase;}
+    .login-pill{display:inline-flex;align-items:center;gap:7px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);border-radius:100px;padding:0.3rem 0.9rem;font-size:0.7rem;color:#34d399;text-transform:uppercase;letter-spacing:0.1em;font-weight:600;margin-bottom:1.5rem;}
+    .ldot{width:6px;height:6px;border-radius:50%;background:#34d399;box-shadow:0 0 6px #34d399;animation:blink 1.8s ease-in-out infinite;}
+    @keyframes blink{0%,100%{opacity:1;}50%{opacity:0.2;}}
+    .login-eyebrow{font-size:0.75rem;color:var(--gold);letter-spacing:0.2em;text-transform:uppercase;font-weight:600;margin-bottom:0.7rem;}
+    .login-h1{font-family:'Rajdhani',sans-serif;font-size:clamp(2.2rem,4vw,3.4rem);font-weight:700;color:#fff;line-height:1.08;margin-bottom:1.2rem;}
+    .login-h1 em{color:#4dd6e8;font-style:normal;}
+    .login-desc{font-size:0.92rem;color:rgba(255,255,255,0.52);line-height:1.75;max-width:420px;margin-bottom:2rem;font-weight:300;}
+    .login-feats{display:flex;flex-direction:column;gap:0.65rem;}
+    .lf{display:flex;align-items:center;gap:10px;font-size:0.82rem;color:rgba(255,255,255,0.58);}
+    .lf-ic{width:30px;height:30px;border-radius:8px;background:rgba(16,185,129,0.12);display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0;}
+
+    /* Login card */
+    .login-right{position:relative;z-index:2;}
+    .login-card{background:#fff;border-radius:20px;padding:2.5rem;box-shadow:0 24px 80px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.9);}
+    .lc-tag{font-size:0.68rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.4rem;}
+    .lc-title{font-family:'Rajdhani',sans-serif;font-size:1.7rem;font-weight:700;color:var(--navy);margin-bottom:0.3rem;}
+    .lc-sub{font-size:0.82rem;color:var(--text-2);margin-bottom:1.8rem;}
+    .lc-field{margin-bottom:1rem;}
+    .lc-label{font-size:0.78rem;font-weight:700;color:var(--text);margin-bottom:0.35rem;display:block;}
+    .lc-label span{color:#e53935;}
+    .lc-input{width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0.78rem 1rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.9rem;color:var(--text);background:var(--bg);outline:none;transition:all 0.2s;}
+    .lc-input:focus{border-color:var(--teal);background:#fff;box-shadow:0 0 0 3px rgba(0,151,167,0.1);}
+    .lc-input::placeholder{color:var(--text-3);}
+    .pw-wrap{position:relative;}
+    .pw-wrap .lc-input{padding-right:2.8rem;}
+    .pw-toggle{position:absolute;right:0.9rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1rem;color:var(--text-3);transition:color 0.2s;}
+    .pw-toggle:hover{color:var(--teal);}
+    .alert-box{padding:0.8rem 1rem;border-radius:var(--radius-sm);font-size:0.82rem;margin-bottom:1rem;display:none;align-items:center;gap:0.6rem;}
+    .alert-box.show{display:flex;}
+    .alert-box.error{background:rgba(239,68,68,0.08);color:#b91c1c;border-left:3px solid #ef4444;}
+    .alert-box.success{background:rgba(16,185,129,0.08);color:#065f46;border-left:3px solid #10b981;}
+    .lc-btn{width:100%;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:var(--radius-sm);padding:0.88rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.92rem;font-weight:700;cursor:pointer;box-shadow:0 4px 18px rgba(0,151,167,0.4);transition:all 0.22s;margin-bottom:1rem;}
+    .lc-btn:hover{transform:translateY(-1px);box-shadow:0 7px 24px rgba(0,151,167,0.55);}
+    .lc-btn:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+    .lc-footer{text-align:center;font-size:0.78rem;color:var(--text-3);}
+    .lc-footer a{color:var(--teal);text-decoration:none;font-weight:600;}
+    .lc-footer a:hover{text-decoration:underline;}
+    .other-logins{display:flex;gap:0.6rem;margin-top:1.2rem;padding-top:1.2rem;border-top:1px solid var(--border);}
+    .ol-btn{flex:1;text-align:center;text-decoration:none;padding:0.55rem;border-radius:var(--radius-sm);font-size:0.76rem;font-weight:600;border:1px solid var(--border);color:var(--text-2);background:var(--bg);transition:all 0.18s;}
+    .ol-btn:hover{border-color:var(--teal);color:var(--teal);}
+
+    /* ══════════════ DASHBOARD SCREEN ══════════════ */
+    #screen-dashboard{background:var(--bg);flex-direction:row;}
+
+    /* SIDEBAR */
+    .sidebar{width:var(--sidebar-w);background:var(--navy);position:fixed;height:100vh;top:0;left:0;display:flex;flex-direction:column;overflow-y:auto;z-index:100;box-shadow:2px 0 20px rgba(0,0,0,0.2);}
+    .sb-hdr{padding:1.4rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.15);}
+    .sb-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .sb-logo{width:38px;height:38px;border-radius:9px;background:linear-gradient(145deg,var(--teal),#00bcd4);display:flex;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:0 0 0 2px rgba(0,188,212,0.25);}
+    .sb-bt .t1{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;color:#fff;letter-spacing:0.08em;line-height:1;}
+    .sb-bt .t2{font-size:0.58rem;color:rgba(0,188,212,0.85);letter-spacing:0.12em;text-transform:uppercase;}
+    .sb-badge{margin:0.8rem 1.2rem 0;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.2);border-radius:6px;padding:0.4rem 0.8rem;display:flex;align-items:center;gap:6px;font-size:0.7rem;color:#34d399;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;}
+    .sb-user{margin:0.8rem 1.2rem 0;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-sm);padding:0.7rem;display:flex;align-items:center;gap:0.7rem;}
+    .sb-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:#fff;flex-shrink:0;}
+    .sb-ui .un{font-size:0.82rem;font-weight:600;color:#fff;}
+    .sb-ui .ur{font-size:0.62rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.08em;}
+    .sb-ui .dept{font-size:0.62rem;color:#34d399;margin-top:1px;}
+    .sb-nav{padding:0.8rem 0;flex:1;}
+    .sb-sec{font-size:0.6rem;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:0.14em;font-weight:700;padding:0.6rem 1.2rem;margin-top:0.4rem;}
+    .sb-a{display:flex;align-items:center;gap:0.7rem;padding:0.65rem 1.2rem;color:rgba(255,255,255,0.58);text-decoration:none;font-size:0.83rem;font-weight:500;transition:all 0.18s;border-right:3px solid transparent;}
+    .sb-a:hover{color:#fff;background:rgba(255,255,255,0.06);}
+    .sb-a.active{color:#fff;background:rgba(16,185,129,0.15);border-right-color:#10b981;}
+    .sb-a .si{font-size:0.95rem;width:18px;text-align:center;}
+    .sb-a .badge-count{margin-left:auto;background:rgba(239,68,68,0.2);color:#ef4444;font-size:0.62rem;font-weight:700;padding:1px 7px;border-radius:100px;}
+    .sb-ft{padding:1rem 1.2rem;border-top:1px solid rgba(255,255,255,0.08);}
+    .btn-logout{width:100%;padding:0.55rem;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:rgba(239,68,68,0.8);border-radius:var(--radius-sm);font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .btn-logout:hover{background:rgba(239,68,68,0.2);color:#ef4444;}
+
+    /* MAIN */
+    .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+    .topbar{background:#fff;border-bottom:1px solid var(--border);padding:0 2rem;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 10px rgba(0,30,60,0.06);}
+    .tb-title{font-family:'Rajdhani',sans-serif;font-size:1.15rem;font-weight:700;color:var(--navy);line-height:1;}
+    .tb-crumb{font-size:0.7rem;color:var(--text-3);margin-top:1px;}
+    .tb-crumb span{color:var(--teal);font-weight:600;}
+    .tb-right{display:flex;align-items:center;gap:0.7rem;}
+    .tb-pill{display:flex;align-items:center;gap:0.5rem;background:var(--bg);border:1px solid var(--border);border-radius:100px;padding:0.28rem 0.9rem 0.28rem 0.3rem;}
+    .tp-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-weight:700;font-size:0.72rem;display:flex;align-items:center;justify-content:center;}
+    .tp-nm{font-size:0.78rem;font-weight:600;color:var(--text);}
+
+    /* Content */
+    .content{padding:1.8rem 2rem;flex:1;}
+    .view{display:none;} .view.active{display:block;}
+
+    /* Page tabs */
+    .page-tabs{display:flex;gap:0.5rem;margin-bottom:1.8rem;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:5px;box-shadow:var(--shadow);}
+    .ptab{flex:1;text-align:center;padding:0.6rem;border-radius:var(--radius-sm);font-size:0.83rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text-2);font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .ptab.active{background:linear-gradient(135deg,#10b981,#059669);color:#fff;box-shadow:0 3px 12px rgba(16,185,129,0.35);}
+
+    /* Stats */
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
+    .stat-card{background:#fff;border-radius:var(--radius);border:1px solid var(--border);padding:1.3rem 1.4rem;box-shadow:var(--shadow);display:flex;align-items:center;gap:1rem;transition:all 0.22s;}
+    .stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+    .sc-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+    .ic-blue{background:rgba(59,130,246,0.1);} .ic-orange{background:rgba(245,158,11,0.1);} .ic-purple{background:rgba(139,92,246,0.1);} .ic-green{background:rgba(16,185,129,0.1);} .ic-red{background:rgba(239,68,68,0.1);}
+    .sc-val{font-family:'Rajdhani',sans-serif;font-size:2rem;font-weight:700;color:var(--text);line-height:1;}
+    .sc-lbl{font-size:0.73rem;color:var(--text-2);margin-top:2px;font-weight:500;}
+
+    /* Priority task list */
+    .urgency-row{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.5rem;}
+    .urgency-card{background:#fff;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;}
+    .uc-hdr{padding:0.9rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to right,rgba(0,151,167,0.03),transparent);}
+    .uc-title{font-family:'Rajdhani',sans-serif;font-size:0.95rem;font-weight:700;color:var(--navy);}
+    .uc-count{font-size:0.7rem;color:var(--text-3);}
+    .task-list{padding:0.5rem 0;}
+    .task-item{display:flex;align-items:center;gap:0.8rem;padding:0.65rem 1.2rem;border-bottom:1px solid rgba(208,228,236,0.4);transition:background 0.15s;}
+    .task-item:last-child{border-bottom:none;}
+    .task-item:hover{background:rgba(0,151,167,0.03);}
+    .task-prio{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+    .tp-urgent{background:#7c3aed;box-shadow:0 0 6px rgba(124,58,237,0.5);}
+    .tp-high{background:#ef4444;}
+    .tp-medium{background:#f59e0b;}
+    .tp-low{background:#10b981;}
+    .task-info{flex:1;min-width:0;}
+    .task-no{font-size:0.68rem;color:var(--teal);font-weight:700;}
+    .task-title{font-size:0.8rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .task-meta{font-size:0.68rem;color:var(--text-3);margin-top:1px;}
+    .task-btn{padding:4px 10px;border:none;border-radius:6px;font-size:0.7rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;background:rgba(16,185,129,0.1);color:#065f46;border:1px solid rgba(16,185,129,0.2);white-space:nowrap;transition:all 0.18s;}
+    .task-btn:hover{background:rgba(16,185,129,0.2);}
+    .empty-task{text-align:center;padding:2rem;color:var(--text-3);font-size:0.82rem;}
+
+    /* Table */
+    .table-card{background:#fff;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;}
+    .tc-hdr{padding:1rem 1.4rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+    .tc-title{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);}
+    .tc-sub{font-size:0.7rem;color:var(--text-3);}
+    table{width:100%;border-collapse:collapse;}
+    th,td{padding:0.75rem 1rem;text-align:left;font-size:0.82rem;}
+    th{background:var(--bg);font-weight:700;color:var(--text-3);text-transform:uppercase;font-size:0.68rem;letter-spacing:0.07em;border-bottom:1px solid var(--border);}
+    td{border-bottom:1px solid rgba(208,228,236,0.5);color:var(--text-2);}
+    td strong{color:var(--text);font-weight:700;}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:rgba(0,151,167,0.02);}
+    .cno{color:var(--teal);font-weight:700;font-size:0.82rem;}
+
+    /* Badges */
+    .badge{padding:3px 10px;border-radius:100px;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;display:inline-block;}
+    .b-pending{background:rgba(245,158,11,0.12);color:#b45309;}
+    .b-assigned{background:rgba(59,130,246,0.12);color:#1d4ed8;}
+    .b-in_progress{background:rgba(139,92,246,0.12);color:#6d28d9;}
+    .b-resolved{background:rgba(16,185,129,0.12);color:#065f46;}
+    .b-closed{background:rgba(107,114,128,0.12);color:#374151;}
+    .b-low{background:rgba(16,185,129,0.12);color:#065f46;}
+    .b-medium{background:rgba(245,158,11,0.12);color:#b45309;}
+    .b-high{background:rgba(239,68,68,0.12);color:#b91c1c;}
+    .b-urgent{background:rgba(124,58,237,0.15);color:#6d28d9;font-weight:900;}
+    .done-tag{color:#065f46;font-weight:600;font-size:0.78rem;}
+
+    /* Filter bar */
+    .filter-bar{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:0.9rem 1.2rem;margin-bottom:1.2rem;display:flex;gap:0.8rem;flex-wrap:wrap;align-items:center;box-shadow:var(--shadow);}
+    .filter-bar select{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0.52rem 0.85rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.83rem;color:var(--text);background:var(--bg);outline:none;transition:border-color 0.2s;}
+    .filter-bar select:focus{border-color:var(--teal);}
+
+    /* Update action btn */
+    .upd-btn{padding:5px 12px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:6px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.18s;white-space:nowrap;}
+    .upd-btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(16,185,129,0.4);}
+
+    /* Empty */
+    .empty{text-align:center;padding:3rem 2rem;color:var(--text-3);}
+    .empty-icon{font-size:2.5rem;margin-bottom:0.7rem;}
+
+    /* ══ MODAL ══ */
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(4px);}
+    .modal.open{display:flex;}
+    .modal-box{background:#fff;border-radius:var(--radius);width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.3);animation:mIn 0.22s ease;}
+    @keyframes mIn{from{opacity:0;transform:scale(0.96) translateY(10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+    .modal-hdr{padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.7rem;background:linear-gradient(to right,rgba(16,185,129,0.04),transparent);}
+    .mh-icon{width:36px;height:36px;border-radius:9px;background:rgba(16,185,129,0.1);display:flex;align-items:center;justify-content:center;font-size:1rem;}
+    .mh-title{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;color:var(--navy);}
+    .mh-sub{font-size:0.72rem;color:var(--text-3);}
+    .modal-info{margin:1.2rem 1.5rem 0;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.9rem 1rem;font-size:0.82rem;color:var(--text-2);}
+    .modal-info strong{color:var(--navy);font-weight:700;}
+    .modal-body{padding:1.2rem 1.5rem;}
+    .m-field{margin-bottom:1rem;}
+    .m-label{font-size:0.78rem;font-weight:700;color:var(--text);margin-bottom:0.35rem;display:block;}
+    .m-label span{color:#e53935;}
+    .m-select,.m-textarea{width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0.72rem 0.9rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--bg);outline:none;transition:all 0.2s;}
+    .m-select:focus,.m-textarea:focus{border-color:var(--teal);background:#fff;box-shadow:0 0 0 3px rgba(0,151,167,0.1);}
+    .m-textarea{resize:vertical;min-height:100px;line-height:1.6;}
+    .m-msg{padding:0.7rem 1rem;border-radius:var(--radius-sm);font-size:0.82rem;margin-bottom:0.8rem;display:none;}
+    .m-msg.err{background:rgba(239,68,68,0.08);color:#b91c1c;border-left:3px solid #ef4444;display:block;}
+    .m-msg.ok{background:rgba(16,185,129,0.08);color:#065f46;border-left:3px solid #10b981;display:block;}
+    .modal-ftr{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;gap:0.7rem;}
+    .mb-ok{flex:1;padding:0.75rem;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:var(--radius-sm);font-size:0.88rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 3px 12px rgba(16,185,129,0.35);transition:all 0.2s;}
+    .mb-ok:hover{transform:translateY(-1px);}
+    .mb-cancel{padding:0.75rem 1.2rem;background:none;color:var(--text-2);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:0.85rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
+  </style>
+</head>
+<body>
+
+<!-- ══════════ LOGIN SCREEN ══════════ -->
+<div class="screen active" id="screen-login" style="display:grid">
+  <div class="login-grid-bg"></div>
+  <div class="login-orb"></div>
+
+  <div class="login-left">
+    <a href="/hydraa-index.html" class="login-logo">
+      <div class="ll-icon">💧</div>
+      <div class="ll-text"><div class="n1">HYDRAA</div><div class="n2">Government of Telangana</div></div>
+    </a>
+    <div class="login-pill"><span class="ldot"></span> Official Field Portal</div>
+    <div class="login-eyebrow">Hyderabad Disaster Response & Asset Protection Agency</div>
+    <h1 class="login-h1">Field Officials<br/><em>Action Portal</em></h1>
+    <p class="login-desc">Access your assigned complaints, update resolution status in real-time, and upload field evidence directly from the HYDRAA official portal.</p>
+    <div class="login-feats">
+      <div class="lf"><div class="lf-ic">📋</div> View all complaints assigned to you</div>
+      <div class="lf"><div class="lf-ic">🔄</div> Update status — In Progress / Resolved</div>
+      <div class="lf"><div class="lf-ic">📎</div> Add remarks and field action details</div>
+      <div class="lf"><div class="lf-ic">🚨</div> Priority-sorted urgent complaint queue</div>
+    </div>
+  </div>
+
+  <div class="login-right">
+    <div class="login-card">
+      <div class="lc-tag">👷 Official Access</div>
+      <div class="lc-title">Official Login</div>
+      <div class="lc-sub">Enter your HYDRAA official credentials</div>
+
+      <div id="loginAlert" class="alert-box"></div>
+
+      <form id="officialLoginForm">
+        <div class="lc-field">
+          <label class="lc-label">Official Email <span>*</span></label>
+          <input type="email" id="email" class="lc-input" placeholder="your.email@hydraa.gov.in" required/>
+        </div>
+        <div class="lc-field">
+          <label class="lc-label">Password <span>*</span></label>
+          <div class="pw-wrap">
+            <input type="password" id="password" class="lc-input" placeholder="Enter your password" required/>
+            <button type="button" class="pw-toggle" onclick="togglePw()">👁️</button>
+          </div>
+        </div>
+        <button type="submit" class="lc-btn" id="loginBtn" data-text="Login to Portal">Login to Portal →</button>
+      </form>
+
+      <div class="lc-footer">
+        <a href="/hydraa-index.html">← Back to Home</a>
+      </div>
+      <div class="other-logins">
+        <a href="/hydraa-login.html" class="ol-btn">👤 Citizen Login</a>
+        <a href="/hydraa-admin-login.html" class="ol-btn">🛡️ Admin Login</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ DASHBOARD SCREEN ══════════ -->
+<div class="screen" id="screen-dashboard" style="display:none;flex-direction:row;">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-hdr">
+      <a href="/hydraa-index.html" class="sb-brand">
+        <div class="sb-logo">💧</div>
+        <div class="sb-bt"><div class="t1">HYDRAA</div><div class="t2">Government of Telangana</div></div>
+      </a>
+    </div>
+    <div class="sb-badge">👷 Field Official Portal</div>
+    <div class="sb-user">
+      <div class="sb-av" id="sb-av">O</div>
+      <div class="sb-ui">
+        <div class="un" id="sb-un">Official</div>
+        <div class="ur">Field Official</div>
+        <div class="dept" id="sb-dept"></div>
+      </div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-sec">My Work</div>
+      <a href="#" class="sb-a active" onclick="switchView('dashboard');return false;"><span class="si">🏠</span> Dashboard</a>
+      <a href="#" class="sb-a" onclick="switchView('complaints');return false;"><span class="si">📋</span> Assigned Complaints <span class="badge-count" id="pending-count">0</span></a>
+      <div class="sb-sec">Account</div>
+      <a href="change-password.html" class="sb-a"><span class="si">🔒</span> Change Password</a>
+    </nav>
+    <div class="sb-ft">
+      <button class="btn-logout" onclick="logout()">⬅ Logout</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="tb-title" id="tb-title">Official Dashboard</div>
+        <div class="tb-crumb">HYDRAA · <span id="tb-date"></span></div>
+      </div>
+      <div class="tb-right">
+        <div class="tb-pill">
+          <div class="tp-av" id="tp-av">O</div>
+          <div class="tp-nm" id="tp-nm">Official</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- Tabs -->
+      <div class="page-tabs">
+        <button class="ptab active" onclick="switchView('dashboard')">🏠 Dashboard</button>
+        <button class="ptab" onclick="switchView('complaints')">📋 Assigned Complaints</button>
+      </div>
+
+      <!-- ═ DASHBOARD VIEW ═ -->
+      <div class="view active" id="view-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card"><div class="sc-icon ic-blue">📋</div><div><div class="sc-val" id="s-total">—</div><div class="sc-lbl">Total Assigned</div></div></div>
+          <div class="stat-card"><div class="sc-icon ic-orange">⏳</div><div><div class="sc-val" id="s-pending">—</div><div class="sc-lbl">Pending Action</div></div></div>
+          <div class="stat-card"><div class="sc-icon ic-purple">🔄</div><div><div class="sc-val" id="s-progress">—</div><div class="sc-lbl">In Progress</div></div></div>
+          <div class="stat-card"><div class="sc-icon ic-green">✅</div><div><div class="sc-val" id="s-resolved">—</div><div class="sc-lbl">Resolved</div></div></div>
+        </div>
+
+        <!-- Priority queue + Recent -->
+        <div class="urgency-row">
+          <div class="urgency-card">
+            <div class="uc-hdr">
+              <div class="uc-title">🚨 Urgent & High Priority</div>
+              <div class="uc-count" id="urgent-count">Loading...</div>
+            </div>
+            <div class="task-list" id="urgentList"><div class="empty-task">Loading...</div></div>
+          </div>
+          <div class="urgency-card">
+            <div class="uc-hdr">
+              <div class="uc-title">⏳ Pending Action</div>
+              <div class="uc-count" id="pending-action-count">Loading...</div>
+            </div>
+            <div class="task-list" id="pendingList"><div class="empty-task">Loading...</div></div>
+          </div>
+        </div>
+
+        <!-- Recent table -->
+        <div class="table-card">
+          <div class="tc-hdr">
+            <div><div class="tc-title">Recent Assigned Complaints</div><div class="tc-sub">Last 5 complaints assigned to you</div></div>
+            <a href="#" onclick="switchView('complaints');return false;" style="font-size:0.78rem;color:var(--teal);text-decoration:none;font-weight:600;">View All →</a>
+          </div>
+          <div id="recentTable"><div class="empty"><div class="empty-icon">⏳</div><p>Loading...</p></div></div>
+        </div>
+      </div>
+
+      <!-- ═ COMPLAINTS VIEW ═ -->
+      <div class="view" id="view-complaints">
+        <div class="filter-bar">
+          <span style="font-size:0.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.07em;">Filter:</span>
+          <select id="filterStatus" onchange="filterComplaints()">
+            <option value="">All Statuses</option>
+            <option value="assigned">Assigned</option>
+            <option value="in_progress">In Progress</option>
+            <option value="resolved">Resolved</option>
+          </select>
+          <select id="filterPriority" onchange="filterComplaints()">
+            <option value="">All Priorities</option>
+            <option value="urgent">🚨 Urgent</option>
+            <option value="high">🔴 High</option>
+            <option value="medium">🟡 Medium</option>
+            <option value="low">🟢 Low</option>
+          </select>
+        </div>
+
+        <div class="table-card">
+          <div class="tc-hdr">
+            <div><div class="tc-title">Assigned Complaints</div><div class="tc-sub">Resolve and update complaints assigned to you</div></div>
+          </div>
+          <div id="complaintsTable"><div class="empty"><div class="empty-icon">⏳</div><p>Loading...</p></div></div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div>
+
+<!-- UPDATE MODAL -->
+<div id="updateModal" class="modal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div class="mh-icon">🔄</div>
+      <div><div class="mh-title">Update Complaint Status</div><div class="mh-sub">Record the action taken in the field</div></div>
+    </div>
+    <div class="modal-info" id="modalInfo"></div>
+    <div class="modal-body">
+      <input type="hidden" id="updateId"/>
+      <div class="m-field">
+        <label class="m-label">Update Status <span>*</span></label>
+        <select id="updateStatus" class="m-select">
+          <option value="in_progress">🔄 In Progress — Work started</option>
+          <option value="resolved">✅ Resolved — Issue fixed</option>
+        </select>
+      </div>
+      <div class="m-field">
+        <label class="m-label">Remarks / Action Taken <span>*</span></label>
+        <textarea id="updateRemarks" class="m-textarea" placeholder="Describe what action was taken in the field, current situation, evidence collected..."></textarea>
+      </div>
+      <div id="updateMsg" class="m-msg"></div>
+    </div>
+    <div class="modal-ftr">
+      <button class="mb-ok" onclick="doUpdate()">✅ Save Update</button>
+      <button class="mb-cancel" onclick="closeUpdate()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+// ═══════════════ LOGIN ═══════════════
+function togglePw() {
+  const inp = document.getElementById('password');
+  const btn = inp.nextElementSibling;
+  const isText = inp.type === 'text';
+  inp.type = isText ? 'password' : 'text';
+  btn.textContent = isText ? '👁️' : '🙈';
+}
+
+function showLoginAlert(msg, type) {
+  const el = document.getElementById('loginAlert');
+  el.textContent = msg;
+  el.className = 'alert-box show ' + type;
+}
+
+document.getElementById('officialLoginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('loginBtn');
+  setLoading(btn, true);
+  try {
+    const res = await http.post('/api/auth/official/login', {
+      email: document.getElementById('email').value,
+      password: document.getElementById('password').value
+    });
+    if (res.success) {
+      Auth.setSession(res.token, res.user);
+      showLoginAlert('Login successful! Loading portal...', 'success');
+      setTimeout(() => initDashboard(), 800);
+    } else {
+      showLoginAlert(res.message || 'Invalid credentials.', 'error');
+    }
+  } catch(err) {
+    showLoginAlert('Server error. Please try again.', 'error');
+  } finally {
+    setLoading(btn, false);
+  }
+});
+
+// ═══════════════ DASHBOARD ═══════════════
+var allComplaints = [];
+
+function initDashboard() {
+  // Switch screens
+  document.getElementById('screen-login').style.display = 'none';
+  document.getElementById('screen-dashboard').style.display = 'flex';
+
+  const user = Auth.getUser();
+  if (user) {
+    const init = (user.full_name || user.username || 'O')[0].toUpperCase();
+    document.getElementById('sb-av').textContent = init;
+    document.getElementById('sb-un').textContent = user.full_name || user.username || 'Official';
+    document.getElementById('sb-dept').textContent = user.department || '';
+    document.getElementById('tp-av').textContent = init;
+    document.getElementById('tp-nm').textContent = user.full_name || user.username || 'Official';
+  }
+  document.getElementById('tb-date').textContent = new Date().toLocaleDateString('en-IN', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  loadComplaints();
+}
+
+// Check if already logged in
+(function() {
+  if (Auth.isLoggedIn() && Auth.getUser()?.role === 'official') {
+    initDashboard();
+  }
+})();
+
+function switchView(v) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.ptab').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.sb-a').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.querySelectorAll('.ptab')[v==='dashboard'?0:1].classList.add('active');
+  document.querySelectorAll('.sb-a')[v==='dashboard'?0:1].classList.add('active');
+  document.getElementById('tb-title').textContent = v==='dashboard' ? 'Official Dashboard' : 'Assigned Complaints';
+}
+
+function sb(status) {
+  const m = {pending:'b-pending',assigned:'b-assigned',in_progress:'b-in_progress',resolved:'b-resolved',closed:'b-closed'};
+  const l = {pending:'Pending',assigned:'Assigned',in_progress:'In Progress',resolved:'Resolved',closed:'Closed'};
+  return `<span class="badge ${m[status]||''}">${l[status]||status}</span>`;
+}
+function pb(p) { return `<span class="badge b-${p}">${p.toUpperCase()}</span>`; }
+
+async function loadComplaints() {
+  try {
+    const res = await http.get('/api/complaints/official/assigned');
+    if (!res.success) return;
+    allComplaints = res.data;
+    updateDashboard();
+    filterComplaints();
+  } catch(err) { console.error(err); }
+}
+
+function updateDashboard() {
+  const c = allComplaints;
+  const total = c.length;
+  const pending = c.filter(x => x.status === 'assigned').length;
+  const progress = c.filter(x => x.status === 'in_progress').length;
+  const resolved = c.filter(x => x.status === 'resolved').length;
+
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-pending').textContent = pending;
+  document.getElementById('s-progress').textContent = progress;
+  document.getElementById('s-resolved').textContent = resolved;
+  document.getElementById('pending-count').textContent = pending + progress;
+
+  // Urgent list
+  const urgent = c.filter(x => (x.priority==='urgent'||x.priority==='high') && x.status!=='resolved' && x.status!=='closed');
+  document.getElementById('urgent-count').textContent = urgent.length + ' items';
+  document.getElementById('urgentList').innerHTML = urgent.length === 0
+    ? '<div class="empty-task">✅ No urgent complaints</div>'
+    : urgent.slice(0,5).map(x => taskItem(x)).join('');
+
+  // Pending list
+  const pend = c.filter(x => x.status==='assigned');
+  document.getElementById('pending-action-count').textContent = pend.length + ' pending';
+  document.getElementById('pendingList').innerHTML = pend.length === 0
+    ? '<div class="empty-task">✅ All complaints actioned</div>'
+    : pend.slice(0,5).map(x => taskItem(x)).join('');
+
+  // Recent table
+  const recent = c.slice(0,5);
+  document.getElementById('recentTable').innerHTML = recent.length === 0
+    ? '<div class="empty"><div class="empty-icon">📭</div><p>No complaints assigned yet</p></div>'
+    : `<table><thead><tr><th>No.</th><th>Title</th><th>Category</th><th>Citizen</th><th>Priority</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+       <tbody>${recent.map(x=>`<tr>
+         <td><span class="cno">${x.complaint_no}</span></td>
+         <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><strong>${x.title}</strong></td>
+         <td style="font-size:0.78rem">${x.category_name||'—'}</td>
+         <td>${x.user_name}</td>
+         <td>${pb(x.priority)}</td>
+         <td>${sb(x.status)}</td>
+         <td style="white-space:nowrap">${formatDate(x.created_at)}</td>
+         <td>${(x.status!=='resolved'&&x.status!=='closed') ? `<button class="upd-btn" onclick="openUpdate(${x.id})">✏️ Update</button>` : '<span class="done-tag">✅ Done</span>'}</td>
+       </tr>`).join('')}
+       </tbody></table>`;
+}
+
+function taskItem(x) {
+  return `<div class="task-item">
+    <div class="task-prio tp-${x.priority}"></div>
+    <div class="task-info">
+      <div class="task-no">${x.complaint_no}</div>
+      <div class="task-title">${x.title}</div>
+      <div class="task-meta">${x.category_name||'—'} · ${x.user_name}</div>
+    </div>
+    <button class="task-btn" onclick="openUpdate(${x.id})">Update</button>
+  </div>`;
+}
+
+function filterComplaints() {
+  const status = document.getElementById('filterStatus').value;
+  const prio   = document.getElementById('filterPriority').value;
+  let data = allComplaints;
+  if (status) data = data.filter(c => c.status === status);
+  if (prio)   data = data.filter(c => c.priority === prio);
+
+  document.getElementById('complaintsTable').innerHTML = data.length === 0
+    ? '<div class="empty"><div class="empty-icon">📭</div><p>No complaints match your filters</p></div>'
+    : `<table><thead><tr><th>No.</th><th>Title</th><th>Category</th><th>Citizen</th><th>Phone</th><th>Location</th><th>Priority</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+       <tbody>${data.map(c=>`<tr>
+         <td><span class="cno">${c.complaint_no}</span></td>
+         <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.title}"><strong>${c.title}</strong></td>
+         <td style="font-size:0.78rem">${c.category_name||'—'}</td>
+         <td>${c.user_name}</td>
+         <td style="font-size:0.78rem">${c.user_phone||'—'}</td>
+         <td style="font-size:0.78rem">${c.state_name||c.address||'—'}</td>
+         <td>${pb(c.priority)}</td>
+         <td>${sb(c.status)}</td>
+         <td style="white-space:nowrap">${formatDate(c.created_at)}</td>
+         <td>${(c.status!=='resolved'&&c.status!=='closed') ? `<button class="upd-btn" onclick="openUpdate(${c.id})">✏️ Update</button>` : '<span class="done-tag">✅ Done</span>'}</td>
+       </tr>`).join('')}
+       </tbody></table>`;
+}
+
+// ═══ MODAL ═══
+function openUpdate(id) {
+  const c = allComplaints.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('updateId').value = id;
+  document.getElementById('updateRemarks').value = c.official_remarks || '';
+  document.getElementById('updateStatus').value = c.status === 'assigned' ? 'in_progress' : 'resolved';
+  document.getElementById('updateMsg').className = 'm-msg';
+  document.getElementById('modalInfo').innerHTML = `<strong>${c.complaint_no}</strong> — ${c.title}<br><span style="color:var(--text-3);font-size:0.75rem">Citizen: ${c.user_name}${c.user_phone?' · '+c.user_phone:''} · ${c.category_name||'N/A'}</span>`;
+  document.getElementById('updateModal').classList.add('open');
+}
+function closeUpdate() { document.getElementById('updateModal').classList.remove('open'); }
+document.getElementById('updateModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeUpdate(); });
+
+async function doUpdate() {
+  const id = document.getElementById('updateId').value;
+  const status = document.getElementById('updateStatus').value;
+  const remarks = document.getElementById('updateRemarks').value.trim();
+  const msg = document.getElementById('updateMsg');
+  if (!remarks) { msg.textContent='Please add remarks about the action taken.'; msg.className='m-msg err'; return; }
+  try {
+    const res = await http.put('/api/complaints/official/resolve/'+id, {status, remarks});
+    if (res.success) {
+      msg.textContent='Complaint updated successfully!'; msg.className='m-msg ok';
+      setTimeout(() => { closeUpdate(); loadComplaints(); }, 1400);
+    } else { msg.textContent=res.message; msg.className='m-msg err'; }
+  } catch(e) { msg.textContent='Server error. Try again.'; msg.className='m-msg err'; }
+}
+</script>
+<script src="http-client.js"></script>
+</body>
+</html>

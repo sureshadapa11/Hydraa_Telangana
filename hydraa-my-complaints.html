@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Complaints — HYDRAA Telangana</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --teal:#0097a7;--teal-dark:#006978;--teal-light:#e0f7fa;
+      --navy:#0b1f3a;--navy-mid:#122944;--gold:#f4a820;
+      --green:#10b981;--red:#ef4444;--orange:#f59e0b;
+      --purple:#8b5cf6;--blue:#3b82f6;
+      --white:#fff;--bg:#f2f6f9;--text:#0d1e2e;
+      --text-2:#3d5a72;--text-3:#7a9baf;--border:#d0e4ec;
+      --shadow:0 2px 16px rgba(0,30,60,0.08);
+      --shadow-md:0 8px 36px rgba(0,30,60,0.13);
+      --radius:12px;--radius-sm:8px;--sidebar-w:256px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;}
+
+    /* SIDEBAR */
+    .sidebar{width:var(--sidebar-w);background:var(--navy);position:fixed;height:100vh;top:0;left:0;display:flex;flex-direction:column;overflow-y:auto;z-index:100;box-shadow:2px 0 20px rgba(0,0,0,0.2);}
+    .sb-hdr{padding:1.4rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.15);}
+    .sb-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .sb-logo{width:38px;height:38px;border-radius:9px;background:linear-gradient(145deg,var(--teal),#00bcd4);display:flex;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:0 0 0 2px rgba(0,188,212,0.25);}
+    .sb-bt .t1{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;color:#fff;letter-spacing:0.08em;line-height:1;}
+    .sb-bt .t2{font-size:0.58rem;color:rgba(0,188,212,0.85);letter-spacing:0.12em;text-transform:uppercase;}
+    .sb-badge{margin:0.8rem 1.2rem 0;background:rgba(0,151,167,0.15);border:1px solid rgba(0,151,167,0.25);border-radius:6px;padding:0.4rem 0.8rem;font-size:0.7rem;color:#4dd6e8;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;}
+    .sb-user{margin:0.8rem 1.2rem 0;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-sm);padding:0.7rem;display:flex;align-items:center;gap:0.7rem;}
+    .sb-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:#fff;flex-shrink:0;}
+    .sb-ui .un{font-size:0.82rem;font-weight:600;color:#fff;}
+    .sb-ui .ur{font-size:0.62rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.08em;}
+    .sb-nav{padding:0.8rem 0;flex:1;}
+    .sb-sec{font-size:0.6rem;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:0.14em;font-weight:700;padding:0.6rem 1.2rem;margin-top:0.4rem;}
+    .sb-a{display:flex;align-items:center;gap:0.7rem;padding:0.65rem 1.2rem;color:rgba(255,255,255,0.58);text-decoration:none;font-size:0.83rem;font-weight:500;transition:all 0.18s;border-right:3px solid transparent;}
+    .sb-a:hover{color:#fff;background:rgba(255,255,255,0.06);}
+    .sb-a.active{color:#fff;background:rgba(0,151,167,0.18);border-right-color:var(--teal);}
+    .sb-a .si{font-size:0.95rem;width:18px;text-align:center;}
+    .sb-ft{padding:1rem 1.2rem;border-top:1px solid rgba(255,255,255,0.08);}
+    .btn-logout{width:100%;padding:0.55rem;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:rgba(239,68,68,0.8);border-radius:var(--radius-sm);font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .btn-logout:hover{background:rgba(239,68,68,0.2);color:#ef4444;}
+
+    /* MAIN */
+    .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+    .topbar{background:#fff;border-bottom:1px solid var(--border);padding:0 2rem;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 10px rgba(0,30,60,0.06);}
+    .tb-title{font-family:'Rajdhani',sans-serif;font-size:1.15rem;font-weight:700;color:var(--navy);line-height:1;}
+    .tb-sub{font-size:0.7rem;color:var(--text-3);margin-top:1px;}
+    .tb-sub span{color:var(--teal);font-weight:600;}
+    .tb-right{display:flex;align-items:center;gap:0.7rem;}
+    .tb-pill{display:flex;align-items:center;gap:0.5rem;background:var(--bg);border:1px solid var(--border);border-radius:100px;padding:0.28rem 0.9rem 0.28rem 0.3rem;}
+    .tp-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;font-weight:700;font-size:0.72rem;display:flex;align-items:center;justify-content:center;}
+    .tp-nm{font-size:0.78rem;font-weight:600;color:var(--text);}
+    .tb-new-btn{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;text-decoration:none;padding:0.45rem 1.1rem;border-radius:var(--radius-sm);font-size:0.82rem;font-weight:700;box-shadow:0 3px 12px rgba(0,151,167,0.35);transition:all 0.2s;}
+    .tb-new-btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,151,167,0.5);}
+
+    /* Content */
+    .content{padding:1.8rem 2rem;flex:1;}
+
+    /* Page header */
+    .page-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;}
+    .ph-tag{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--teal);margin-bottom:0.3rem;}
+    .ph-title{font-family:'Rajdhani',sans-serif;font-size:1.7rem;font-weight:700;color:var(--navy);line-height:1;}
+    .ph-sub{font-size:0.82rem;color:var(--text-2);margin-top:0.3rem;}
+
+    /* Status filter tabs */
+    .status-tabs{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.2rem;}
+    .stab{padding:0.4rem 1rem;border-radius:100px;font-size:0.78rem;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--white);color:var(--text-2);transition:all 0.18s;}
+    .stab:hover{border-color:var(--teal);color:var(--teal);}
+    .stab.active{background:var(--teal);border-color:var(--teal);color:#fff;}
+    .stab .stab-count{font-size:0.68rem;background:rgba(255,255,255,0.25);border-radius:100px;padding:0 6px;margin-left:4px;}
+    .stab.active .stab-count{background:rgba(255,255,255,0.25);}
+    .stab:not(.active) .stab-count{background:rgba(0,151,167,0.1);color:var(--teal);}
+
+    /* Filter bar */
+    .filter-bar{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:0.9rem 1.2rem;margin-bottom:1.2rem;display:flex;gap:0.8rem;flex-wrap:wrap;align-items:center;box-shadow:var(--shadow);}
+    .filter-bar input{flex:1;min-width:200px;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0.52rem 0.85rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.83rem;color:var(--text);background:var(--bg);outline:none;transition:border-color 0.2s;}
+    .filter-bar input:focus{border-color:var(--teal);}
+    .filter-bar select{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0.52rem 0.85rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.83rem;color:var(--text);background:var(--bg);outline:none;transition:border-color 0.2s;}
+    .filter-bar select:focus{border-color:var(--teal);}
+    .filter-count{font-size:0.78rem;color:var(--text-3);margin-left:auto;font-weight:500;}
+    .filter-count strong{color:var(--teal);font-weight:700;}
+
+    /* Complaint cards grid */
+    .complaints-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem;}
+    .c-card{background:#fff;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;transition:all 0.22s;}
+    .c-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:rgba(0,151,167,0.2);}
+
+    .cc-top{padding:1rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:0.5rem;}
+    .cc-no{font-size:0.72rem;color:var(--teal);font-weight:700;letter-spacing:0.05em;}
+    .cc-title{font-size:0.9rem;font-weight:700;color:var(--text);margin-top:0.2rem;line-height:1.35;}
+    .cc-badges{display:flex;gap:0.4rem;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;}
+
+    .cc-mid{padding:0.8rem 1.2rem;display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;border-bottom:1px solid var(--border);}
+    .cc-field{}
+    .cc-field-label{font-size:0.63rem;color:var(--text-3);text-transform:uppercase;letter-spacing:0.08em;font-weight:700;margin-bottom:2px;}
+    .cc-field-val{font-size:0.8rem;color:var(--text-2);font-weight:500;}
+
+    .cc-bottom{padding:0.8rem 1.2rem;display:flex;align-items:center;justify-content:space-between;gap:0.5rem;}
+    .cc-official{font-size:0.75rem;}
+    .cc-official .lbl{color:var(--text-3);}
+    .cc-official .val{color:var(--green);font-weight:600;}
+    .cc-official .val.none{color:var(--orange);}
+    .cc-actions{display:flex;gap:0.5rem;}
+    .act-view{padding:5px 12px;background:rgba(0,151,167,0.1);color:var(--teal-dark);border:1px solid rgba(0,151,167,0.2);border-radius:6px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.18s;}
+    .act-view:hover{background:rgba(0,151,167,0.2);}
+    .act-rate{padding:5px 12px;background:rgba(245,158,11,0.1);color:#b45309;border:1px solid rgba(245,158,11,0.2);border-radius:6px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.18s;}
+    .act-rate:hover{background:rgba(245,158,11,0.2);}
+    .act-rated{padding:5px 12px;background:rgba(16,185,129,0.08);color:#065f46;border:1px solid rgba(16,185,129,0.15);border-radius:6px;font-size:0.72rem;font-weight:700;cursor:default;}
+
+    /* Badges */
+    .badge{padding:3px 10px;border-radius:100px;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;display:inline-block;}
+    .b-pending{background:rgba(245,158,11,0.12);color:#b45309;}
+    .b-assigned{background:rgba(59,130,246,0.12);color:#1d4ed8;}
+    .b-in_progress{background:rgba(139,92,246,0.12);color:#6d28d9;}
+    .b-resolved{background:rgba(16,185,129,0.12);color:#065f46;}
+    .b-closed{background:rgba(107,114,128,0.12);color:#374151;}
+    .b-rejected{background:rgba(239,68,68,0.12);color:#b91c1c;}
+    .b-low{background:rgba(16,185,129,0.12);color:#065f46;}
+    .b-medium{background:rgba(245,158,11,0.12);color:#b45309;}
+    .b-high{background:rgba(239,68,68,0.12);color:#b91c1c;}
+    .b-urgent{background:rgba(124,58,237,0.15);color:#6d28d9;font-weight:900;}
+
+    /* Empty */
+    .empty{text-align:center;padding:4rem 2rem;color:var(--text-3);}
+    .empty-icon{font-size:3rem;margin-bottom:0.8rem;}
+    .empty h3{font-size:1.1rem;color:var(--text-2);margin-bottom:0.4rem;}
+    .empty p{font-size:0.85rem;}
+    .empty a{color:var(--teal);font-weight:600;text-decoration:none;}
+
+    /* ── MODALS ── */
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(4px);}
+    .modal.open{display:flex;}
+    .modal-box{background:#fff;border-radius:var(--radius);width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.3);animation:mIn 0.22s ease;}
+    @keyframes mIn{from{opacity:0;transform:scale(0.96) translateY(10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+    .modal-hdr{padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.7rem;background:linear-gradient(to right,rgba(0,151,167,0.04),transparent);}
+    .mh-icon{width:36px;height:36px;border-radius:9px;background:rgba(0,151,167,0.1);display:flex;align-items:center;justify-content:center;font-size:1rem;}
+    .mh-title{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;color:var(--navy);}
+    .mh-sub{font-size:0.72rem;color:var(--text-3);}
+    .modal-body{padding:1.4rem 1.5rem;}
+    .detail-row{display:flex;gap:0.8rem;padding:0.7rem 0;border-bottom:1px solid rgba(208,228,236,0.5);font-size:0.83rem;}
+    .detail-row:last-child{border-bottom:none;}
+    .detail-label{font-weight:700;color:var(--text-3);min-width:130px;flex-shrink:0;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;padding-top:2px;}
+    .detail-value{color:var(--text);line-height:1.5;}
+    .remarks-box{background:var(--bg);border-left:3px solid var(--teal);padding:0.7rem 1rem;border-radius:0 8px 8px 0;font-size:0.82rem;color:var(--text-2);margin-top:0.5rem;line-height:1.6;}
+    .remarks-box.admin{border-left-color:var(--blue);background:rgba(59,130,246,0.04);}
+    .modal-ftr{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;gap:0.7rem;}
+    .mb-close{width:100%;padding:0.75rem;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);font-size:0.88rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:background 0.2s;}
+    .mb-close:hover{background:var(--navy-mid);}
+
+    /* Rating modal */
+    .rating-info{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.8rem 1rem;font-size:0.82rem;color:var(--text-2);margin-bottom:1.2rem;}
+    .rating-info strong{color:var(--navy);font-weight:700;}
+    .stars-wrap{text-align:center;margin-bottom:1.2rem;}
+    .stars-row{display:flex;justify-content:center;gap:8px;font-size:2.5rem;cursor:pointer;margin-bottom:0.5rem;}
+    .star{transition:transform 0.15s;display:inline-block;color:#cbd5e1;}
+    .star:hover,.star.lit{color:var(--gold);transform:scale(1.1);}
+    .rating-lbl{font-size:0.82rem;color:var(--text-3);font-weight:500;}
+    .m-textarea{width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0.72rem 0.9rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--bg);outline:none;transition:all 0.2s;resize:vertical;min-height:80px;line-height:1.6;}
+    .m-textarea:focus{border-color:var(--teal);background:#fff;box-shadow:0 0 0 3px rgba(0,151,167,0.1);}
+    .m-label{font-size:0.78rem;font-weight:700;color:var(--text);margin-bottom:0.35rem;display:block;}
+    .m-msg{padding:0.7rem 1rem;border-radius:var(--radius-sm);font-size:0.82rem;margin-top:0.8rem;display:none;}
+    .m-msg.err{background:rgba(239,68,68,0.08);color:#b91c1c;border-left:3px solid #ef4444;display:block;}
+    .m-msg.ok{background:rgba(16,185,129,0.08);color:#065f46;border-left:3px solid #10b981;display:block;}
+    .mb-ok{flex:1;padding:0.75rem;background:linear-gradient(135deg,var(--green),#059669);color:#fff;border:none;border-radius:var(--radius-sm);font-size:0.88rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 3px 12px rgba(16,185,129,0.35);transition:all 0.2s;}
+    .mb-ok:hover{transform:translateY(-1px);}
+    .mb-cancel{padding:0.75rem 1.2rem;background:none;color:var(--text-2);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:0.85rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-hdr">
+    <a href="/hydraa-index.html" class="sb-brand">
+      <div class="sb-logo">💧</div>
+      <div class="sb-bt"><div class="t1">HYDRAA</div><div class="t2">Government of Telangana</div></div>
+    </a>
+  </div>
+  <div class="sb-badge">👤 Citizen Portal</div>
+  <div class="sb-user">
+    <div class="sb-av" id="sb-av">U</div>
+    <div class="sb-ui"><div class="un" id="sb-un">Citizen</div><div class="ur">Citizen Account</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Main Menu</div>
+    <a href="user-dashboard.html" class="sb-a"><span class="si">🏠</span> Dashboard</a>
+    <a href="lodge-complaint.html" class="sb-a"><span class="si">📝</span> Lodge Complaint</a>
+    <a href="my-complaints.html" class="sb-a active"><span class="si">📋</span> My Complaints</a>
+    <a href="track-complaint.html" class="sb-a"><span class="si">🔍</span> Track Complaint</a>
+    <div class="sb-sec">Account</div>
+    <a href="change-password.html" class="sb-a"><span class="si">🔒</span> Change Password</a>
+  </nav>
+  <div class="sb-ft">
+    <button class="btn-logout" onclick="logout()">⬅ Logout</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="tb-title">My Complaints</div>
+      <div class="tb-sub">HYDRAA · <span>Complaint History</span></div>
+    </div>
+    <div class="tb-right">
+      <a href="lodge-complaint.html" class="tb-new-btn">📝 New Complaint</a>
+      <div class="tb-pill">
+        <div class="tp-av" id="tp-av">U</div>
+        <div class="tp-nm" id="tp-nm">Citizen</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Page header -->
+    <div class="page-hdr">
+      <div>
+        <div class="ph-tag">Citizen · HYDRAA Portal</div>
+        <div class="ph-title">My Complaints</div>
+        <div class="ph-sub">Track and manage all complaints you have filed with HYDRAA</div>
+      </div>
+    </div>
+
+    <!-- Status filter tabs -->
+    <div class="status-tabs" id="statusTabs">
+      <div class="stab active" data-status="" onclick="setTab(this)">All <span class="stab-count" id="cnt-all">0</span></div>
+      <div class="stab" data-status="pending" onclick="setTab(this)">⏳ Pending <span class="stab-count" id="cnt-pending">0</span></div>
+      <div class="stab" data-status="assigned" onclick="setTab(this)">📌 Assigned <span class="stab-count" id="cnt-assigned">0</span></div>
+      <div class="stab" data-status="in_progress" onclick="setTab(this)">🔄 In Progress <span class="stab-count" id="cnt-in_progress">0</span></div>
+      <div class="stab" data-status="resolved" onclick="setTab(this)">✅ Resolved <span class="stab-count" id="cnt-resolved">0</span></div>
+      <div class="stab" data-status="closed" onclick="setTab(this)">🔒 Closed <span class="stab-count" id="cnt-closed">0</span></div>
+      <div class="stab" data-status="rejected" onclick="setTab(this)">❌ Rejected <span class="stab-count" id="cnt-rejected">0</span></div>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <input type="text" id="searchInput" placeholder="🔍  Search by title or complaint number..." oninput="filterComplaints()"/>
+      <select id="filterPriority" onchange="filterComplaints()">
+        <option value="">All Priorities</option>
+        <option value="urgent">🚨 Urgent</option>
+        <option value="high">🔴 High</option>
+        <option value="medium">🟡 Medium</option>
+        <option value="low">🟢 Low</option>
+      </select>
+      <div class="filter-count">Showing <strong id="showCount">0</strong> complaints</div>
+    </div>
+
+    <!-- Cards -->
+    <div id="complaintsGrid" class="complaints-grid">
+      <div class="empty"><div class="empty-icon">⏳</div><p>Loading your complaints...</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div id="detailModal" class="modal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div class="mh-icon">📋</div>
+      <div><div class="mh-title">Complaint Details</div><div class="mh-sub" id="detail-no"></div></div>
+    </div>
+    <div class="modal-body" id="detailContent"></div>
+    <div class="modal-ftr">
+      <button class="mb-close" onclick="closeDetail()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- RATING MODAL -->
+<div id="ratingModal" class="modal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div class="mh-icon" style="background:rgba(245,158,11,0.12)">⭐</div>
+      <div><div class="mh-title">Rate This Complaint</div><div class="mh-sub">Share your feedback on the resolution</div></div>
+    </div>
+    <div class="modal-body">
+      <div class="rating-info" id="ratingInfo"></div>
+      <input type="hidden" id="ratingComplaintId"/>
+      <div class="stars-wrap">
+        <div class="stars-row" id="starsRow">
+          <span class="star" data-n="1" onclick="setRating(1)">★</span>
+          <span class="star" data-n="2" onclick="setRating(2)">★</span>
+          <span class="star" data-n="3" onclick="setRating(3)">★</span>
+          <span class="star" data-n="4" onclick="setRating(4)">★</span>
+          <span class="star" data-n="5" onclick="setRating(5)">★</span>
+        </div>
+        <div class="rating-lbl" id="ratingLbl">Click a star to rate your experience</div>
+      </div>
+      <div class="m-label">Comment (optional)</div>
+      <textarea id="ratingComment" class="m-textarea" placeholder="Tell us about your experience with HYDRAA's resolution..."></textarea>
+      <div id="ratingMsg" class="m-msg"></div>
+    </div>
+    <div class="modal-ftr">
+      <button class="mb-ok" onclick="submitRating()">⭐ Submit Rating</button>
+      <button class="mb-cancel" onclick="closeRating()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+  Auth.requireLogin('user');
+
+  const user = Auth.getUser();
+  if (user) {
+    const init = (user.full_name||user.username||'U')[0].toUpperCase();
+    const name = user.full_name||user.username||'Citizen';
+    document.getElementById('sb-av').textContent = init;
+    document.getElementById('sb-un').textContent = name;
+    document.getElementById('tp-av').textContent = init;
+    document.getElementById('tp-nm').textContent = name;
+  }
+
+  var allComplaints = [];
+  var activeStatus = '';
+
+  function sb(status) {
+    const m={pending:'b-pending',assigned:'b-assigned',in_progress:'b-in_progress',resolved:'b-resolved',closed:'b-closed',rejected:'b-rejected'};
+    const l={pending:'Pending',assigned:'Assigned',in_progress:'In Progress',resolved:'Resolved',closed:'Closed',rejected:'Rejected'};
+    return `<span class="badge ${m[status]||''}">${l[status]||status}</span>`;
+  }
+  function pb(p){return `<span class="badge b-${p}">${p.toUpperCase()}</span>`;}
+
+  async function loadComplaints() {
+    try {
+      const res = await http.get('/api/complaints/my-complaints');
+      if (!res.success) return;
+      allComplaints = res.data;
+      updateCounts();
+      filterComplaints();
+    } catch(err){ console.error(err); }
+  }
+
+  function updateCounts() {
+    const statuses = ['pending','assigned','in_progress','resolved','closed','rejected'];
+    document.getElementById('cnt-all').textContent = allComplaints.length;
+    statuses.forEach(s => {
+      const el = document.getElementById('cnt-'+s);
+      if (el) el.textContent = allComplaints.filter(c => c.status===s).length;
+    });
+  }
+
+  function setTab(el) {
+    document.querySelectorAll('.stab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    activeStatus = el.dataset.status;
+    filterComplaints();
+  }
+
+  function filterComplaints() {
+    const search = document.getElementById('searchInput').value.toLowerCase().trim();
+    const prio   = document.getElementById('filterPriority').value;
+    let data = allComplaints;
+    if (activeStatus) data = data.filter(c => c.status === activeStatus);
+    if (prio)         data = data.filter(c => c.priority === prio);
+    if (search)       data = data.filter(c => c.title.toLowerCase().includes(search) || c.complaint_no.toLowerCase().includes(search));
+    document.getElementById('showCount').textContent = data.length;
+    renderCards(data);
+  }
+
+  function renderCards(complaints) {
+    if (complaints.length === 0) {
+      document.getElementById('complaintsGrid').innerHTML = `
+        <div class="empty" style="grid-column:1/-1">
+          <div class="empty-icon">📭</div>
+          <h3>No complaints found</h3>
+          <p>Try adjusting the filters or <a href="lodge-complaint.html">lodge a new complaint →</a></p>
+        </div>`;
+      return;
+    }
+    document.getElementById('complaintsGrid').innerHTML = complaints.map(c => `
+      <div class="c-card">
+        <div class="cc-top">
+          <div>
+            <div class="cc-no">${c.complaint_no}</div>
+            <div class="cc-title">${c.title}</div>
+          </div>
+          <div class="cc-badges">
+            ${sb(c.status)}
+            ${pb(c.priority)}
+          </div>
+        </div>
+        <div class="cc-mid">
+          <div class="cc-field">
+            <div class="cc-field-label">Category</div>
+            <div class="cc-field-val">${c.category_name||'—'}</div>
+          </div>
+          <div class="cc-field">
+            <div class="cc-field-label">Location</div>
+            <div class="cc-field-val">${c.state_name||c.address||'—'}</div>
+          </div>
+          <div class="cc-field">
+            <div class="cc-field-label">Filed On</div>
+            <div class="cc-field-val">${formatDate(c.created_at)}</div>
+          </div>
+          <div class="cc-field">
+            <div class="cc-field-label">Sub-Category</div>
+            <div class="cc-field-val">${c.subcategory_name||'—'}</div>
+          </div>
+        </div>
+        <div class="cc-bottom">
+          <div class="cc-official">
+            <span class="lbl">Official: </span>
+            <span class="val ${c.official_name?'':'none'}">${c.official_name ? '✓ '+c.official_name : '⚠ Unassigned'}</span>
+          </div>
+          <div class="cc-actions">
+            <button class="act-view" onclick="viewDetails(${c.id})">📋 Details</button>
+            ${c.status==='resolved'
+              ? c.user_rating
+                ? `<span class="act-rated">★ Rated ${c.user_rating}/5</span>`
+                : `<button class="act-rate" onclick="openRating(${c.id})">⭐ Rate</button>`
+              : ''}
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  // ── DETAIL MODAL ──
+  function viewDetails(id) {
+    const c = allComplaints.find(x => x.id === id);
+    if (!c) return;
+    document.getElementById('detail-no').textContent = c.complaint_no;
+    document.getElementById('detailContent').innerHTML = `
+      <div class="detail-row"><span class="detail-label">Complaint No</span><span class="detail-value"><strong style="color:var(--teal)">${c.complaint_no}</strong></span></div>
+      <div class="detail-row"><span class="detail-label">Title</span><span class="detail-value">${c.title}</span></div>
+      <div class="detail-row"><span class="detail-label">Status</span><span class="detail-value">${sb(c.status)}</span></div>
+      <div class="detail-row"><span class="detail-label">Priority</span><span class="detail-value">${pb(c.priority)}</span></div>
+      <div class="detail-row"><span class="detail-label">Category</span><span class="detail-value">${c.category_name||'N/A'}${c.subcategory_name?' → '+c.subcategory_name:''}</span></div>
+      <div class="detail-row"><span class="detail-label">Location</span><span class="detail-value">${[c.state_name,c.address].filter(Boolean).join(', ')||'N/A'}</span></div>
+      <div class="detail-row"><span class="detail-label">Description</span><span class="detail-value" style="line-height:1.6">${c.description}</span></div>
+      <div class="detail-row"><span class="detail-label">Assigned Official</span><span class="detail-value" style="color:${c.official_name?'var(--green)':'var(--orange)'}">${c.official_name||'Not Assigned Yet'}</span></div>
+      <div class="detail-row"><span class="detail-label">Filed On</span><span class="detail-value">${formatDate(c.created_at)}</span></div>
+      ${c.resolved_at?`<div class="detail-row"><span class="detail-label">Resolved On</span><span class="detail-value" style="color:var(--green)">${formatDate(c.resolved_at)}</span></div>`:''}
+      ${c.admin_remarks?`<div style="margin-top:0.8rem"><div style="font-size:0.68rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Admin Remarks</div><div class="remarks-box admin">${c.admin_remarks}</div></div>`:''}
+      ${c.official_remarks?`<div style="margin-top:0.8rem"><div style="font-size:0.68rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Official Remarks</div><div class="remarks-box">${c.official_remarks}</div></div>`:''}
+      ${c.attachment?`<div class="detail-row"><span class="detail-label">Attachment</span><span class="detail-value"><a href="/uploads/${c.attachment}" target="_blank" style="color:var(--teal);font-weight:600">📎 View File</a></span></div>`:''}
+      ${c.user_rating?`<div class="detail-row"><span class="detail-label">Your Rating</span><span class="detail-value">${'★'.repeat(c.user_rating)}${'☆'.repeat(5-c.user_rating)} (${c.user_rating}/5)</span></div>`:''}
+    `;
+    document.getElementById('detailModal').classList.add('open');
+  }
+  function closeDetail() { document.getElementById('detailModal').classList.remove('open'); }
+  document.getElementById('detailModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeDetail(); });
+
+  // ── RATING MODAL ──
+  var currentRating = 0;
+  const ratingLabels = ['','😞 Very Poor','😐 Poor','🙂 Average','😊 Good','🤩 Excellent'];
+
+  function openRating(id) {
+    const c = allComplaints.find(x => x.id===id);
+    if (!c) return;
+    document.getElementById('ratingComplaintId').value = id;
+    document.getElementById('ratingInfo').innerHTML = `<strong>${c.complaint_no}</strong> — ${c.title}`;
+    currentRating = c.user_rating || 0;
+    updateStars(currentRating);
+    document.getElementById('ratingComment').value = '';
+    document.getElementById('ratingMsg').className = 'm-msg';
+    document.getElementById('ratingModal').classList.add('open');
+  }
+  function closeRating() { document.getElementById('ratingModal').classList.remove('open'); }
+  document.getElementById('ratingModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeRating(); });
+
+  function setRating(n) { currentRating = n; updateStars(n); }
+  function updateStars(n) {
+    document.querySelectorAll('.star').forEach((s,i) => s.classList.toggle('lit', i<n));
+    document.getElementById('ratingLbl').textContent = n>0 ? ratingLabels[n] : 'Click a star to rate your experience';
+  }
+
+  async function submitRating() {
+    if (!currentRating) {
+      const msg = document.getElementById('ratingMsg');
+      msg.textContent = 'Please select a star rating.';
+      msg.className = 'm-msg err';
+      return;
+    }
+    const id      = document.getElementById('ratingComplaintId').value;
+    const comment = document.getElementById('ratingComment').value;
+    const msg     = document.getElementById('ratingMsg');
+    try {
+      const res = await http.post('/api/complaints/rate', {complaint_id:parseInt(id), rating:currentRating, comment});
+      if (res.success) {
+        msg.textContent = '✅ Thank you for your feedback!';
+        msg.className = 'm-msg ok';
+        setTimeout(() => { closeRating(); loadComplaints(); }, 1400);
+      } else { msg.textContent = res.message; msg.className = 'm-msg err'; }
+    } catch(e) { msg.textContent = 'Server error. Try again.'; msg.className = 'm-msg err'; }
+  }
+
+  loadComplaints();
+</script>
+<script src="http-client.js"></script>
+</body>
+</html>

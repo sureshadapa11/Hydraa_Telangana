@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Dashboard — HYDRAA Telangana</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --teal:#0097a7;--teal-dark:#006978;--teal-light:#e0f7fa;
+      --navy:#0b1f3a;--navy-mid:#122944;--gold:#f4a820;
+      --green:#10b981;--red:#ef4444;--orange:#f59e0b;
+      --purple:#8b5cf6;--blue:#3b82f6;
+      --white:#fff;--bg:#f2f6f9;--text:#0d1e2e;
+      --text-2:#3d5a72;--text-3:#7a9baf;--border:#d0e4ec;
+      --shadow:0 2px 16px rgba(0,30,60,0.08);
+      --shadow-md:0 8px 36px rgba(0,30,60,0.13);
+      --radius:12px;--radius-sm:8px;--sidebar-w:256px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;}
+
+    /* ── SIDEBAR ── */
+    .sidebar{width:var(--sidebar-w);background:var(--navy);position:fixed;height:100vh;top:0;left:0;display:flex;flex-direction:column;overflow-y:auto;z-index:100;box-shadow:2px 0 20px rgba(0,0,0,0.2);}
+    .sb-hdr{padding:1.4rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.15);}
+    .sb-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .sb-logo{width:38px;height:38px;border-radius:9px;background:linear-gradient(145deg,var(--teal),#00bcd4);display:flex;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:0 0 0 2px rgba(0,188,212,0.25);}
+    .sb-bt .t1{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;color:#fff;letter-spacing:0.08em;line-height:1;}
+    .sb-bt .t2{font-size:0.58rem;color:rgba(0,188,212,0.85);letter-spacing:0.12em;text-transform:uppercase;}
+    .sb-badge{margin:0.8rem 1.2rem 0;background:rgba(0,151,167,0.15);border:1px solid rgba(0,151,167,0.25);border-radius:6px;padding:0.4rem 0.8rem;display:flex;align-items:center;gap:6px;font-size:0.7rem;color:#4dd6e8;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;}
+    .sb-user{margin:0.8rem 1.2rem 0;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-sm);padding:0.7rem;display:flex;align-items:center;gap:0.7rem;}
+    .sb-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:#fff;flex-shrink:0;}
+    .sb-ui .un{font-size:0.82rem;font-weight:600;color:#fff;}
+    .sb-ui .ur{font-size:0.62rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.08em;}
+    .sb-nav{padding:0.8rem 0;flex:1;}
+    .sb-sec{font-size:0.6rem;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:0.14em;font-weight:700;padding:0.6rem 1.2rem;margin-top:0.4rem;}
+    .sb-a{display:flex;align-items:center;gap:0.7rem;padding:0.65rem 1.2rem;color:rgba(255,255,255,0.58);text-decoration:none;font-size:0.83rem;font-weight:500;transition:all 0.18s;border-right:3px solid transparent;}
+    .sb-a:hover{color:#fff;background:rgba(255,255,255,0.06);}
+    .sb-a.active{color:#fff;background:rgba(0,151,167,0.18);border-right-color:var(--teal);}
+    .sb-a .si{font-size:0.95rem;width:18px;text-align:center;}
+    .sb-ft{padding:1rem 1.2rem;border-top:1px solid rgba(255,255,255,0.08);}
+    .btn-logout{width:100%;padding:0.55rem;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:rgba(239,68,68,0.8);border-radius:var(--radius-sm);font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .btn-logout:hover{background:rgba(239,68,68,0.2);color:#ef4444;}
+
+    /* ── MAIN ── */
+    .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+    .topbar{background:#fff;border-bottom:1px solid var(--border);padding:0 2rem;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 10px rgba(0,30,60,0.06);}
+    .tb-left .tb-title{font-family:'Rajdhani',sans-serif;font-size:1.15rem;font-weight:700;color:var(--navy);line-height:1;}
+    .tb-left .tb-sub{font-size:0.7rem;color:var(--text-3);margin-top:1px;}
+    .tb-left .tb-sub span{color:var(--teal);font-weight:600;}
+    .tb-right{display:flex;align-items:center;gap:0.7rem;}
+    .tb-pill{display:flex;align-items:center;gap:0.5rem;background:var(--bg);border:1px solid var(--border);border-radius:100px;padding:0.28rem 0.9rem 0.28rem 0.3rem;}
+    .tp-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;font-weight:700;font-size:0.72rem;display:flex;align-items:center;justify-content:center;}
+    .tp-nm{font-size:0.78rem;font-weight:600;color:var(--text);}
+
+    /* Content */
+    .content{padding:1.8rem 2rem;flex:1;}
+
+    /* Welcome banner */
+    .welcome-banner{
+      background:linear-gradient(135deg,var(--navy) 0%,var(--navy-mid) 60%,#1a3a5c 100%);
+      border-radius:var(--radius);padding:1.8rem 2rem;
+      margin-bottom:1.5rem;
+      display:flex;align-items:center;justify-content:space-between;
+      position:relative;overflow:hidden;
+      box-shadow:var(--shadow-md);
+    }
+    .wb-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(0,151,167,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(0,151,167,0.06) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}
+    .wb-orb{position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(0,151,167,0.12) 0%,transparent 70%);pointer-events:none;}
+    .wb-left{position:relative;z-index:1;}
+    .wb-greeting{font-size:0.75rem;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.12em;font-weight:600;margin-bottom:0.3rem;}
+    .wb-name{font-family:'Rajdhani',sans-serif;font-size:1.7rem;font-weight:700;color:#fff;margin-bottom:0.3rem;}
+    .wb-sub{font-size:0.82rem;color:rgba(255,255,255,0.5);}
+    .wb-right{position:relative;z-index:1;}
+    .wb-btn{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;text-decoration:none;padding:0.75rem 1.5rem;border-radius:var(--radius-sm);font-size:0.88rem;font-weight:700;box-shadow:0 4px 16px rgba(0,151,167,0.45);transition:all 0.22s;}
+    .wb-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,151,167,0.6);}
+
+    /* Stats */
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
+    .stat-card{background:#fff;border-radius:var(--radius);border:1px solid var(--border);padding:1.3rem 1.4rem;box-shadow:var(--shadow);display:flex;align-items:center;gap:1rem;transition:all 0.22s;cursor:default;}
+    .stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+    .sc-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+    .ic-blue{background:rgba(59,130,246,0.1);} .ic-orange{background:rgba(245,158,11,0.1);} .ic-purple{background:rgba(139,92,246,0.1);} .ic-green{background:rgba(16,185,129,0.1);}
+    .sc-val{font-family:'Rajdhani',sans-serif;font-size:2rem;font-weight:700;color:var(--text);line-height:1;}
+    .sc-lbl{font-size:0.73rem;color:var(--text-2);margin-top:2px;font-weight:500;}
+
+    /* Two-col layout */
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.5rem;}
+
+    /* Quick action cards */
+    .quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;}
+    .qa-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;display:flex;align-items:center;gap:0.9rem;text-decoration:none;transition:all 0.22s;box-shadow:var(--shadow);}
+    .qa-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:rgba(0,151,167,0.3);}
+    .qa-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+    .qi-teal{background:rgba(0,151,167,0.1);}
+    .qi-orange{background:rgba(245,158,11,0.1);}
+    .qi-purple{background:rgba(139,92,246,0.1);}
+    .qi-green{background:rgba(16,185,129,0.1);}
+    .qa-title{font-size:0.85rem;font-weight:700;color:var(--text);}
+    .qa-sub{font-size:0.72rem;color:var(--text-3);margin-top:1px;}
+
+    /* Status progress card */
+    .status-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:1.3rem 1.4rem;box-shadow:var(--shadow);}
+    .sc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
+    .sc-title{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);}
+    .sc-hdr-sub{font-size:0.7rem;color:var(--text-3);}
+    .status-items{display:flex;flex-direction:column;gap:0.7rem;}
+    .si-row{display:flex;align-items:center;gap:0.8rem;}
+    .si-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+    .si-label{font-size:0.78rem;color:var(--text-2);flex:1;font-weight:500;}
+    .si-count{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--text);}
+    .si-bar-wrap{flex:2;height:6px;background:var(--border);border-radius:100px;overflow:hidden;}
+    .si-bar{height:100%;border-radius:100px;transition:width 0.8s ease;}
+
+    /* Table card */
+    .table-card{background:#fff;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;}
+    .tc-hdr{padding:1rem 1.4rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to right,rgba(0,151,167,0.03),transparent);}
+    .tc-title{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);}
+    .tc-sub{font-size:0.7rem;color:var(--text-3);}
+    .tc-hdr a{font-size:0.78rem;color:var(--teal);text-decoration:none;font-weight:600;}
+    table{width:100%;border-collapse:collapse;}
+    th,td{padding:0.75rem 1rem;text-align:left;font-size:0.82rem;}
+    th{background:var(--bg);font-weight:700;color:var(--text-3);text-transform:uppercase;font-size:0.68rem;letter-spacing:0.07em;border-bottom:1px solid var(--border);}
+    td{border-bottom:1px solid rgba(208,228,236,0.5);color:var(--text-2);}
+    td strong{color:var(--text);font-weight:700;}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:rgba(0,151,167,0.02);}
+    .cno{color:var(--teal);font-weight:700;}
+
+    /* Badges */
+    .badge{padding:3px 10px;border-radius:100px;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;display:inline-block;}
+    .b-pending{background:rgba(245,158,11,0.12);color:#b45309;}
+    .b-assigned{background:rgba(59,130,246,0.12);color:#1d4ed8;}
+    .b-in_progress{background:rgba(139,92,246,0.12);color:#6d28d9;}
+    .b-resolved{background:rgba(16,185,129,0.12);color:#065f46;}
+    .b-closed{background:rgba(107,114,128,0.12);color:#374151;}
+    .b-rejected{background:rgba(239,68,68,0.12);color:#b91c1c;}
+    .b-low{background:rgba(16,185,129,0.12);color:#065f46;}
+    .b-medium{background:rgba(245,158,11,0.12);color:#b45309;}
+    .b-high{background:rgba(239,68,68,0.12);color:#b91c1c;}
+    .b-urgent{background:rgba(124,58,237,0.15);color:#6d28d9;font-weight:900;}
+
+    .empty{text-align:center;padding:3rem 2rem;color:var(--text-3);}
+    .empty-icon{font-size:2.5rem;margin-bottom:0.7rem;}
+    .empty h3{font-size:1rem;color:var(--text-2);margin-bottom:0.3rem;}
+    .empty p{font-size:0.82rem;}
+    .empty a{color:var(--teal);font-weight:600;text-decoration:none;}
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-hdr">
+    <a href="/hydraa-index.html" class="sb-brand">
+      <div class="sb-logo">💧</div>
+      <div class="sb-bt"><div class="t1">HYDRAA</div><div class="t2">Government of Telangana</div></div>
+    </a>
+  </div>
+  <div class="sb-badge">👤 Citizen Portal</div>
+  <div class="sb-user">
+    <div class="sb-av" id="sb-av">U</div>
+    <div class="sb-ui"><div class="un" id="sb-un">Citizen</div><div class="ur">Citizen Account</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Main Menu</div>
+    <a href="user-dashboard.html" class="sb-a active"><span class="si">🏠</span> Dashboard</a>
+    <a href="lodge-complaint.html" class="sb-a"><span class="si">📝</span> Lodge Complaint</a>
+    <a href="my-complaints.html" class="sb-a"><span class="si">📋</span> My Complaints</a>
+    <a href="track-complaint.html" class="sb-a"><span class="si">🔍</span> Track Complaint</a>
+    <div class="sb-sec">Account</div>
+    <a href="change-password.html" class="sb-a"><span class="si">🔒</span> Change Password</a>
+  </nav>
+  <div class="sb-ft">
+    <button class="btn-logout" onclick="logout()">⬅ Logout</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="tb-left">
+      <div class="tb-title">My Dashboard</div>
+      <div class="tb-sub">HYDRAA Citizen Portal · <span id="tb-date"></span></div>
+    </div>
+    <div class="tb-right">
+      <div class="tb-pill">
+        <div class="tp-av" id="tp-av">U</div>
+        <div class="tp-nm" id="tp-nm">Citizen</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- Welcome banner -->
+    <div class="welcome-banner">
+      <div class="wb-bg"></div>
+      <div class="wb-orb"></div>
+      <div class="wb-left">
+        <div class="wb-greeting">Welcome back</div>
+        <div class="wb-name" id="wb-name">Citizen 👋</div>
+        <div class="wb-sub">Here's a summary of your complaint activity with HYDRAA</div>
+      </div>
+      <div class="wb-right">
+        <a href="lodge-complaint.html" class="wb-btn">📝 Lodge New Complaint</a>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card"><div class="sc-icon ic-blue">📋</div><div><div class="sc-val" id="s-total">—</div><div class="sc-lbl">Total Filed</div></div></div>
+      <div class="stat-card"><div class="sc-icon ic-orange">⏳</div><div><div class="sc-val" id="s-pending">—</div><div class="sc-lbl">Pending</div></div></div>
+      <div class="stat-card"><div class="sc-icon ic-purple">🔄</div><div><div class="sc-val" id="s-progress">—</div><div class="sc-lbl">In Progress</div></div></div>
+      <div class="stat-card"><div class="sc-icon ic-green">✅</div><div><div class="sc-val" id="s-resolved">—</div><div class="sc-lbl">Resolved</div></div></div>
+    </div>
+
+    <!-- Two column -->
+    <div class="two-col">
+
+      <!-- Quick actions -->
+      <div>
+        <div style="font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:0.8rem;">Quick Actions</div>
+        <div class="quick-actions">
+          <a href="lodge-complaint.html" class="qa-card">
+            <div class="qa-icon qi-teal">📝</div>
+            <div><div class="qa-title">Lodge Complaint</div><div class="qa-sub">File a new complaint</div></div>
+          </a>
+          <a href="track-complaint.html" class="qa-card">
+            <div class="qa-icon qi-orange">🔍</div>
+            <div><div class="qa-title">Track Status</div><div class="qa-sub">Check complaint progress</div></div>
+          </a>
+          <a href="my-complaints.html" class="qa-card">
+            <div class="qa-icon qi-purple">📋</div>
+            <div><div class="qa-title">My Complaints</div><div class="qa-sub">View all your filings</div></div>
+          </a>
+          <a href="change-password.html" class="qa-card">
+            <div class="qa-icon qi-green">🔒</div>
+            <div><div class="qa-title">Change Password</div><div class="qa-sub">Update your credentials</div></div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Status overview -->
+      <div class="status-card">
+        <div class="sc-header">
+          <div>
+            <div class="sc-title">Complaint Status Breakdown</div>
+            <div class="sc-hdr-sub">Your activity overview</div>
+          </div>
+        </div>
+        <div class="status-items" id="statusItems">
+          <div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:0.82rem;">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent complaints -->
+    <div class="table-card">
+      <div class="tc-hdr">
+        <div>
+          <div class="tc-title">Recent Complaints</div>
+          <div class="tc-sub">Your last 5 filed complaints</div>
+        </div>
+        <a href="my-complaints.html">View All →</a>
+      </div>
+      <div id="recentTable"><div class="empty"><div class="empty-icon">⏳</div><p>Loading your complaints...</p></div></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+  Auth.requireLogin('user');
+
+  const user = Auth.getUser();
+  if (user) {
+    const init = (user.full_name || user.username || 'U')[0].toUpperCase();
+    const name = user.full_name || user.username || 'Citizen';
+    document.getElementById('sb-av').textContent = init;
+    document.getElementById('sb-un').textContent = name;
+    document.getElementById('tp-av').textContent = init;
+    document.getElementById('tp-nm').textContent = name;
+    document.getElementById('wb-name').textContent = name + ' 👋';
+  }
+  document.getElementById('tb-date').textContent = new Date().toLocaleDateString('en-IN', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+
+  function sb(status) {
+    const m = {pending:'b-pending',assigned:'b-assigned',in_progress:'b-in_progress',resolved:'b-resolved',closed:'b-closed',rejected:'b-rejected'};
+    const l = {pending:'Pending',assigned:'Assigned',in_progress:'In Progress',resolved:'Resolved',closed:'Closed',rejected:'Rejected'};
+    return `<span class="badge ${m[status]||''}">${l[status]||status}</span>`;
+  }
+  function pb(p) { return `<span class="badge b-${p}">${p.toUpperCase()}</span>`; }
+
+  async function loadDashboard() {
+    try {
+      const res = await http.get('/api/complaints/my-complaints');
+      if (!res.success) return;
+      const complaints = res.data;
+
+      const total    = complaints.length;
+      const pending  = complaints.filter(c => c.status === 'pending').length;
+      const progress = complaints.filter(c => ['assigned','in_progress'].includes(c.status)).length;
+      const resolved = complaints.filter(c => c.status === 'resolved').length;
+      const closed   = complaints.filter(c => c.status === 'closed').length;
+      const rejected = complaints.filter(c => c.status === 'rejected').length;
+
+      document.getElementById('s-total').textContent    = total;
+      document.getElementById('s-pending').textContent  = pending;
+      document.getElementById('s-progress').textContent = progress;
+      document.getElementById('s-resolved').textContent = resolved;
+
+      // Status breakdown
+      const statuses = [
+        {label:'Pending',count:pending,color:'#f59e0b',dot:'#f59e0b'},
+        {label:'In Progress',count:progress,color:'#8b5cf6',dot:'#8b5cf6'},
+        {label:'Resolved',count:resolved,color:'#10b981',dot:'#10b981'},
+        {label:'Closed',count:closed,color:'#6b7280',dot:'#6b7280'},
+        {label:'Rejected',count:rejected,color:'#ef4444',dot:'#ef4444'},
+      ];
+      document.getElementById('statusItems').innerHTML = total === 0
+        ? '<div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:0.82rem;">No complaints filed yet</div>'
+        : statuses.map(s => `
+          <div class="si-row">
+            <div class="si-dot" style="background:${s.dot}"></div>
+            <div class="si-label">${s.label}</div>
+            <div class="si-bar-wrap"><div class="si-bar" style="width:${total?Math.round(s.count/total*100):0}%;background:${s.color}"></div></div>
+            <div class="si-count">${s.count}</div>
+          </div>`).join('');
+
+      // Recent table
+      const recent = complaints.slice(0, 5);
+      if (recent.length === 0) {
+        document.getElementById('recentTable').innerHTML = `
+          <div class="empty">
+            <div class="empty-icon">📭</div>
+            <h3>No complaints yet</h3>
+            <p>You haven't filed any complaints. <a href="lodge-complaint.html">Lodge your first complaint →</a></p>
+          </div>`;
+        return;
+      }
+      document.getElementById('recentTable').innerHTML = `
+        <table>
+          <thead><tr><th>Complaint No.</th><th>Title</th><th>Category</th><th>Priority</th><th>Status</th><th>Date Filed</th></tr></thead>
+          <tbody>${recent.map(c => `
+            <tr>
+              <td><span class="cno">${c.complaint_no}</span></td>
+              <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><strong>${c.title}</strong></td>
+              <td style="font-size:0.78rem">${c.category_name||'N/A'}</td>
+              <td>${pb(c.priority)}</td>
+              <td>${sb(c.status)}</td>
+              <td style="white-space:nowrap">${formatDate(c.created_at)}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>`;
+    } catch(err) { console.error(err); }
+  }
+
+  loadDashboard();
+</script>
+<script src="http-client.js"></script>
+</body>
+</html>

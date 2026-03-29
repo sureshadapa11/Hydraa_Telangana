@@ -1,0 +1,32 @@
+# =====================================================
+#   HYDRAA — .env  (add these to your existing .env)
+# =====================================================
+
+# ── App ──────────────────────────────────────────────
+APP_URL=https://complaint-management-system-production-c5f4.up.railway.app
+# (change to your deployed Railway URL)
+
+# ── Email (Gmail SMTP) ───────────────────────────────
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_SECURE=false
+EMAIL_USER=your-gmail@gmail.com
+EMAIL_PASS=xxxx xxxx xxxx xxxx
+# ^ Generate at: Google Account → Security → App Passwords
+# (requires 2-Step Verification enabled)
+# Select App: Mail, Device: Other → type "HYDRAA" → Generate
+
+# ── Alternative: Use a custom domain SMTP ────────────
+# EMAIL_HOST=mail.yourdomain.com
+# EMAIL_PORT=587
+# EMAIL_SECURE=false
+# EMAIL_USER=noreply@hydraa.telangana.gov.in
+# EMAIL_PASS=your-smtp-password
+
+# ── Existing vars (keep as-is) ───────────────────────
+# DB_HOST=...
+# DB_USER=...
+# DB_PASSWORD=...
+# DB_NAME=...
+# JWT_SECRET=...
+# PORT=5000

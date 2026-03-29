@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lodge Complaint — HYDRAA Telangana</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --teal:        #0097a7;
+      --teal-dark:   #006978;
+      --teal-deep:   #004f5a;
+      --teal-light:  #e0f7fa;
+      --teal-mid:    #b2ebf2;
+      --navy:        #0b1f3a;
+      --navy-mid:    #122944;
+      --gold:        #f4a820;
+      --green:       #10b981;
+      --red:         #ef4444;
+      --orange:      #f59e0b;
+      --purple:      #8b5cf6;
+      --blue:        #3b82f6;
+      --white:       #ffffff;
+      --bg:          #f4f8fa;
+      --bg-card:     #ffffff;
+      --text:        #0d1e2e;
+      --text-2:      #3d5a72;
+      --text-3:      #7a9baf;
+      --border:      #d0e4ec;
+      --shadow:      0 2px 16px rgba(0,30,60,0.08);
+      --shadow-md:   0 6px 32px rgba(0,30,60,0.12);
+      --radius:      12px;
+      --radius-sm:   8px;
+      --sidebar-w:   260px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+
+    /* ══════════════ SIDEBAR ══════════════ */
+    .sidebar {
+      width: var(--sidebar-w); background: var(--navy);
+      position: fixed; height: 100vh; top: 0; left: 0;
+      display: flex; flex-direction: column;
+      overflow-y: auto; z-index: 100;
+      box-shadow: 2px 0 20px rgba(0,0,0,0.2);
+    }
+
+    .sb-header {
+      padding: 1.5rem 1.25rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.15);
+    }
+    .sb-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .sb-logo {
+      width: 38px; height: 38px; border-radius: 9px; flex-shrink: 0;
+      background: linear-gradient(145deg, var(--teal), #00bcd4);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+      box-shadow: 0 0 0 2px rgba(0,188,212,0.25);
+    }
+    .sb-brand-text .t1 { font-family: 'Rajdhani', sans-serif; font-size: 1.1rem; font-weight: 700; color: #fff; letter-spacing: 0.08em; line-height: 1; }
+    .sb-brand-text .t2 { font-size: 0.58rem; color: rgba(0,188,212,0.8); letter-spacing: 0.12em; text-transform: uppercase; }
+
+    .sb-user-card {
+      margin: 1rem 1rem 0;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem;
+      display: flex; align-items: center; gap: 0.7rem;
+    }
+    .sb-avatar {
+      width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--teal), #00bcd4);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.85rem; color: #fff;
+    }
+    .sb-user-info .uname { font-size: 0.82rem; font-weight: 600; color: #fff; }
+    .sb-user-info .urole { font-size: 0.65rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.08em; }
+
+    .sb-nav { padding: 1rem 0; flex: 1; }
+    .sb-section-label {
+      font-size: 0.62rem; color: rgba(255,255,255,0.3);
+      text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700;
+      padding: 0.5rem 1.25rem; margin-top: 0.5rem;
+    }
+    .sb-link {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.7rem 1.25rem;
+      color: rgba(255,255,255,0.6); text-decoration: none;
+      font-size: 0.85rem; font-weight: 500;
+      transition: all 0.18s; position: relative;
+      border-radius: 0;
+    }
+    .sb-link:hover { color: #fff; background: rgba(255,255,255,0.06); }
+    .sb-link.active {
+      color: #fff;
+      background: rgba(0,151,167,0.2);
+      border-right: 3px solid var(--teal);
+    }
+    .sb-link .sbi { font-size: 1rem; width: 20px; text-align: center; }
+
+    .sb-footer {
+      padding: 1rem 1.25rem;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .btn-logout {
+      width: 100%; padding: 0.6rem; background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.2); color: rgba(239,68,68,0.8);
+      border-radius: var(--radius-sm); font-size: 0.82rem; font-weight: 600;
+      cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif;
+      transition: all 0.2s;
+    }
+    .btn-logout:hover { background: rgba(239,68,68,0.2); color: #ef4444; }
+
+    /* ══════════════ MAIN ══════════════ */
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1; display: flex; flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Topbar */
+    .topbar {
+      background: var(--white); border-bottom: 1px solid var(--border);
+      padding: 0 2rem; height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+      box-shadow: 0 1px 10px rgba(0,30,60,0.06);
+    }
+    .topbar-left { display: flex; flex-direction: column; }
+    .topbar-title { font-family: 'Rajdhani', sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--navy); line-height: 1; }
+    .topbar-crumb { font-size: 0.72rem; color: var(--text-3); margin-top: 1px; }
+    .topbar-crumb span { color: var(--teal); font-weight: 600; }
+    .topbar-right { display: flex; align-items: center; gap: 0.8rem; }
+    .topbar-user-pill {
+      display: flex; align-items: center; gap: 0.6rem;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 100px; padding: 0.3rem 0.9rem 0.3rem 0.3rem;
+    }
+    .tp-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--teal), #00bcd4);
+      color: #fff; font-weight: 700; font-size: 0.75rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .tp-name { font-size: 0.8rem; font-weight: 600; color: var(--text); }
+
+    /* Content area */
+    .content { padding: 2rem; flex: 1; }
+
+    /* Page header */
+    .page-hdr {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 1.8rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .ph-left {}
+    .ph-tag {
+      font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.12em; color: var(--teal); margin-bottom: 0.3rem;
+    }
+    .ph-title { font-family: 'Rajdhani', sans-serif; font-size: 1.7rem; font-weight: 700; color: var(--navy); line-height: 1; }
+    .ph-sub { font-size: 0.83rem; color: var(--text-2); margin-top: 0.3rem; }
+
+    /* Progress steps */
+    .progress-steps {
+      background: var(--white); border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 1.2rem 2rem;
+      display: flex; align-items: center; gap: 0;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+    .ps-item {
+      display: flex; align-items: center; gap: 0.6rem; flex: 1;
+    }
+    .ps-num {
+      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700;
+      border: 2px solid var(--border); color: var(--text-3);
+      background: var(--bg);
+      transition: all 0.3s;
+    }
+    .ps-num.active { background: var(--teal); border-color: var(--teal); color: #fff; box-shadow: 0 0 0 3px rgba(0,151,167,0.2); }
+    .ps-num.done { background: var(--green); border-color: var(--green); color: #fff; }
+    .ps-label { font-size: 0.78rem; font-weight: 600; color: var(--text-3); }
+    .ps-label.active { color: var(--teal); }
+    .ps-label.done { color: var(--green); }
+    .ps-line { flex: 1; height: 2px; background: var(--border); margin: 0 0.5rem; }
+    .ps-line.done { background: var(--green); }
+
+    /* Alert */
+    .alert { padding: 0.9rem 1.2rem; border-radius: var(--radius-sm); font-size: 0.85rem; margin-bottom: 1.2rem; display: none; align-items: center; gap: 0.6rem; }
+    .alert.show { display: flex; }
+    .alert.error { background: rgba(239,68,68,0.08); color: #c62828; border-left: 3px solid #ef4444; }
+    .alert.success { background: rgba(16,185,129,0.08); color: #065f46; border-left: 3px solid #10b981; }
+
+    /* Form card */
+    .form-card {
+      background: var(--white); border-radius: var(--radius);
+      border: 1px solid var(--border); box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .fc-header {
+      padding: 1.2rem 1.8rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 0.8rem;
+      background: linear-gradient(to right, rgba(0,151,167,0.04), transparent);
+    }
+    .fc-header-icon {
+      width: 36px; height: 36px; border-radius: 9px;
+      background: rgba(0,151,167,0.1);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+    }
+    .fc-header-text .fht { font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 700; color: var(--navy); }
+    .fc-header-text .fhs { font-size: 0.75rem; color: var(--text-3); }
+
+    .fc-body { padding: 1.8rem; }
+
+    /* Form fields */
+    .f-section { margin-bottom: 1.8rem; }
+    .f-section-title {
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--teal-dark);
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--teal-light);
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+
+    .f-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .f-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+    .f-group { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1rem; }
+    .f-group:last-child { margin-bottom: 0; }
+
+    .f-label {
+      font-size: 0.78rem; font-weight: 700; color: var(--text);
+      letter-spacing: 0.02em;
+    }
+    .f-label .req { color: #e53935; margin-left: 2px; }
+    .f-hint { font-size: 0.7rem; color: var(--text-3); margin-top: 0.25rem; }
+
+    .f-input, .f-select, .f-textarea {
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.72rem 0.9rem;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.88rem; color: var(--text);
+      background: var(--bg);
+      outline: none; transition: all 0.2s; width: 100%;
+    }
+    .f-input:focus, .f-select:focus, .f-textarea:focus {
+      border-color: var(--teal);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(0,151,167,0.1);
+    }
+    .f-input::placeholder, .f-textarea::placeholder { color: var(--text-3); }
+    .f-select { cursor: pointer; appearance: auto; }
+    .f-textarea { resize: vertical; min-height: 130px; line-height: 1.6; }
+
+    /* Priority pills */
+    .priority-pills { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+    .pp {
+      padding: 0.4rem 1rem; border-radius: 100px;
+      border: 1.5px solid var(--border);
+      font-size: 0.78rem; font-weight: 600;
+      cursor: pointer; transition: all 0.18s;
+      background: var(--bg); color: var(--text-2);
+    }
+    .pp:hover { border-color: var(--teal); color: var(--teal); }
+    .pp.selected { color: #fff; border-color: transparent; }
+    .pp[data-val="low"].selected { background: #10b981; }
+    .pp[data-val="medium"].selected { background: #f59e0b; }
+    .pp[data-val="high"].selected { background: #ef4444; }
+    .pp[data-val="urgent"].selected { background: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.2); }
+    #priority { display: none; }
+
+    /* File upload */
+    .file-drop {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1.5rem;
+      text-align: center; cursor: pointer;
+      transition: all 0.2s; position: relative;
+      background: var(--bg);
+    }
+    .file-drop:hover, .file-drop.drag-over { border-color: var(--teal); background: rgba(0,151,167,0.04); }
+    .file-drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .fd-icon { font-size: 1.8rem; margin-bottom: 0.5rem; }
+    .fd-text { font-size: 0.82rem; color: var(--text-2); }
+    .fd-text span { color: var(--teal); font-weight: 600; }
+    .fd-hint { font-size: 0.7rem; color: var(--text-3); margin-top: 0.3rem; }
+    .fd-preview { font-size: 0.78rem; color: var(--teal); margin-top: 0.5rem; font-weight: 600; display: none; }
+
+    /* AI Box */
+    .ai-box {
+      display: none;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid rgba(0,151,167,0.2);
+      margin-top: 1rem;
+    }
+    .ai-box-header {
+      background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+      padding: 0.8rem 1.2rem;
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .ai-box-header .ai-tag {
+      margin-left: auto;
+      background: rgba(0,188,212,0.2); color: #4dd6e8;
+      font-size: 0.63rem; font-weight: 800; padding: 2px 8px;
+      border-radius: 4px; letter-spacing: 0.08em;
+    }
+    .ai-box-title { font-size: 0.88rem; font-weight: 700; color: #fff; }
+    .ai-box-body {
+      background: linear-gradient(135deg, #0d2543, #102030);
+      padding: 1rem 1.2rem;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem;
+    }
+    .ai-field {
+      background: rgba(255,255,255,0.06);
+      border-radius: 8px; padding: 0.7rem 0.9rem;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .ai-field-label { font-size: 0.62rem; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+    .ai-field-val { font-size: 0.88rem; font-weight: 700; color: #fff; }
+    .ai-note { grid-column: 1/-1; font-size: 0.7rem; color: rgba(255,255,255,0.4); }
+
+    /* Form actions */
+    .form-actions {
+      padding: 1.2rem 1.8rem;
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; gap: 1rem;
+      background: rgba(0,151,167,0.02);
+      flex-wrap: wrap;
+    }
+    .btn-submit {
+      background: linear-gradient(135deg, var(--teal), #00bcd4);
+      color: #fff; border: none; border-radius: var(--radius-sm);
+      padding: 0.82rem 2rem;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.92rem; font-weight: 700;
+      cursor: pointer; transition: all 0.22s;
+      box-shadow: 0 4px 16px rgba(0,151,167,0.4);
+      letter-spacing: 0.02em; display: flex; align-items: center; gap: 0.5rem;
+    }
+    .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 7px 22px rgba(0,151,167,0.55); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .btn-reset {
+      background: none; color: var(--text-2);
+      border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+      padding: 0.82rem 1.4rem;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.88rem; font-weight: 600;
+      cursor: pointer; transition: all 0.18s;
+    }
+    .btn-reset:hover { border-color: var(--text-2); color: var(--text); }
+
+    .form-note {
+      margin-left: auto; font-size: 0.75rem; color: var(--text-3);
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+
+    /* Category suggestion dropdown */
+    .cat-suggest {
+      position: absolute; top: 100%; left: 0; right: 0; z-index: 50;
+      background: #fff; border: 1.5px solid var(--teal);
+      border-radius: var(--radius-sm); box-shadow: 0 8px 32px rgba(0,30,60,0.15);
+      margin-top: 4px; max-height: 280px; overflow-y: auto;
+    }
+    .cs-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 0.7rem 1rem; cursor: pointer;
+      transition: background 0.15s; border-bottom: 1px solid rgba(0,151,167,0.07);
+    }
+    .cs-item:last-child { border-bottom: none; }
+    .cs-item:hover, .cs-item.highlighted { background: rgba(0,151,167,0.06); }
+    .cs-icon { font-size: 1.2rem; width: 28px; text-align: center; flex-shrink: 0; }
+    .cs-info {}
+    .cs-name { font-size: 0.85rem; font-weight: 700; color: var(--navy); }
+    .cs-keywords { font-size: 0.7rem; color: var(--text-3); margin-top: 1px; }
+    .cs-match { color: var(--teal); font-weight: 700; }
+
+    /* Category quick-pick chips */
+    .cat-chips-row {
+      display: flex; gap: 0.5rem; flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .cat-chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 0.3rem 0.8rem; border-radius: 100px;
+      font-size: 0.75rem; font-weight: 600; cursor: pointer;
+      border: 1.5px solid var(--border); background: var(--bg);
+      color: var(--text-2); transition: all 0.18s;
+    }
+    .cat-chip:hover { border-color: var(--teal); color: var(--teal); background: rgba(0,151,167,0.05); }
+    .cat-chip.active { background: var(--teal); border-color: var(--teal); color: #fff; }
+    .suggest-label { font-size: 0.68rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.1em; padding: 0.5rem 1rem 0.2rem; font-weight: 700; }
+
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-header">
+    <a href="/hydraa-index.html" class="sb-brand">
+      <div class="sb-logo">💧</div>
+      <div class="sb-brand-text">
+        <div class="t1">HYDRAA</div>
+        <div class="t2">Government of Telangana</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="sb-user-card" id="sb-user-card">
+    <div class="sb-avatar" id="sb-avatar">U</div>
+    <div class="sb-user-info">
+      <div class="uname" id="sb-uname">Citizen</div>
+      <div class="urole">Citizen Portal</div>
+    </div>
+  </div>
+
+  <nav class="sb-nav">
+    <div class="sb-section-label">Main Menu</div>
+    <a href="user-dashboard.html" class="sb-link"><span class="sbi">🏠</span> Dashboard</a>
+    <a href="lodge-complaint.html" class="sb-link active"><span class="sbi">📝</span> Lodge Complaint</a>
+    <a href="my-complaints.html" class="sb-link"><span class="sbi">📋</span> My Complaints</a>
+    <a href="track-complaint.html" class="sb-link"><span class="sbi">🔍</span> Track Complaint</a>
+    <div class="sb-section-label">Account</div>
+    <a href="change-password.html" class="sb-link"><span class="sbi">🔒</span> Change Password</a>
+  </nav>
+
+  <div class="sb-footer">
+    <button class="btn-logout" onclick="logout()">⬅ Logout</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title">Lodge a Complaint</div>
+      <div class="topbar-crumb">Dashboard → <span>Lodge Complaint</span></div>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-user-pill">
+        <div class="tp-avatar" id="tp-avatar">U</div>
+        <div class="tp-name" id="tp-name">Citizen</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- Page header -->
+    <div class="page-hdr">
+      <div class="ph-left">
+        <div class="ph-tag">Citizen · HYDRAA Portal</div>
+        <div class="ph-title">File a New Complaint</div>
+        <div class="ph-sub">Report public asset violations, encroachments, or disaster hazards to HYDRAA officials</div>
+      </div>
+    </div>
+
+    <!-- Progress steps -->
+    <div class="progress-steps">
+      <div class="ps-item">
+        <div class="ps-num active">1</div>
+        <div class="ps-label active">Complaint Details</div>
+      </div>
+      <div class="ps-line"></div>
+      <div class="ps-item">
+        <div class="ps-num">2</div>
+        <div class="ps-label">Review & Submit</div>
+      </div>
+      <div class="ps-line"></div>
+      <div class="ps-item">
+        <div class="ps-num">3</div>
+        <div class="ps-label">Confirmation</div>
+      </div>
+    </div>
+
+    <!-- Alert -->
+    <div id="alertBox" class="alert"></div>
+
+    <!-- Form card -->
+    <div class="form-card">
+      <div class="fc-header">
+        <div class="fc-header-icon">📝</div>
+        <div class="fc-header-text">
+          <div class="fht">Complaint Information</div>
+          <div class="fhs">All fields marked with * are mandatory</div>
+        </div>
+      </div>
+
+      <form id="complaintForm" enctype="multipart/form-data">
+        <div class="fc-body">
+
+          <!-- Section 1: Basic Info -->
+          <div class="f-section">
+            <div class="f-section-title">📌 Basic Information</div>
+
+            <div class="f-group" style="position:relative">
+              <label class="f-label">Complaint Title <span class="req">*</span></label>
+              <input type="text" id="title" class="f-input"
+                placeholder="e.g. Lake encroachment near Madhapur — illegal construction in FTL zone"
+                oninput="onTitleInput()" autocomplete="off" required/>
+              <div class="f-hint">Start typing — categories will be suggested automatically</div>
+              <div id="catSuggest" class="cat-suggest" style="display:none"></div>
+            </div>
+
+            <div id="catChips" class="cat-chips-row" style="display:none"></div>
+
+            <div class="f-row">
+              <div class="f-group">
+                <label class="f-label">Category <span class="req">*</span></label>
+                <select id="category_id" class="f-select" required onchange="loadSubcategories(); highlightCatChip()">
+                  <option value="">— Select Category —</option>
+                </select>
+              </div>
+              <div class="f-group">
+                <label class="f-label">Sub-Category</label>
+                <select id="subcategory_id" class="f-select">
+                  <option value="">— Select Sub-Category —</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Location -->
+          <div class="f-section">
+            <div class="f-section-title">📍 Location Details — Telangana</div>
+            <div class="f-row">
+              <div class="f-group">
+                <label class="f-label">State</label>
+                <select id="state_id" class="f-select">
+                  <option value="">— Select State —</option>
+                </select>
+              </div>
+              <div class="f-group">
+                <label class="f-label">District <span class="req">*</span></label>
+                <select id="district_id" class="f-select" onchange="loadMandals()">
+                  <option value="">— Select District —</option>
+                  <option value="hyderabad">Hyderabad</option>
+                  <option value="rangareddy">Rangareddy</option>
+                  <option value="medchal">Medchal-Malkajgiri</option>
+                  <option value="sangareddy">Sangareddy</option>
+                  <option value="vikarabad">Vikarabad</option>
+                  <option value="yadadri">Yadadri Bhuvanagiri</option>
+                  <option value="nalgonda">Nalgonda</option>
+                  <option value="suryapet">Suryapet</option>
+                  <option value="khammam">Khammam</option>
+                  <option value="bhadradri">Bhadradri Kothagudem</option>
+                  <option value="warangal_urban">Warangal Urban</option>
+                  <option value="warangal_rural">Warangal Rural</option>
+                  <option value="hanamkonda">Hanamkonda</option>
+                  <option value="jangaon">Jangaon</option>
+                  <option value="mahabubabad">Mahabubabad</option>
+                  <option value="karimnagar">Karimnagar</option>
+                  <option value="peddapalli">Peddapalli</option>
+                  <option value="jayashankar">Jayashankar Bhupalpally</option>
+                  <option value="rajanna">Rajanna Sircilla</option>
+                  <option value="nizamabad">Nizamabad</option>
+                  <option value="kamareddy">Kamareddy</option>
+                  <option value="nirmal">Nirmal</option>
+                  <option value="adilabad">Adilabad</option>
+                  <option value="mancherial">Mancherial</option>
+                  <option value="kumuram">Kumuram Bheem Asifabad</option>
+                  <option value="mulugu">Mulugu</option>
+                  <option value="narayanpet">Narayanpet</option>
+                  <option value="wanaparthy">Wanaparthy</option>
+                  <option value="nagarkurnool">Nagarkurnool</option>
+                  <option value="jogulamba">Jogulamba Gadwal</option>
+                  <option value="mahabubnagar">Mahabubnagar</option>
+                  <option value="narsampet">Narsampet</option>
+                  <option value="siddipet">Siddipet</option>
+                </select>
+              </div>
+            </div>
+            <div class="f-row">
+              <div class="f-group">
+                <label class="f-label">Mandal / Area</label>
+                <select id="mandal_id" class="f-select">
+                  <option value="">— Select District First —</option>
+                </select>
+              </div>
+              <div class="f-group">
+                <label class="f-label">Specific Address / Location</label>
+                <input type="text" id="address" class="f-input" placeholder="Colony, Landmark, Street"/>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Priority -->
+          <div class="f-section">
+            <div class="f-section-title">⚡ Priority Level</div>
+            <div class="f-group">
+              <label class="f-label">Select Priority <span class="req">*</span></label>
+              <input type="hidden" id="priority" value="medium"/>
+              <div class="priority-pills">
+                <div class="pp" data-val="low" onclick="setPriority(this)">🟢 Low</div>
+                <div class="pp selected" data-val="medium" onclick="setPriority(this)">🟡 Medium</div>
+                <div class="pp" data-val="high" onclick="setPriority(this)">🔴 High</div>
+                <div class="pp" data-val="urgent" onclick="setPriority(this)">🚨 Urgent</div>
+              </div>
+              <div class="f-hint">Choose Urgent only for immediate public safety threats</div>
+            </div>
+          </div>
+
+          <!-- Section 4: Description -->
+          <div class="f-section">
+            <div class="f-section-title">📄 Complaint Description</div>
+            <div class="f-group">
+              <label class="f-label">Detailed Description <span class="req">*</span></label>
+              <textarea id="description" class="f-textarea"
+                placeholder="Describe the issue in detail — what happened, when it started, how it affects citizens, any previous complaints filed..."
+                oninput="triggerAIPreview()" required></textarea>
+              <div class="f-hint">Minimum 50 characters recommended for faster processing</div>
+            </div>
+
+            <!-- AI Preview Box -->
+            <div class="ai-box" id="aiPreview">
+              <div class="ai-box-header">
+                <span>🤖</span>
+                <span class="ai-box-title">AI Classification Result</span>
+                <span class="ai-tag">AI POWERED</span>
+              </div>
+              <div class="ai-box-body">
+                <div class="ai-field">
+                  <div class="ai-field-label">Suggested Category</div>
+                  <div class="ai-field-val" id="aiCategory">—</div>
+                </div>
+                <div class="ai-field">
+                  <div class="ai-field-label">Suggested Priority</div>
+                  <div class="ai-field-val" id="aiPriority">—</div>
+                </div>
+                <div class="ai-field">
+                  <div class="ai-field-label">Assigned Department</div>
+                  <div class="ai-field-val" id="aiDepartment">—</div>
+                </div>
+                <div class="ai-field">
+                  <div class="ai-field-label">AI Confidence</div>
+                  <div class="ai-field-val" id="aiConfidence">—</div>
+                </div>
+                <div class="ai-note">ℹ️ AI has automatically classified your complaint. You can override the category and priority above.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 5: Attachment -->
+          <div class="f-section" style="margin-bottom:0">
+            <div class="f-section-title">📎 Supporting Evidence</div>
+            <div class="f-group" style="margin-bottom:0">
+              <label class="f-label">Attach Document / Photo</label>
+              <div class="file-drop" id="fileDrop">
+                <input type="file" id="attachment" accept="image/*,.pdf,.doc,.docx"
+                  onchange="handleFileChange(this)"/>
+                <div class="fd-icon">📂</div>
+                <div class="fd-text"><span>Click to browse</span> or drag & drop your file here</div>
+                <div class="fd-hint">Accepted: JPG, PNG, PDF, DOC · Max size: 5MB</div>
+                <div class="fd-preview" id="fdPreview"></div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /fc-body -->
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <button type="submit" class="btn-submit" id="submitBtn" data-text="Submit Complaint">
+            ✅ Submit Complaint
+          </button>
+          <button type="reset" class="btn-reset" onclick="resetForm()">Reset Form</button>
+          <div class="form-note">🔒 Your complaint is confidential and secure</div>
+        </div>
+
+      </form>
+    </div><!-- /form-card -->
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script src="app.js"></script>
+<script>
+  Auth.requireLogin('user');
+
+  // Populate sidebar & topbar with user info
+  const user = Auth.getUser();
+  if (user) {
+    const initials = (user.full_name || user.username || 'U')[0].toUpperCase();
+    document.getElementById('sb-avatar').textContent = initials;
+    document.getElementById('sb-uname').textContent = user.full_name || user.username || 'Citizen';
+    document.getElementById('tp-avatar').textContent = initials;
+    document.getElementById('tp-name').textContent = user.full_name || user.username || 'Citizen';
+  }
+
+  // Load dropdowns
+  async function loadDropdowns() {
+    const [cats, states] = await Promise.all([
+      http.get('/api/admin/categories'),
+      http.get('/api/admin/states')
+    ]);
+    const catSel = document.getElementById('category_id');
+    cats.data.forEach(c => catSel.innerHTML += `<option value="${c.id}">${c.name}</option>`);
+    const stateSel = document.getElementById('state_id');
+    states.data.forEach(s => stateSel.innerHTML += `<option value="${s.id}">${s.name}</option>`);
+  }
+
+  async function loadSubcategories() {
+    const cat_id = document.getElementById('category_id').value;
+    const subSel = document.getElementById('subcategory_id');
+    subSel.innerHTML = '<option value="">— Select Sub-Category —</option>';
+    if (!cat_id) return;
+    const res = await http.get(`/api/admin/subcategories?category_id=${cat_id}`);
+    res.data.forEach(s => subSel.innerHTML += `<option value="${s.id}">${s.name}</option>`);
+  }
+
+  // Priority pills
+  function setPriority(el) {
+    document.querySelectorAll('.pp').forEach(p => p.classList.remove('selected'));
+    el.classList.add('selected');
+    document.getElementById('priority').value = el.dataset.val;
+  }
+
+  // File handling
+  function handleFileChange(input) {
+    const file = input.files[0];
+    const preview = document.getElementById('fdPreview');
+    if (file) {
+      preview.textContent = '📎 ' + file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+      preview.style.display = 'block';
+    } else {
+      preview.style.display = 'none';
+    }
+  }
+
+  // Drag & drop
+  const drop = document.getElementById('fileDrop');
+  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag-over'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+  drop.addEventListener('drop', e => {
+    e.preventDefault(); drop.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      document.getElementById('attachment').files = e.dataTransfer.files;
+      handleFileChange(document.getElementById('attachment'));
+    }
+  });
+
+  // Reset
+  function resetForm() {
+    document.getElementById('complaintForm').reset();
+    document.getElementById('aiPreview').style.display = 'none';
+    document.getElementById('fdPreview').style.display = 'none';
+    document.querySelectorAll('.pp').forEach(p => p.classList.remove('selected'));
+    document.querySelector('.pp[data-val="medium"]').classList.add('selected');
+    document.getElementById('priority').value = 'medium';
+  }
+
+  // Submit
+  document.getElementById('complaintForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    setLoading(btn, true);
+
+    const formData = new FormData();
+    formData.append('title', document.getElementById('title').value);
+    formData.append('description', document.getElementById('description').value);
+    formData.append('category_id', document.getElementById('category_id').value);
+    formData.append('subcategory_id', document.getElementById('subcategory_id').value);
+    formData.append('state_id', document.getElementById('state_id').value);
+    formData.append('address', document.getElementById('address').value);
+    formData.append('priority', document.getElementById('priority').value);
+    const file = document.getElementById('attachment').files[0];
+    if (file) formData.append('attachment', file);
+
+    // Update progress
+    document.querySelectorAll('.ps-num')[0].classList.remove('active');
+    document.querySelectorAll('.ps-num')[0].classList.add('done');
+    document.querySelectorAll('.ps-num')[1].classList.add('active');
+    document.querySelectorAll('.ps-label')[0].classList.remove('active');
+    document.querySelectorAll('.ps-label')[0].classList.add('done');
+    document.querySelectorAll('.ps-label')[1].classList.add('active');
+    document.querySelectorAll('.ps-line')[0].classList.add('done');
+
+    try {
+      const res = await http.postForm('/api/complaints/lodge', formData);
+      if (res.success) {
+        // Step 3
+        document.querySelectorAll('.ps-num')[1].classList.remove('active');
+        document.querySelectorAll('.ps-num')[1].classList.add('done');
+        document.querySelectorAll('.ps-num')[2].classList.add('active');
+        document.querySelectorAll('.ps-label')[1].classList.remove('active');
+        document.querySelectorAll('.ps-label')[1].classList.add('done');
+        document.querySelectorAll('.ps-label')[2].classList.add('active');
+        document.querySelectorAll('.ps-line')[1].classList.add('done');
+
+        showAlert('alertBox', `✅ Complaint lodged successfully! Your Complaint No: ${res.complaint_no}`, 'success');
+        document.getElementById('complaintForm').reset();
+        document.getElementById('aiPreview').style.display = 'none';
+        setTimeout(() => window.location.href = 'my-complaints.html', 3000);
+      } else {
+        showAlert('alertBox', res.message || 'Something went wrong.', 'error');
+      }
+    } catch (err) {
+      showAlert('alertBox', 'Server error. Please try again.', 'error');
+    } finally {
+      setLoading(btn, false);
+    }
+  });
+
+  // AI Preview
+  let aiTimeout;
+  function triggerAIPreview() {
+    clearTimeout(aiTimeout);
+    aiTimeout = setTimeout(showAIPreview, 800);
+  }
+
+  function showAIPreview() {
+    const title = document.getElementById('title').value;
+    const description = document.getElementById('description').value;
+    if (title.length < 5 && description.length < 10) return;
+
+    const text = (title + ' ' + description).toLowerCase();
+    const categories = {
+      'Lake / Water Body Encroachment': ['lake','water','ftl','buffer','nala','tank','pond','encroach','flooding','drain'],
+      'Illegal Construction': ['construction','building','structure','unauthorized','illegal','demolish','built'],
+      'Park / Open Space Violation': ['park','playground','open space','garden','layout'],
+      'Road / Footpath Obstruction': ['road','pothole','pavement','footpath','carriageway','street','highway'],
+      'Flooding & Drainage': ['flood','waterlog','drain','sewage','rainfall','stagnant'],
+      'Government Land Encroachment': ['government land','land grab','encroach','public land'],
+      'Illegal Advertisements': ['hoarding','banner','advertisement','flex','board'],
+      'Disaster / Emergency': ['fire','collapse','emergency','urgent','dangerous','accident']
+    };
+    const urgency = {
+      urgent: ['urgent','emergency','dangerous','fire','death','collapse','immediate'],
+      high:   ['broken','damaged','unsafe','no water','no power','blocked'],
+      low:    ['suggestion','minor','feedback','improvement']
+    };
+
+    let bestCat = 'General', bestScore = 0;
+    for (const [cat, words] of Object.entries(categories)) {
+      const score = words.filter(w => text.includes(w)).length;
+      if (score > bestScore) { bestScore = score; bestCat = cat; }
+    }
+
+    let priority = '🟡 Medium';
+    if (urgency.urgent.some(w => text.includes(w))) priority = '🚨 Urgent';
+    else if (urgency.high.some(w => text.includes(w))) priority = '🔴 High';
+    else if (urgency.low.some(w => text.includes(w))) priority = '🟢 Low';
+
+    const confidence = bestScore > 0 ? Math.min(bestScore * 22, 96) : 38;
+
+    document.getElementById('aiCategory').textContent = bestCat;
+    document.getElementById('aiPriority').textContent = priority;
+    document.getElementById('aiDepartment').textContent = 'HYDRAA — ' + bestCat.split('/')[0].trim();
+    document.getElementById('aiConfidence').textContent = confidence + '%';
+    document.getElementById('aiPreview').style.display = 'block';
+  }
+
+  loadDropdowns();
+
+  // ═══════════════ HYDRAA CATEGORY DATA ═══════════════
+  const HYDRAA_CATEGORIES = [
+    { id: 1, name: 'Lake / Water Body Encroachment', icon: '🌊', keywords: ['lake','water','ftl','buffer','nala','tank','pond','encroach','hussain sagar','osmansagar','himayat','mir alam','durgam cheruvu'] },
+    { id: 2, name: 'Illegal Construction',           icon: '🏗️', keywords: ['construction','building','structure','unauthorized','illegal','demolish','built','apartment','compound'] },
+    { id: 3, name: 'Park / Open Space Violation',    icon: '🌳', keywords: ['park','playground','open space','garden','layout','green','recreation','ground'] },
+    { id: 4, name: 'Road / Footpath Obstruction',    icon: '🚧', keywords: ['road','pothole','pavement','footpath','carriageway','street','highway','median','divider'] },
+    { id: 5, name: 'Flooding & Drainage Issues',     icon: '🌧️', keywords: ['flood','waterlog','drain','sewage','rainfall','stagnant','overflow','blockage','clog'] },
+    { id: 6, name: 'Government Land Encroachment',   icon: '🏛️', keywords: ['government land','land grab','public land','revenue','patta','encroach','ghmc land'] },
+    { id: 7, name: 'Illegal Advertisements',         icon: '📢', keywords: ['hoarding','banner','advertisement','flex','board','signage','poster','digital'] },
+    { id: 8, name: 'Disaster / Emergency',           icon: '🚨', keywords: ['fire','collapse','emergency','dangerous','accident','hazard','gas leak','landslide'] },
+  ];
+
+  // Telangana mandal data
+  const MANDALS = {
+    hyderabad:      ['Amberpet','Bandlaguda Jagir','Begumpet','Charminar','Golconda','Karwan','Khairatabad','Musheerabad','Nampally','Secunderabad','Shaikpet','Yousufguda','Rajendranagar'],
+    rangareddy:     ['Abdullapurmet','Balapur','Chevella','Ghatkesar','Ibrahimpatnam','Keesara','Maheshwaram','Moinabad','Rajendranagar','Shamshabad','Hayathnagar'],
+    medchal:        ['Alwal','Balanagar','Dundigal','Ghatkesar','Kompally','Medchal','Malkajgiri','Quthbullapur','Uppal'],
+    sangareddy:     ['Ameenpur','Bollaram','Hathnoora','Jharasangam','Kohir','Narayankhed','Nyalkal','Patancheru','Pulkal','Sangareddy','Vatpally','Zaheerabad'],
+    nizamabad:      ['Armur','Balkonda','Banswada','Bodhan','Dichpally','Domakonda','Enkoor','Fertilizernagar','Kotagiri','Nizamabad Urban','Nizamabad Rural','Varni','Yellareddy'],
+    karimnagar:     ['Choppadandi','Dharmapuri','Gangadhara','Huzurabad','Karimnagar','Manakondur','Manthani','Metpalli','Vemulawada','Yellareddypet'],
+    warangal_urban: ['Hanamkonda','Kazipet','Warangal','Dharmasagar','Geesugonda','Hasanparthy','Nallabelly','Atmakur'],
+    khammam:        ['Aswaraopeta','Bhadrachalam','Enkoor','Julurpad','Kothagudem','Khammam','Madhira','Palvancha','Sathupalli','Wyra'],
+    nalgonda:       ['Alair','Bhongir','Choutuppal','Devarakonda','Miryalaguda','Nalgonda','Nakrekal','Suryapet','Tungaturthy'],
+    mahabubnagar:   ['Achampet','Addakal','Amangal','Balanagar','Devarkadra','Jadcherla','Kalwakurthy','Kollapur','Mahabubnagar','Narayanpet','Shadnagar','Wanaparthy'],
+  };
+
+  function loadMandals() {
+    const dist = document.getElementById('district_id').value;
+    const sel = document.getElementById('mandal_id');
+    sel.innerHTML = '<option value="">— Select Mandal —</option>';
+    const list = MANDALS[dist] || [];
+    if (list.length === 0) {
+      sel.innerHTML = '<option value="">— No mandals listed —</option>';
+      return;
+    }
+    list.forEach(m => sel.innerHTML += `<option value="${m.toLowerCase().replace(/ /g,'_')}">${m}</option>`);
+  }
+
+  // ═══════════════ SMART TITLE SUGGEST ═══════════════
+  let suggestTimeout;
+  function onTitleInput() {
+    triggerAIPreview();
+    clearTimeout(suggestTimeout);
+    suggestTimeout = setTimeout(showCategorySuggestions, 250);
+  }
+
+  function showCategorySuggestions() {
+    const val = document.getElementById('title').value.toLowerCase().trim();
+    const box = document.getElementById('catSuggest');
+    const chipsRow = document.getElementById('catChips');
+
+    if (val.length < 2) { box.style.display = 'none'; return; }
+
+    const scored = HYDRAA_CATEGORIES.map(cat => {
+      const score = cat.keywords.filter(k => val.includes(k)).length
+                  + (val.split(' ').some(w => cat.name.toLowerCase().includes(w) && w.length > 2) ? 1 : 0);
+      return { ...cat, score };
+    }).filter(c => c.score > 0).sort((a, b) => b.score - a.score);
+
+    const toShow = scored.length > 0 ? scored : HYDRAA_CATEGORIES.slice(0, 6);
+
+    box.innerHTML = '<div class="suggest-label">Suggested Categories</div>'
+      + toShow.map(cat => {
+          const highlighted = cat.name.replace(
+            new RegExp(`(${val.split(' ').filter(w=>w.length>2).join('|')})`, 'gi'),
+            '<span class="cs-match">$1</span>'
+          );
+          return `<div class="cs-item" onclick="selectCategory(${cat.id}, '${cat.name}', '${cat.icon}')">
+            <div class="cs-icon">${cat.icon}</div>
+            <div class="cs-info">
+              <div class="cs-name">${highlighted}</div>
+              <div class="cs-keywords">${cat.keywords.slice(0,4).join(', ')}...</div>
+            </div>
+          </div>`;
+        }).join('');
+
+    box.style.display = 'block';
+
+    // Build quick chips
+    buildCategoryChips(scored.length > 0 ? scored : HYDRAA_CATEGORIES);
+  }
+
+  function buildCategoryChips(cats) {
+    const row = document.getElementById('catChips');
+    row.innerHTML = cats.slice(0, 6).map(cat =>
+      `<div class="cat-chip" data-id="${cat.id}" onclick="selectCategoryChip(this, ${cat.id}, '${cat.name}')">${cat.icon} ${cat.name.split('/')[0].trim()}</div>`
+    ).join('');
+    row.style.display = 'flex';
+  }
+
+  function selectCategory(id, name, icon) {
+    document.getElementById('catSuggest').style.display = 'none';
+    // Set select option
+    const sel = document.getElementById('category_id');
+    let found = false;
+    for (let opt of sel.options) {
+      if (opt.text === name) { opt.selected = true; found = true; break; }
+    }
+    if (!found) {
+      // Add and select dynamically
+      sel.innerHTML += `<option value="${id}" selected>${icon} ${name}</option>`;
+    }
+    loadSubcategories();
+    highlightCatChip(id);
+  }
+
+  function selectCategoryChip(el, id, name) {
+    document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    const sel = document.getElementById('category_id');
+    for (let opt of sel.options) {
+      if (opt.value == id || opt.text.includes(name.split('/')[0].trim())) { opt.selected = true; break; }
+    }
+    loadSubcategories();
+  }
+
+  function highlightCatChip(id) {
+    const sel = document.getElementById('category_id');
+    const val = id || sel.value;
+    document.querySelectorAll('.cat-chip').forEach(c => {
+      c.classList.toggle('active', c.dataset.id == val);
+    });
+  }
+
+  // Hide suggest on outside click
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.f-group')) {
+      document.getElementById('catSuggest').style.display = 'none';
+    }
+  });
+
+  loadDropdowns();
+</script>
+<script src="http-client.js"></script>
+</body>
+</html>

@@ -1,0 +1,406 @@
+// =====================================================
+//   HYDRAA — Email Service (Nodemailer)
+//   File: backend/utils/emailService.js
+// =====================================================
+
+const nodemailer = require('nodemailer');
+require('dotenv').config();
+
+// ── Transporter ──────────────────────────────────────
+const transporter = nodemailer.createTransport({
+  host:   process.env.EMAIL_HOST   || 'smtp.gmail.com',
+  port:   parseInt(process.env.EMAIL_PORT || '587'),
+  secure: process.env.EMAIL_SECURE === 'true', // true for 465, false for 587
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,   // Gmail App Password (not account password)
+  },
+});
+
+// Verify transporter on startup
+transporter.verify((err) => {
+  if (err) console.error('❌ Email service error:', err.message);
+  else     console.log('✅ Email service ready —', process.env.EMAIL_USER);
+});
+
+// ── Shared Brand Header / Footer ──────────────────────
+const brandHeader = `
+  <div style="background:linear-gradient(135deg,#0b1f3a,#122944);padding:24px 32px;border-radius:12px 12px 0 0">
+    <table width="100%"><tr>
+      <td>
+        <span style="font-family:'Segoe UI',sans-serif;font-size:22px;font-weight:700;color:#ffffff;letter-spacing:2px">💧 HYDRAA</span><br/>
+        <span style="font-size:11px;color:rgba(0,188,212,0.8);letter-spacing:3px;text-transform:uppercase">Government of Telangana</span>
+      </td>
+      <td align="right">
+        <span style="background:rgba(0,180,204,0.15);border:1px solid rgba(0,188,212,0.3);color:#4dd6e8;font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:1px">OFFICIAL PORTAL</span>
+      </td>
+    </tr></table>
+  </div>`;
+
+const brandFooter = `
+  <div style="background:#f5fafc;border-top:1px solid #d0e4ec;padding:20px 32px;border-radius:0 0 12px 12px;text-align:center">
+    <p style="font-size:12px;color:#7a9baf;margin:0 0 6px">
+      This is an automated email from HYDRAA — Hyderabad Disaster Response &amp; Asset Protection Agency
+    </p>
+    <p style="font-size:11px;color:#aac4d0;margin:0">
+      📞 Helpline: 1800-599-0099 &nbsp;|&nbsp; 💬 WhatsApp: 9000113667 &nbsp;|&nbsp;
+      <a href="https://hydraa.telangana.gov.in" style="color:#0097a7;text-decoration:none">hydraa.telangana.gov.in</a>
+    </p>
+    <p style="font-size:10px;color:#c8dde8;margin:8px 0 0">
+      © ${new Date().getFullYear()} HYDRAA Telangana. All rights reserved.
+    </p>
+  </div>`;
+
+const wrap = (content) => `
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width"/></head>
+<body style="margin:0;padding:20px;background:#eaf4f8;font-family:'Segoe UI',Arial,sans-serif">
+  <div style="max-width:600px;margin:0 auto;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,30,60,0.12)">
+    ${brandHeader}
+    <div style="background:#ffffff;padding:32px">
+      ${content}
+    </div>
+    ${brandFooter}
+  </div>
+</body></html>`;
+
+const badge = (text, color, bg) =>
+  `<span style="background:${bg};color:${color};padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px">${text}</span>`;
+
+const infoRow = (label, value) =>
+  `<tr>
+     <td style="padding:10px 0;border-bottom:1px solid #eef3f6;font-size:13px;color:#7a9baf;font-weight:600;width:140px;vertical-align:top">${label}</td>
+     <td style="padding:10px 0;border-bottom:1px solid #eef3f6;font-size:13px;color:#0d1e2e;vertical-align:top">${value}</td>
+   </tr>`;
+
+const button = (text, url, color = '#0097a7') =>
+  `<a href="${url}" style="display:inline-block;background:linear-gradient(135deg,${color},${color}cc);color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:700;margin-top:16px">${text}</a>`;
+
+// ─────────────────────────────────────────────────────
+//  1. WELCOME / REGISTRATION EMAIL
+// ─────────────────────────────────────────────────────
+const sendWelcomeEmail = async ({ to, name, verificationUrl }) => {
+  const html = wrap(`
+    <h2 style="font-size:22px;color:#0b1f3a;margin:0 0 8px">Welcome to HYDRAA, ${name}! 👋</h2>
+    <p style="font-size:14px;color:#3d5a72;margin:0 0 24px;line-height:1.7">
+      Your account has been created successfully. You can now file complaints, track resolutions, and hold officials accountable through the HYDRAA Citizen Portal.
+    </p>
+    <div style="background:#e0f7fa;border-left:4px solid #0097a7;border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:24px">
+      <p style="font-size:13px;font-weight:700;color:#0097a7;margin:0 0 4px">📧 Verify Your Email</p>
+      <p style="font-size:13px;color:#3d5a72;margin:0">Please click the button below to verify your email address and activate your account.</p>
+    </div>
+    ${button('✅ Verify My Email', verificationUrl)}
+    <p style="font-size:12px;color:#aac4d0;margin-top:16px">This link expires in 24 hours. If you did not register, please ignore this email.</p>
+    <hr style="border:none;border-top:1px solid #eef3f6;margin:24px 0"/>
+    <table width="100%">
+      <tr>
+        <td style="text-align:center;padding:12px">
+          <div style="font-size:24px">📝</div>
+          <div style="font-size:12px;color:#7a9baf;margin-top:4px">Lodge Complaints</div>
+        </td>
+        <td style="text-align:center;padding:12px">
+          <div style="font-size:24px">🔍</div>
+          <div style="font-size:12px;color:#7a9baf;margin-top:4px">Track Status</div>
+        </td>
+        <td style="text-align:center;padding:12px">
+          <div style="font-size:24px">🛡️</div>
+          <div style="font-size:12px;color:#7a9baf;margin-top:4px">Hold Officials Accountable</div>
+        </td>
+      </tr>
+    </table>`);
+
+  await transporter.sendMail({
+    from:    `"HYDRAA Telangana" <${process.env.EMAIL_USER}>`,
+    to,
+    subject: '🎉 Welcome to HYDRAA — Please Verify Your Email',
+    html,
+  });
+};
+
+// ─────────────────────────────────────────────────────
+//  2. COMPLAINT LODGED CONFIRMATION
+// ─────────────────────────────────────────────────────
+const sendComplaintConfirmation = async ({ to, name, complaint_no, title, category, priority, address }) => {
+  const priorityColor = { urgent:'#7c3aed', high:'#ef4444', medium:'#f59e0b', low:'#10b981' }[priority] || '#0097a7';
+  const priorityBg    = { urgent:'rgba(124,58,237,0.1)', high:'rgba(239,68,68,0.1)', medium:'rgba(245,158,11,0.1)', low:'rgba(16,185,129,0.1)' }[priority] || 'rgba(0,151,167,0.1)';
+
+  const html = wrap(`
+    <h2 style="font-size:22px;color:#0b1f3a;margin:0 0 4px">Complaint Received ✅</h2>
+    <p style="font-size:14px;color:#3d5a72;margin:0 0 24px">Dear ${name}, your complaint has been successfully filed with HYDRAA.</p>
+
+    <div style="background:#f5fafc;border:1px solid #d0e4ec;border-radius:10px;padding:20px;margin-bottom:24px">
+      <div style="font-size:11px;color:#7a9baf;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Complaint Number</div>
+      <div style="font-size:28px;font-weight:700;color:#0097a7;font-family:monospace;letter-spacing:2px">${complaint_no}</div>
+      <div style="font-size:12px;color:#aac4d0;margin-top:4px">Save this number to track your complaint</div>
+    </div>
+
+    <table width="100%" cellpadding="0" cellspacing="0">
+      ${infoRow('Title', `<strong>${title}</strong>`)}
+      ${infoRow('Category', category || 'General')}
+      ${infoRow('Priority', badge(priority.toUpperCase(), priorityColor, priorityBg))}
+      ${infoRow('Location', address || 'Not specified')}
+      ${infoRow('Filed On', new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}))}
+      ${infoRow('Status', badge('PENDING REVIEW', '#b45309', 'rgba(245,158,11,0.1)'))}
+    </table>
+
+    <div style="background:#e0f7fa;border-left:4px solid #0097a7;border-radius:0 8px 8px 0;padding:16px 20px;margin-top:24px">
+      <p style="font-size:13px;color:#0097a7;font-weight:700;margin:0 0 4px">⏱ What happens next?</p>
+      <ol style="font-size:13px;color:#3d5a72;margin:0;padding-left:18px;line-height:2">
+        <li>HYDRAA admin reviews your complaint within 24 hours</li>
+        <li>It gets assigned to a field official</li>
+        <li>Official takes action and updates status</li>
+        <li>You receive an email when it's resolved</li>
+      </ol>
+    </div>`);
+
+  await transporter.sendMail({
+    from:    `"HYDRAA Telangana" <${process.env.EMAIL_USER}>`,
+    to,
+    subject: `✅ Complaint ${complaint_no} Filed — HYDRAA Telangana`,
+    html,
+  });
+};
+
+// ─────────────────────────────────────────────────────
+//  3. COMPLAINT ASSIGNED (to citizen + official)
+// ─────────────────────────────────────────────────────
+const sendComplaintAssigned = async ({ citizenEmail, citizenName, officialEmail, officialName, complaint_no, title, remarks, department }) => {
+  // Email to citizen
+  const citizenHtml = wrap(`
+    <h2 style="font-size:22px;color:#0b1f3a;margin:0 0 4px">Complaint Assigned 📌</h2>
+    <p style="font-size:14px;color:#3d5a72;margin:0 0 24px">Dear ${citizenName}, your complaint <strong style="color:#0097a7">${complaint_no}</strong> has been assigned to a HYDRAA field official.</p>
+    <table width="100%" cellpadding="0" cellspacing="0">
+      ${infoRow('Complaint No.', `<strong style="color:#0097a7">${complaint_no}</strong>`)}
+      ${infoRow('Title', title)}
+      ${infoRow('Assigned To', `<strong>${officialName}</strong>`)}
+      ${infoRow('Department', department || 'HYDRAA')}
+      ${infoRow('Status', badge('ASSIGNED', '#1d4ed8', 'rgba(59,130,246,0.1)'))}
+      ${remarks ? infoRow('Admin Note', `<em style="color:#3d5a72">${remarks}</em>`) : ''}
+    </table>
+    <div style="background:#f0fdf4;border-left:4px solid #10b981;border-radius:0 8px 8px 0;padding:14px 18px;margin-top:20px">
+      <p style="font-size:13px;color:#065f46;margin:0">The official will review the complaint and take necessary field action. You will be notified when the status is updated.</p>
+    </div>`);
+
+  await transporter.sendMail({
+    from:    `"HYDRAA Telangana" <${process.env.EMAIL_USER}>`,
+    to:      citizenEmail,
+    subject: `📌 Complaint ${complaint_no} Assigned to Official — HYDRAA`,
+    html:    citizenHtml,
+  });
+
+  // Email to official
+  if (officialEmail) {
+    const officialHtml = wrap(`
+      <h2 style="font-size:22px;color:#0b1f3a;margin:0 0 4px">New Complaint Assigned to You 👷</h2>
+      <p style="font-size:14px;color:#3d5a72;margin:0 0 24px">Dear ${officialName}, a new complaint has been assigned to you. Please review and take action at the earliest.</p>
+      <table width="100%" cellpadding="0" cellspacing="0">
+        ${infoRow('Complaint No.', `<strong style="color:#0097a7">${complaint_no}</strong>`)}
+        ${infoRow('Title', `<strong>${title}</strong>`)}
+        ${infoRow('Priority', badge('ACTION REQUIRED', '#b91c1c', 'rgba(239,68,68,0.1)'))}
+        ${remarks ? infoRow('Admin Instructions', `<em style="color:#3d5a72">${remarks}</em>`) : ''}
+        ${infoRow('Assigned On', new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'long',year:'numeric'}))}
+      </table>
+      <div style="background:#fef3c7;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;padding:14px 18px;margin-top:20px">
+        <p style="font-size:13px;color:#92400e;font-weight:700;margin:0 0 4px">⚡ Action Required</p>
+        <p style="font-size:13px;color:#92400e;margin:0">Please log into the HYDRAA Official Portal to review and update the complaint status.</p>
+      </div>`);
+
+    await transporter.sendMail({
+      from:    `"HYDRAA Telangana" <${process.env.EMAIL_USER}>`,
+      to:      officialEmail,
+      subject: `⚡ New Complaint Assigned: ${complaint_no} — HYDRAA`,
+      html:    officialHtml,
+    });
+  }
+};
+
+// ─────────────────────────────────────────────────────
+//  4. COMPLAINT STATUS UPDATED (official update)
+// ─────────────────────────────────────────────────────
+const sendStatusUpdate = async ({ to, name, complaint_no, title, oldStatus, newStatus, remarks, officialName }) => {
+  const isResolved = newStatus === 'resolved';
+  const statusColors = {
+    in_progress:{ color:'#6d28d9', bg:'rgba(139,92,246,0.1)', label:'IN PROGRESS' },
+    resolved:   { color:'#065f46', bg:'rgba(16,185,129,0.1)', label:'RESOLVED' },
+    closed:     { color:'#374151', bg:'rgba(107,114,128,0.1)', label:'CLOSED' },
+    rejected:   { color:'#b91c1c', bg:'rgba(239,68,68,0.1)',  label:'REJECTED' },
+  };
+  const sc = statusColors[newStatus] || { color:'#0097a7', bg:'rgba(0,151,167,0.1)', label:newStatus.toUpperCase() };
+
+  const html = wrap(`
+    <h2 style="font-size:22px;color:#0b1f3a;margin:0 0 4px">
+      ${isResolved ? '🎉 Complaint Resolved!' : '🔄 Complaint Status Updated'}
+    </h2>
+    <p style="font-size:14px;color:#3d5a72;margin:0 0 24px">
+      Dear ${name}, ${isResolved
+        ? 'your complaint has been <strong>resolved</strong> by the HYDRAA field official.'
+        : 'the status of your complaint has been updated.'}
+    </p>
+
+    <div style="background:#f5fafc;border:1px solid #d0e4ec;border-radius:10px;padding:20px;margin-bottom:20px;text-align:center">
+      <div style="font-size:11px;color:#7a9baf;font-weight:700;letter-spacing:1px;margin-bottom:8px">COMPLAINT ${complaint_no}</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px">
+        ${badge(oldStatus.replace('_',' ').toUpperCase(), '#7a9baf', 'rgba(120,155,175,0.1)')}
+        <span style="color:#0097a7;font-size:18px;font-weight:700">→</span>
+        ${badge(sc.label, sc.color, sc.bg)}
+      </div>
+    </div>
+
+    <table width="100%" cellpadding="0" cellspacing="0">
+      ${infoRow('Complaint', `<strong>${title}</strong>`)}
+      ${infoRow('Updated By', officialName || 'HYDRAA Official')}
+      ${infoRow('New Status', badge(sc.label, sc.color, sc.bg))}
+      ${infoRow('Updated On', new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}))}
+    </table>
+
+    ${remarks ? `
+    <div style="background:#f0f9ff;border-left:4px solid #0097a7;border-radius:0 8px 8px 0;padding:14px 18px;margin-top:20px">
+      <p style="font-size:12px;color:#0097a7;font-weight:700;margin:0 0 4px">Official Remarks</p>
+      <p style="font-size:13px;color:#0d1e2e;margin:0;font-style:italic">"${remarks}"</p>
+    </div>` : ''}
+
+    ${isResolved ? `
+    <div style="background:#f0fdf4;border-left:4px solid #10b981;border-radius:0 8px 8px 0;padding:14px 18px;margin-top:16px">
+      <p style="font-size:13px;color:#065f46;margin:0">✅ Your issue has been resolved. You can rate your experience by visiting the HYDRAA Citizen Portal under "My Complaints".</p>
+    </div>` : ''}`);
+
+  await transporter.sendMail({
+    from:    `"HYDRAA Telangana" <${process.env.EMAIL_USER}>`,
+    to,
+    subject: isResolved
+      ? `🎉 Complaint ${complaint_no} Resolved — HYDRAA Telangana`
+      : `🔄 Complaint ${complaint_no} Status Updated — HYDRAA`,
+    html,
+  });
+};
+
+// ─────────────────────────────────────────────────────
+//  5. FORGOT PASSWORD OTP
+// ─────────────────────────────────────────────────────
+const sendForgotPasswordOTP = async ({ to, name, otp, role = 'user' }) => {
+  const roleLabel = { user:'Citizen', admin:'Administrator', official:'Field Official' }[role] || 'User';
+
+  const html = wrap(`
+    <h2 style="font-size:22px;color:#0b1f3a;margin:0 0 4px">Password Reset Request 🔒</h2>
+    <p style="font-size:14px;color:#3d5a72;margin:0 0 24px">
+      Dear ${name}, we received a request to reset your HYDRAA ${roleLabel} account password. Use the OTP below to reset it.
+    </p>
+
+    <div style="background:#f5fafc;border:2px dashed #0097a7;border-radius:12px;padding:28px;text-align:center;margin-bottom:24px">
+      <div style="font-size:12px;color:#7a9baf;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">Your One-Time Password</div>
+      <div style="font-size:48px;font-weight:700;color:#0097a7;letter-spacing:12px;font-family:monospace">${otp}</div>
+      <div style="font-size:12px;color:#f59e0b;font-weight:700;margin-top:10px">⏳ Valid for 10 minutes only</div>
+    </div>
+
+    <div style="background:#fef2f2;border-left:4px solid #ef4444;border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:20px">
+      <p style="font-size:13px;color:#b91c1c;font-weight:700;margin:0 0 4px">🚨 Security Alert</p>
+      <p style="font-size:13px;color:#b91c1c;margin:0">If you did not request a password reset, please ignore this email and your password will remain unchanged. Do NOT share this OTP with anyone.</p>
+    </div>
+
+    <table width="100%" cellpadding="0" cellspacing="0">
+      ${infoRow('Account', to)}
+      ${infoRow('Role', roleLabel)}
+      ${infoRow('OTP Expires', new Date(Date.now() + 10*60*1000).toLocaleTimeString('en-IN'))}
+      ${infoRow('Request Time', new Date().toLocaleString('en-IN'))}
+    </table>`);
+
+  await transporter.sendMail({
+    from:    `"HYDRAA Telangana" <${process.env.EMAIL_USER}>`,
+    to,
+    subject: `🔒 HYDRAA Password Reset OTP: ${otp}`,
+    html,
+  });
+};
+
+// ─────────────────────────────────────────────────────
+//  6. PASSWORD CHANGED CONFIRMATION
+// ─────────────────────────────────────────────────────
+const sendPasswordChangedEmail = async ({ to, name, role = 'user' }) => {
+  const roleLabel = { user:'Citizen', admin:'Administrator', official:'Field Official' }[role] || 'User';
+
+  const html = wrap(`
+    <h2 style="font-size:22px;color:#0b1f3a;margin:0 0 4px">Password Changed Successfully ✅</h2>
+    <p style="font-size:14px;color:#3d5a72;margin:0 0 24px">
+      Dear ${name}, your HYDRAA ${roleLabel} account password has been changed successfully.
+    </p>
+
+    <div style="background:#f0fdf4;border-left:4px solid #10b981;border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:24px">
+      <p style="font-size:13px;color:#065f46;font-weight:700;margin:0 0 4px">✅ Password Updated</p>
+      <p style="font-size:13px;color:#065f46;margin:0">Your account is now secured with your new password. You can login using your new credentials.</p>
+    </div>
+
+    <table width="100%" cellpadding="0" cellspacing="0">
+      ${infoRow('Account', to)}
+      ${infoRow('Role', roleLabel)}
+      ${infoRow('Changed On', new Date().toLocaleString('en-IN'))}
+    </table>
+
+    <div style="background:#fef2f2;border-left:4px solid #ef4444;border-radius:0 8px 8px 0;padding:14px 18px;margin-top:20px">
+      <p style="font-size:13px;color:#b91c1c;font-weight:700;margin:0 0 4px">⚠️ Wasn't you?</p>
+      <p style="font-size:13px;color:#b91c1c;margin:0">If you did not change your password, contact HYDRAA immediately at 1800-599-0099 or email us.</p>
+    </div>`);
+
+  await transporter.sendMail({
+    from:    `"HYDRAA Telangana" <${process.env.EMAIL_USER}>`,
+    to,
+    subject: '✅ HYDRAA Password Changed Successfully',
+    html,
+  });
+};
+
+// ─────────────────────────────────────────────────────
+//  7. OFFICIAL ACCOUNT CREATED (by admin)
+// ─────────────────────────────────────────────────────
+const sendOfficialWelcome = async ({ to, name, email, password, department }) => {
+  const html = wrap(`
+    <h2 style="font-size:22px;color:#0b1f3a;margin:0 0 4px">Welcome to HYDRAA Official Portal 👷</h2>
+    <p style="font-size:14px;color:#3d5a72;margin:0 0 24px">
+      Dear ${name}, your HYDRAA Field Official account has been created by the administrator. Below are your login credentials.
+    </p>
+
+    <div style="background:#f0fdf4;border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:20px;margin-bottom:24px">
+      <div style="font-size:12px;color:#065f46;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">🔐 Your Login Credentials</div>
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr><td style="font-size:13px;color:#065f46;font-weight:600;width:100px;padding:6px 0">Email:</td><td style="font-size:13px;color:#0d1e2e;font-weight:700">${email}</td></tr>
+        <tr><td style="font-size:13px;color:#065f46;font-weight:600;padding:6px 0">Password:</td><td style="font-size:15px;color:#0d1e2e;font-weight:700;font-family:monospace;letter-spacing:2px">${password}</td></tr>
+        <tr><td style="font-size:13px;color:#065f46;font-weight:600;padding:6px 0">Department:</td><td style="font-size:13px;color:#0d1e2e">${department || 'HYDRAA'}</td></tr>
+      </table>
+    </div>
+
+    <div style="background:#fef3c7;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:20px">
+      <p style="font-size:13px;color:#92400e;font-weight:700;margin:0 0 4px">🔒 Important</p>
+      <p style="font-size:13px;color:#92400e;margin:0">Please change your password after your first login for security purposes.</p>
+    </div>
+
+    <table width="100%" cellpadding="0" cellspacing="0">
+      ${infoRow('Portal', 'HYDRAA Official Portal')}
+      ${infoRow('Role', 'Field Official')}
+      ${infoRow('Responsibilities', 'Review assigned complaints, take field action, update resolution status')}
+    </table>`);
+
+  await transporter.sendMail({
+    from:    `"HYDRAA Telangana" <${process.env.EMAIL_USER}>`,
+    to,
+    subject: '👷 Your HYDRAA Official Account is Ready',
+    html,
+  });
+};
+
+// ─────────────────────────────────────────────────────
+//  Helper: send silently (don't crash app on email fail)
+// ─────────────────────────────────────────────────────
+const sendSafe = async (fn, ...args) => {
+  try { await fn(...args); }
+  catch (err) { console.error('⚠️ Email send failed (non-critical):', err.message); }
+};
+
+module.exports = {
+  sendWelcomeEmail,
+  sendComplaintConfirmation,
+  sendComplaintAssigned,
+  sendStatusUpdate,
+  sendForgotPasswordOTP,
+  sendPasswordChangedEmail,
+  sendOfficialWelcome,
+  sendSafe,
+};

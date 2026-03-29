@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard — HYDRAA Telangana</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --teal:#0097a7; --teal-dark:#006978; --teal-light:#e0f7fa;
+      --navy:#0b1f3a; --navy-mid:#122944; --gold:#f4a820;
+      --green:#10b981; --red:#ef4444; --orange:#f59e0b;
+      --purple:#8b5cf6; --blue:#3b82f6;
+      --white:#fff; --bg:#f2f6f9; --text:#0d1e2e;
+      --text-2:#3d5a72; --text-3:#7a9baf; --border:#d0e4ec;
+      --shadow:0 2px 16px rgba(0,30,60,0.08);
+      --shadow-md:0 6px 32px rgba(0,30,60,0.12);
+      --radius:12px; --radius-sm:8px; --sidebar-w:256px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;}
+
+    /* ── SIDEBAR ── */
+    .sidebar{width:var(--sidebar-w);background:var(--navy);position:fixed;height:100vh;top:0;left:0;display:flex;flex-direction:column;overflow-y:auto;z-index:100;box-shadow:2px 0 20px rgba(0,0,0,0.2);}
+    .sb-hdr{padding:1.4rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.15);}
+    .sb-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .sb-logo{width:38px;height:38px;border-radius:9px;background:linear-gradient(145deg,var(--teal),#00bcd4);display:flex;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:0 0 0 2px rgba(0,188,212,0.25);}
+    .sb-bt .t1{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;color:#fff;letter-spacing:0.08em;line-height:1;}
+    .sb-bt .t2{font-size:0.58rem;color:rgba(0,188,212,0.85);letter-spacing:0.12em;text-transform:uppercase;}
+    .sb-badge{margin:0.8rem 1.2rem 0;background:rgba(244,168,32,0.15);border:1px solid rgba(244,168,32,0.25);border-radius:6px;padding:0.4rem 0.8rem;display:flex;align-items:center;gap:6px;font-size:0.7rem;color:var(--gold);font-weight:700;letter-spacing:0.08em;text-transform:uppercase;}
+    .sb-user{margin:0.8rem 1.2rem 0;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-sm);padding:0.7rem;display:flex;align-items:center;gap:0.7rem;}
+    .sb-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.82rem;color:#fff;flex-shrink:0;}
+    .sb-ui .un{font-size:0.8rem;font-weight:600;color:#fff;}
+    .sb-ui .ur{font-size:0.62rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.08em;}
+    .sb-nav{padding:0.8rem 0;flex:1;}
+    .sb-sec{font-size:0.6rem;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:0.14em;font-weight:700;padding:0.6rem 1.2rem;margin-top:0.4rem;}
+    .sb-a{display:flex;align-items:center;gap:0.7rem;padding:0.65rem 1.2rem;color:rgba(255,255,255,0.58);text-decoration:none;font-size:0.83rem;font-weight:500;transition:all 0.18s;border-right:3px solid transparent;}
+    .sb-a:hover{color:#fff;background:rgba(255,255,255,0.06);}
+    .sb-a.active{color:#fff;background:rgba(0,151,167,0.18);border-right-color:var(--teal);}
+    .sb-a .si{font-size:0.95rem;width:18px;text-align:center;}
+    .sb-ft{padding:1rem 1.2rem;border-top:1px solid rgba(255,255,255,0.08);}
+    .btn-logout{width:100%;padding:0.55rem;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:rgba(239,68,68,0.8);border-radius:var(--radius-sm);font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .btn-logout:hover{background:rgba(239,68,68,0.2);color:#ef4444;}
+
+    /* ── MAIN ── */
+    .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+
+    /* Topbar */
+    .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 10px rgba(0,30,60,0.06);}
+    .tb-left{}
+    .tb-title{font-family:'Rajdhani',sans-serif;font-size:1.15rem;font-weight:700;color:var(--navy);line-height:1;}
+    .tb-sub{font-size:0.7rem;color:var(--text-3);margin-top:1px;}
+    .tb-sub span{color:var(--teal);font-weight:600;}
+    .tb-right{display:flex;align-items:center;gap:0.7rem;}
+    .tb-pill{display:flex;align-items:center;gap:0.5rem;background:var(--bg);border:1px solid var(--border);border-radius:100px;padding:0.28rem 0.9rem 0.28rem 0.3rem;}
+    .tp-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;font-weight:700;font-size:0.72rem;display:flex;align-items:center;justify-content:center;}
+    .tp-nm{font-size:0.78rem;font-weight:600;color:var(--text);}
+    .tb-notif{width:34px;height:34px;border-radius:var(--radius-sm);background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1rem;cursor:pointer;position:relative;}
+    .notif-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:#ef4444;border:2px solid #fff;}
+
+    /* Content */
+    .content{padding:1.8rem 2rem;flex:1;}
+
+    /* Page tabs */
+    .page-tabs{display:flex;gap:0.5rem;margin-bottom:1.8rem;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:5px;box-shadow:var(--shadow);}
+    .ptab{flex:1;text-align:center;padding:0.6rem;border-radius:var(--radius-sm);font-size:0.83rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text-2);font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .ptab.active{background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;box-shadow:0 3px 12px rgba(0,151,167,0.35);}
+
+    /* Views */
+    .view{display:none;} .view.active{display:block;}
+
+    /* Stats grid */
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
+    .stat-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:1.3rem 1.4rem;box-shadow:var(--shadow);display:flex;align-items:center;gap:1rem;transition:all 0.22s;cursor:default;}
+    .stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+    .sc-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+    .ic-blue{background:rgba(59,130,246,0.1);} .ic-orange{background:rgba(245,158,11,0.1);} .ic-purple{background:rgba(139,92,246,0.1);} .ic-green{background:rgba(16,185,129,0.1);} .ic-red{background:rgba(239,68,68,0.1);} .ic-teal{background:rgba(0,151,167,0.1);}
+    .sc-info{}
+    .sc-val{font-family:'Rajdhani',sans-serif;font-size:2rem;font-weight:700;color:var(--text);line-height:1;}
+    .sc-lbl{font-size:0.73rem;color:var(--text-2);margin-top:2px;font-weight:500;}
+    .sc-trend{font-size:0.68rem;color:var(--green);font-weight:600;margin-top:2px;}
+
+    /* Status overview bar */
+    .status-bar-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:1.3rem 1.5rem;margin-bottom:1.5rem;box-shadow:var(--shadow);}
+    .sbc-title{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:1rem;}
+    .status-pills{display:flex;gap:0.7rem;flex-wrap:wrap;}
+    .sp{flex:1;min-width:110px;border-radius:10px;padding:0.9rem 1rem;border-left:3px solid;}
+    .sp-num{font-family:'Rajdhani',sans-serif;font-size:1.6rem;font-weight:700;line-height:1;}
+    .sp-lbl{font-size:0.7rem;color:var(--text-2);margin-top:2px;font-weight:600;}
+    .sp-pct{font-size:0.65rem;font-weight:700;margin-top:3px;}
+
+    /* Progress bar */
+    .prog-bar{height:6px;border-radius:100px;background:var(--border);margin-bottom:1.2rem;overflow:hidden;}
+    .prog-fill{height:100%;border-radius:100px;background:linear-gradient(to right,var(--teal),#00bcd4);transition:width 0.8s ease;}
+
+    /* Cards row */
+    .cards-row{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.5rem;}
+
+    /* Table card */
+    .table-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;}
+    .tc-hdr{padding:1rem 1.4rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to right,rgba(0,151,167,0.03),transparent);}
+    .tc-hdr-left{}
+    .tc-title{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);}
+    .tc-sub{font-size:0.7rem;color:var(--text-3);}
+    .tc-hdr a{font-size:0.78rem;color:var(--teal);text-decoration:none;font-weight:600;}
+    .tc-hdr a:hover{text-decoration:underline;}
+
+    table{width:100%;border-collapse:collapse;}
+    th,td{padding:0.75rem 1rem;text-align:left;font-size:0.82rem;}
+    th{background:var(--bg);font-weight:700;color:var(--text-3);text-transform:uppercase;font-size:0.68rem;letter-spacing:0.07em;border-bottom:1px solid var(--border);}
+    td{border-bottom:1px solid rgba(208,228,236,0.5);color:var(--text-2);}
+    td strong{color:var(--text);font-weight:700;}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:rgba(0,151,167,0.02);}
+
+    /* Badges */
+    .badge{padding:3px 10px;border-radius:100px;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;display:inline-block;}
+    .b-pending{background:rgba(245,158,11,0.12);color:#b45309;}
+    .b-assigned{background:rgba(59,130,246,0.12);color:#1d4ed8;}
+    .b-in_progress{background:rgba(139,92,246,0.12);color:#6d28d9;}
+    .b-resolved{background:rgba(16,185,129,0.12);color:#065f46;}
+    .b-closed{background:rgba(107,114,128,0.12);color:#374151;}
+    .b-rejected{background:rgba(239,68,68,0.12);color:#b91c1c;}
+    .b-low{background:rgba(16,185,129,0.12);color:#065f46;}
+    .b-medium{background:rgba(245,158,11,0.12);color:#b45309;}
+    .b-high{background:rgba(239,68,68,0.12);color:#b91c1c;}
+    .b-urgent{background:rgba(124,58,237,0.15);color:#6d28d9;font-weight:900;}
+
+    /* Action buttons in table */
+    .act-wrap{display:flex;gap:0.4rem;flex-wrap:wrap;}
+    .act-btn{padding:4px 10px;border:none;border-radius:6px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.18s;white-space:nowrap;}
+    .ab-assign{background:rgba(245,158,11,0.12);color:#b45309;border:1px solid rgba(245,158,11,0.25);}
+    .ab-assign:hover{background:rgba(245,158,11,0.22);}
+    .ab-status{background:rgba(59,130,246,0.12);color:#1d4ed8;border:1px solid rgba(59,130,246,0.25);}
+    .ab-status:hover{background:rgba(59,130,246,0.22);}
+
+    /* Filter bar */
+    .filter-bar{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.2rem;margin-bottom:1.2rem;display:flex;gap:0.8rem;flex-wrap:wrap;align-items:center;box-shadow:var(--shadow);}
+    .filter-bar select,.filter-bar input{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0.55rem 0.85rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.83rem;color:var(--text);background:var(--bg);outline:none;transition:border-color 0.2s;}
+    .filter-bar select:focus,.filter-bar input:focus{border-color:var(--teal);}
+    .filter-bar .fb-label{font-size:0.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.07em;}
+    .btn-filter{background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:var(--radius-sm);padding:0.55rem 1.2rem;font-size:0.83rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 2px 10px rgba(0,151,167,0.3);}
+
+    /* Empty state */
+    .empty{text-align:center;padding:3.5rem 2rem;color:var(--text-3);}
+    .empty-icon{font-size:2.5rem;margin-bottom:0.7rem;}
+    .empty h3{font-size:1rem;color:var(--text-2);margin-bottom:0.3rem;}
+    .empty p{font-size:0.82rem;}
+
+    /* ── MODAL ── */
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(4px);}
+    .modal.open{display:flex;}
+    .modal-box{background:#fff;border-radius:var(--radius);padding:0;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.3);animation:modalIn 0.22s ease;}
+    @keyframes modalIn{from{opacity:0;transform:scale(0.96) translateY(10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+    .modal-hdr{padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.7rem;background:linear-gradient(to right,rgba(0,151,167,0.04),transparent);}
+    .modal-hdr-icon{width:36px;height:36px;border-radius:9px;background:rgba(0,151,167,0.1);display:flex;align-items:center;justify-content:center;font-size:1rem;}
+    .modal-hdr-text .mht{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;color:var(--navy);}
+    .modal-hdr-text .mhs{font-size:0.72rem;color:var(--text-3);}
+    .modal-body{padding:1.4rem 1.5rem;}
+    .m-field{margin-bottom:1rem;}
+    .m-label{font-size:0.78rem;font-weight:700;color:var(--text);margin-bottom:0.35rem;display:block;}
+    .m-label span{color:#e53935;}
+    .m-select,.m-textarea{width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0.72rem 0.9rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--bg);outline:none;transition:all 0.2s;}
+    .m-select:focus,.m-textarea:focus{border-color:var(--teal);background:#fff;box-shadow:0 0 0 3px rgba(0,151,167,0.1);}
+    .m-textarea{resize:vertical;min-height:90px;line-height:1.6;}
+    .m-msg{padding:0.7rem 1rem;border-radius:var(--radius-sm);font-size:0.82rem;margin-bottom:0.8rem;display:none;}
+    .m-msg.err{background:rgba(239,68,68,0.08);color:#b91c1c;border-left:3px solid #ef4444;display:block;}
+    .m-msg.ok{background:rgba(16,185,129,0.08);color:#065f46;border-left:3px solid #10b981;display:block;}
+    .modal-ftr{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;gap:0.7rem;background:rgba(0,151,167,0.02);}
+    .mb-ok{flex:1;padding:0.75rem;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:var(--radius-sm);font-size:0.88rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 3px 12px rgba(0,151,167,0.35);transition:all 0.2s;}
+    .mb-ok:hover{transform:translateY(-1px);}
+    .mb-cancel{padding:0.75rem 1.2rem;background:none;color:var(--text-2);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:0.85rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.18s;}
+    .mb-cancel:hover{border-color:var(--text-2);}
+
+    /* Quick stat inline */
+    .inline-stats{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.2rem;}
+    .is-item{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.5rem 1rem;font-size:0.78rem;color:var(--text-2);font-weight:500;display:flex;align-items:center;gap:5px;}
+    .is-item strong{color:var(--text);font-weight:700;}
+
+    /* Assigned indicator */
+    .assigned-yes{color:#065f46;font-weight:600;font-size:0.8rem;}
+    .assigned-no{color:#b45309;font-weight:600;font-size:0.8rem;}
+
+    /* Complaint no link */
+    .cno{color:var(--teal);font-weight:700;font-size:0.82rem;}
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-hdr">
+    <a href="/hydraa-index.html" class="sb-brand">
+      <div class="sb-logo">💧</div>
+      <div class="sb-bt"><div class="t1">HYDRAA</div><div class="t2">Government of Telangana</div></div>
+    </a>
+  </div>
+  <div class="sb-badge">🛡️ &nbsp;Admin Panel</div>
+  <div class="sb-user">
+    <div class="sb-av" id="sb-av">A</div>
+    <div class="sb-ui"><div class="un" id="sb-un">Administrator</div><div class="ur">System Admin</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Overview</div>
+    <a href="admin-dashboard.html" class="sb-a active"><span class="si">📊</span> Dashboard</a>
+    <a href="admin-complaints.html" class="sb-a" onclick="switchView('complaints');return false;"><span class="si">📋</span> All Complaints</a>
+    <a href="admin-analytics.html" class="sb-a"><span class="si">📈</span> Analytics</a>
+    <a href="admin-heatmap.html" class="sb-a"><span class="si">🗺️</span> Heatmap</a>
+    <div class="sb-sec">Management</div>
+    <a href="admin-officials.html" class="sb-a"><span class="si">👷</span> Manage Officials</a>
+    <a href="admin-users.html" class="sb-a"><span class="si">👥</span> Manage Users</a>
+    <a href="admin-categories.html" class="sb-a"><span class="si">🗂️</span> Categories</a>
+    <a href="admin-states.html" class="sb-a"><span class="si">📍</span> States</a>
+    <div class="sb-sec">Account</div>
+    <a href="change-password.html" class="sb-a"><span class="si">🔒</span> Change Password</a>
+  </nav>
+  <div class="sb-ft">
+    <button class="btn-logout" onclick="logout()">⬅ Logout</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="tb-left">
+      <div class="tb-title" id="tb-title">Admin Dashboard</div>
+      <div class="tb-sub">HYDRAA · <span id="tb-date"></span></div>
+    </div>
+    <div class="tb-right">
+      <div class="tb-notif">🔔<span class="notif-dot"></span></div>
+      <div class="tb-pill">
+        <div class="tp-av" id="tp-av">A</div>
+        <div class="tp-nm" id="tp-nm">Admin</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- PAGE TABS -->
+    <div class="page-tabs">
+      <button class="ptab active" onclick="switchView('dashboard')">📊 Dashboard</button>
+      <button class="ptab" onclick="switchView('complaints')">📋 All Complaints</button>
+    </div>
+
+    <!-- ═══ DASHBOARD VIEW ═══ -->
+    <div class="view active" id="view-dashboard">
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card"><div class="sc-icon ic-blue">📋</div><div class="sc-info"><div class="sc-val" id="s-total">—</div><div class="sc-lbl">Total Complaints</div></div></div>
+        <div class="stat-card"><div class="sc-icon ic-orange">⏳</div><div class="sc-info"><div class="sc-val" id="s-pending">—</div><div class="sc-lbl">Pending</div></div></div>
+        <div class="stat-card"><div class="sc-icon ic-purple">🔄</div><div class="sc-info"><div class="sc-val" id="s-progress">—</div><div class="sc-lbl">In Progress</div></div></div>
+        <div class="stat-card"><div class="sc-icon ic-green">✅</div><div class="sc-info"><div class="sc-val" id="s-resolved">—</div><div class="sc-lbl">Resolved</div></div></div>
+        <div class="stat-card"><div class="sc-icon ic-teal">👥</div><div class="sc-info"><div class="sc-val" id="s-users">—</div><div class="sc-lbl">Registered Citizens</div></div></div>
+        <div class="stat-card"><div class="sc-icon ic-orange">👷</div><div class="sc-info"><div class="sc-val" id="s-officials">—</div><div class="sc-lbl">Field Officials</div></div></div>
+        <div class="stat-card"><div class="sc-icon ic-red">⚠️</div><div class="sc-info"><div class="sc-val" id="s-overdue" style="color:#ef4444">—</div><div class="sc-lbl">Overdue</div></div></div>
+        <div class="stat-card"><div class="sc-icon ic-green">⭐</div><div class="sc-info"><div class="sc-val" id="s-rating">—</div><div class="sc-lbl">Avg Rating</div></div></div>
+      </div>
+
+      <!-- Resolution progress -->
+      <div class="status-bar-card">
+        <div class="sbc-title">Complaint Status Overview</div>
+        <div class="prog-bar"><div class="prog-fill" id="resolutionBar" style="width:0%"></div></div>
+        <div class="status-pills" id="statusPills">
+          <div class="empty"><div class="empty-icon">⏳</div><p>Loading...</p></div>
+        </div>
+      </div>
+
+      <!-- Recent complaints -->
+      <div class="table-card">
+        <div class="tc-hdr">
+          <div class="tc-hdr-left">
+            <div class="tc-title">Recent Complaints</div>
+            <div class="tc-sub">Latest 10 complaints filed by citizens</div>
+          </div>
+          <a href="#" onclick="switchView('complaints');return false;">View All →</a>
+        </div>
+        <div id="recentTable"><div class="empty"><div class="empty-icon">⏳</div><p>Loading data...</p></div></div>
+      </div>
+    </div>
+
+    <!-- ═══ COMPLAINTS VIEW ═══ -->
+    <div class="view" id="view-complaints">
+
+      <!-- Filter bar -->
+      <div class="filter-bar">
+        <div class="fb-label">Filter:</div>
+        <select id="filterStatus" onchange="loadComplaints()">
+          <option value="">All Statuses</option>
+          <option value="pending">Pending</option>
+          <option value="assigned">Assigned</option>
+          <option value="in_progress">In Progress</option>
+          <option value="resolved">Resolved</option>
+          <option value="closed">Closed</option>
+          <option value="rejected">Rejected</option>
+        </select>
+        <select id="filterCategory" onchange="loadComplaints()">
+          <option value="">All Categories</option>
+        </select>
+        <select id="filterPriority" onchange="loadComplaints()">
+          <option value="">All Priorities</option>
+          <option value="urgent">🚨 Urgent</option>
+          <option value="high">🔴 High</option>
+          <option value="medium">🟡 Medium</option>
+          <option value="low">🟢 Low</option>
+        </select>
+        <input type="text" id="filterSearch" placeholder="Search complaint no / title..." style="flex:1;min-width:180px" oninput="loadComplaints()"/>
+        <button class="btn-filter" onclick="loadComplaints()">🔍 Search</button>
+      </div>
+
+      <div class="inline-stats">
+        <div class="is-item">Total: <strong id="cTotal">—</strong></div>
+        <div class="is-item">Unassigned: <strong id="cUnassigned" style="color:#b45309">—</strong></div>
+        <div class="is-item">Urgent: <strong id="cUrgent" style="color:#6d28d9">—</strong></div>
+      </div>
+
+      <div class="table-card">
+        <div class="tc-hdr">
+          <div class="tc-hdr-left">
+            <div class="tc-title">All Complaints</div>
+            <div class="tc-sub">Assign officials and manage complaint statuses</div>
+          </div>
+        </div>
+        <div id="complaintsTable"><div class="empty"><div class="empty-icon">⏳</div><p>Loading...</p></div></div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ASSIGN MODAL -->
+<div id="assignModal" class="modal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div class="modal-hdr-icon">👷</div>
+      <div class="modal-hdr-text"><div class="mht">Assign to Official</div><div class="mhs">Select a HYDRAA field official to handle this complaint</div></div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="assignId"/>
+      <div class="m-field">
+        <label class="m-label">Select Official <span>*</span></label>
+        <select id="assignOfficialSel" class="m-select"><option value="">— Choose Official —</option></select>
+      </div>
+      <div class="m-field">
+        <label class="m-label">Remarks / Instructions</label>
+        <textarea id="assignRemarksText" class="m-textarea" placeholder="Special instructions for the assigned official..."></textarea>
+      </div>
+      <div id="assignMsg" class="m-msg"></div>
+    </div>
+    <div class="modal-ftr">
+      <button class="mb-ok" onclick="doAssign()">✅ Assign Now</button>
+      <button class="mb-cancel" onclick="closeAssign()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- STATUS MODAL -->
+<div id="statusModal" class="modal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div class="modal-hdr-icon">🔄</div>
+      <div class="modal-hdr-text"><div class="mht">Update Complaint Status</div><div class="mhs">Change the current status of this complaint</div></div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="statusId"/>
+      <div class="m-field">
+        <label class="m-label">New Status <span>*</span></label>
+        <select id="statusSel" class="m-select">
+          <option value="pending">⏳ Pending</option>
+          <option value="assigned">📌 Assigned</option>
+          <option value="in_progress">🔄 In Progress</option>
+          <option value="resolved">✅ Resolved</option>
+          <option value="closed">🔒 Closed</option>
+          <option value="rejected">❌ Rejected</option>
+        </select>
+      </div>
+      <div class="m-field">
+        <label class="m-label">Remarks / Reason</label>
+        <textarea id="statusRemarksText" class="m-textarea" placeholder="Reason for status change..."></textarea>
+      </div>
+      <div id="statusMsg" class="m-msg"></div>
+    </div>
+    <div class="modal-ftr">
+      <button class="mb-ok" onclick="doStatus()">✅ Update Status</button>
+      <button class="mb-cancel" onclick="closeStatus()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+Auth.requireLogin('admin');
+
+// Init user
+const user = Auth.getUser();
+if (user) {
+  const init = (user.full_name||user.username||'A')[0].toUpperCase();
+  document.getElementById('sb-av').textContent = init;
+  document.getElementById('sb-un').textContent = user.full_name||user.username||'Admin';
+  document.getElementById('tp-av').textContent = init;
+  document.getElementById('tp-nm').textContent = user.full_name||user.username||'Admin';
+}
+document.getElementById('tb-date').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+// View switching
+function switchView(v) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.ptab').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.querySelectorAll('.ptab')[v==='dashboard'?0:1].classList.add('active');
+  document.getElementById('tb-title').textContent = v==='dashboard' ? 'Admin Dashboard' : 'All Complaints';
+  if (v==='complaints') loadComplaints();
+}
+
+// Status badge helper
+function sb(status) {
+  const map = {pending:'b-pending',assigned:'b-assigned',in_progress:'b-in_progress',resolved:'b-resolved',closed:'b-closed',rejected:'b-rejected'};
+  const lbl = {pending:'Pending',assigned:'Assigned',in_progress:'In Progress',resolved:'Resolved',closed:'Closed',rejected:'Rejected'};
+  return `<span class="badge ${map[status]||''}">${lbl[status]||status}</span>`;
+}
+function pb(p) {
+  return `<span class="badge b-${p}">${p.toUpperCase()}</span>`;
+}
+
+// ═══ DASHBOARD ═══
+async function loadDashboard() {
+  try {
+    const res = await http.get('/api/complaints/admin/dashboard');
+    if (!res.success) return;
+    const { complaints: s, total_users, total_officials, recent } = res.data;
+
+    document.getElementById('s-total').textContent = s.total||0;
+    document.getElementById('s-pending').textContent = s.pending||0;
+    document.getElementById('s-progress').textContent = (s.assigned||0)+(s.in_progress||0);
+    document.getElementById('s-resolved').textContent = s.resolved||0;
+    document.getElementById('s-users').textContent = total_users||0;
+    document.getElementById('s-officials').textContent = total_officials||0;
+    document.getElementById('s-overdue').textContent = s.overdue||0;
+    document.getElementById('s-rating').textContent = (res.data.avg_rating||0)+' ⭐';
+
+    // Resolution bar
+    const total = s.total||1;
+    const pct = Math.round(((s.resolved||0)+(s.closed||0))/total*100);
+    document.getElementById('resolutionBar').style.width = pct+'%';
+
+    // Status pills
+    const statuses = [
+      {key:'pending',label:'Pending',color:'#f59e0b',bg:'rgba(245,158,11,0.08)'},
+      {key:'assigned',label:'Assigned',color:'#3b82f6',bg:'rgba(59,130,246,0.08)'},
+      {key:'in_progress',label:'In Progress',color:'#8b5cf6',bg:'rgba(139,92,246,0.08)'},
+      {key:'resolved',label:'Resolved',color:'#10b981',bg:'rgba(16,185,129,0.08)'},
+      {key:'closed',label:'Closed',color:'#6b7280',bg:'rgba(107,114,128,0.08)'},
+      {key:'rejected',label:'Rejected',color:'#ef4444',bg:'rgba(239,68,68,0.08)'}
+    ];
+    document.getElementById('statusPills').innerHTML = statuses.map(st => {
+      const count = s[st.key]||0;
+      const p = Math.round(count/total*100);
+      return `<div class="sp" style="background:${st.bg};border-left-color:${st.color}">
+        <div class="sp-num" style="color:${st.color}">${count}</div>
+        <div class="sp-lbl">${st.label}</div>
+        <div class="sp-pct" style="color:${st.color}">${p}% of total</div>
+      </div>`;
+    }).join('');
+
+    // Recent table
+    if (!recent||recent.length===0) {
+      document.getElementById('recentTable').innerHTML = `<div class="empty"><div class="empty-icon">📭</div><h3>No complaints yet</h3><p>Complaints will appear here once citizens start filing</p></div>`;
+      return;
+    }
+    document.getElementById('recentTable').innerHTML = `
+      <table>
+        <thead><tr><th>Complaint No.</th><th>Title</th><th>Citizen</th><th>Priority</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody>${recent.map(c=>`
+          <tr>
+            <td><span class="cno">${c.complaint_no}</span></td>
+            <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><strong>${c.title}</strong></td>
+            <td>${c.user_name}</td>
+            <td>${pb(c.priority)}</td>
+            <td>${sb(c.status)}</td>
+            <td>${formatDate(c.created_at)}</td>
+            <td><div class="act-wrap">
+              <button class="act-btn ab-assign" onclick="openAssign(${c.id})">👷 Assign</button>
+              <button class="act-btn ab-status" onclick="openStatus(${c.id},'${c.status}')">🔄 Status</button>
+            </div></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+  } catch(err) { console.error(err); }
+}
+
+// ═══ COMPLAINTS ═══
+var officials = [];
+var allComplaints = [];
+
+async function init() {
+  try {
+    const [cats, ofRes] = await Promise.all([http.get('/api/admin/categories'), http.get('/api/admin/officials')]);
+    cats.data.forEach(c => document.getElementById('filterCategory').innerHTML += `<option value="${c.id}">${c.name}</option>`);
+    officials = ofRes.data;
+  } catch(e) { console.error(e); }
+  loadDashboard();
+}
+
+async function loadComplaints() {
+  const status = document.getElementById('filterStatus').value;
+  const cat    = document.getElementById('filterCategory').value;
+  const prio   = document.getElementById('filterPriority').value;
+  const search = document.getElementById('filterSearch').value.toLowerCase().trim();
+
+  let url = '/complaints/admin/all?limit=200';
+  if (status) url += '&status='+status;
+  if (cat)    url += '&category_id='+cat;
+
+  document.getElementById('complaintsTable').innerHTML = `<div class="empty"><div class="empty-icon">⏳</div><p>Loading complaints...</p></div>`;
+  try {
+    const res = await http.get(url);
+    if (!res.success||res.data.length===0) {
+      document.getElementById('complaintsTable').innerHTML = `<div class="empty"><div class="empty-icon">📭</div><h3>No complaints found</h3><p>Try adjusting your filters</p></div>`;
+      document.getElementById('cTotal').textContent = 0;
+      document.getElementById('cUnassigned').textContent = 0;
+      document.getElementById('cUrgent').textContent = 0;
+      return;
+    }
+
+    let data = res.data;
+    if (prio) data = data.filter(c => c.priority===prio);
+    if (search) data = data.filter(c => c.complaint_no?.toLowerCase().includes(search)||c.title?.toLowerCase().includes(search));
+
+    document.getElementById('cTotal').textContent = data.length;
+    document.getElementById('cUnassigned').textContent = data.filter(c=>!c.official_name).length;
+    document.getElementById('cUrgent').textContent = data.filter(c=>c.priority==='urgent').length;
+
+    document.getElementById('complaintsTable').innerHTML = `
+      <table>
+        <thead><tr><th>No.</th><th>Title</th><th>Citizen</th><th>Category</th><th>Priority</th><th>Status</th><th>Assigned To</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody>${data.map(c=>`
+          <tr>
+            <td><span class="cno">${c.complaint_no}</span></td>
+            <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.title}"><strong>${c.title}</strong></td>
+            <td>${c.user_name}</td>
+            <td style="font-size:0.78rem">${c.category_name||'—'}</td>
+            <td>${pb(c.priority)}</td>
+            <td>${sb(c.status)}</td>
+            <td>${c.official_name ? `<span class="assigned-yes">✓ ${c.official_name}</span>` : `<span class="assigned-no">⚠ Unassigned</span>`}</td>
+            <td style="white-space:nowrap">${formatDate(c.created_at)}</td>
+            <td><div class="act-wrap">
+              <button class="act-btn ab-assign" onclick="openAssign(${c.id})">👷 Assign</button>
+              <button class="act-btn ab-status" onclick="openStatus(${c.id},'${c.status}')">🔄 Status</button>
+            </div></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+  } catch(err) {
+    document.getElementById('complaintsTable').innerHTML = `<div class="empty"><div class="empty-icon">❌</div><h3>Failed to load</h3><p>Please try again</p></div>`;
+  }
+}
+
+// Modal functions
+function openAssign(id) {
+  document.getElementById('assignId').value = id;
+  document.getElementById('assignRemarksText').value = '';
+  document.getElementById('assignMsg').className = 'm-msg';
+  const sel = document.getElementById('assignOfficialSel');
+  sel.innerHTML = '<option value="">— Choose Official —</option>';
+  officials.forEach(o => sel.innerHTML += `<option value="${o.id}">${o.full_name} (${o.department||'N/A'})</option>`);
+  document.getElementById('assignModal').classList.add('open');
+}
+function closeAssign() { document.getElementById('assignModal').classList.remove('open'); }
+
+function openStatus(id, cur) {
+  document.getElementById('statusId').value = id;
+  document.getElementById('statusSel').value = cur;
+  document.getElementById('statusRemarksText').value = '';
+  document.getElementById('statusMsg').className = 'm-msg';
+  document.getElementById('statusModal').classList.add('open');
+}
+function closeStatus() { document.getElementById('statusModal').classList.remove('open'); }
+
+document.getElementById('assignModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeAssign(); });
+document.getElementById('statusModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeStatus(); });
+
+async function doAssign() {
+  const id = document.getElementById('assignId').value;
+  const official_id = document.getElementById('assignOfficialSel').value;
+  const remarks = document.getElementById('assignRemarksText').value;
+  const msg = document.getElementById('assignMsg');
+  if (!official_id) { msg.textContent='Please select an official.'; msg.className='m-msg err'; return; }
+  try {
+    const res = await http.put('/api/complaints/admin/assign/'+id, {official_id, remarks});
+    if (res.success) {
+      msg.textContent='Complaint assigned successfully!'; msg.className='m-msg ok';
+      setTimeout(()=>{ closeAssign(); loadComplaints(); loadDashboard(); }, 1400);
+    } else { msg.textContent=res.message; msg.className='m-msg err'; }
+  } catch(e) { msg.textContent='Server error.'; msg.className='m-msg err'; }
+}
+
+async function doStatus() {
+  const id = document.getElementById('statusId').value;
+  const status = document.getElementById('statusSel').value;
+  const remarks = document.getElementById('statusRemarksText').value;
+  const msg = document.getElementById('statusMsg');
+  try {
+    const res = await http.put('/api/complaints/admin/status/'+id, {status, remarks});
+    if (res.success) {
+      msg.textContent='Status updated successfully!'; msg.className='m-msg ok';
+      setTimeout(()=>{ closeStatus(); loadComplaints(); loadDashboard(); }, 1400);
+    } else { msg.textContent=res.message; msg.className='m-msg err'; }
+  } catch(e) { msg.textContent='Server error.'; msg.className='m-msg err'; }
+}
+
+init();
+</script>
+<script src="http-client.js"></script>
+</body>
+</html>
