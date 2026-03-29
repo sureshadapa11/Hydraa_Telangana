@@ -43,6 +43,14 @@ app.use((req, res) => {
     message: 'Endpoint not found.',
   });
 });
+const express = require("express");
+const app = express();
+
+app.get("/", (req, res) => {
+  res.send("Hydra Telangana API working successfully 🚀");
+});
+
+app.listen(process.env.PORT || 3000);
 
 // ── Error Handler ──
 app.use((err, req, res, next) => {
