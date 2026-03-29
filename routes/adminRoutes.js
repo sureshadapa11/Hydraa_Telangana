@@ -19,6 +19,7 @@ const {
   getUserLogs,
   getStates,
   getAnalytics,
+  getHeatmapData,
 } = require('../controllers/adminController');
 const { verifyToken } = require('../middleware/auth');
 
@@ -46,5 +47,8 @@ router.get('/states', verifyToken, getStates);
 
 // ── Analytics ──
 router.get('/analytics', verifyToken, getAnalytics);
+
+// ── Heatmap ──
+router.get('/heatmap', verifyToken, getHeatmapData);
 
 module.exports = router;

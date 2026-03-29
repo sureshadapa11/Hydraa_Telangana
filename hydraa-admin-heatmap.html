@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Heatmap — HYDRAA Telangana</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    :root {
+      --teal:#0097a7; --teal-dark:#006978; --teal-light:#e0f7fa;
+      --navy:#0b1f3a; --navy-mid:#122944; --gold:#f4a820;
+      --green:#10b981; --red:#ef4444; --orange:#f59e0b;
+      --purple:#8b5cf6; --blue:#3b82f6;
+      --white:#fff; --bg:#f2f6f9; --text:#0d1e2e;
+      --text-2:#3d5a72; --text-3:#7a9baf; --border:#d0e4ec;
+      --shadow:0 2px 16px rgba(0,30,60,0.08);
+      --shadow-md:0 6px 32px rgba(0,30,60,0.12);
+      --radius:12px; --radius-sm:8px; --sidebar-w:256px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;}
+
+    /* SIDEBAR */
+    .sidebar{width:var(--sidebar-w);background:var(--navy);position:fixed;height:100vh;top:0;left:0;display:flex;flex-direction:column;overflow-y:auto;z-index:100;box-shadow:2px 0 20px rgba(0,0,0,0.2);}
+    .sb-hdr{padding:1.4rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.15);}
+    .sb-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .sb-logo{width:38px;height:38px;border-radius:9px;background:linear-gradient(145deg,var(--teal),#00bcd4);display:flex;align-items:center;justify-content:center;font-size:1.2rem;}
+    .sb-bt .t1{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;color:#fff;letter-spacing:0.08em;line-height:1;}
+    .sb-bt .t2{font-size:0.58rem;color:rgba(0,188,212,0.85);letter-spacing:0.12em;text-transform:uppercase;}
+    .sb-badge{margin:0.8rem 1.2rem 0;background:rgba(244,168,32,0.15);border:1px solid rgba(244,168,32,0.25);border-radius:6px;padding:0.4rem 0.8rem;display:flex;align-items:center;gap:6px;font-size:0.7rem;color:var(--gold);font-weight:700;letter-spacing:0.08em;text-transform:uppercase;}
+    .sb-user{margin:0.8rem 1.2rem 0;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-sm);padding:0.7rem;display:flex;align-items:center;gap:0.7rem;}
+    .sb-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.82rem;color:#fff;flex-shrink:0;}
+    .sb-ui .un{font-size:0.8rem;font-weight:600;color:#fff;}
+    .sb-ui .ur{font-size:0.62rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.08em;}
+    .sb-nav{padding:0.8rem 0;flex:1;}
+    .sb-sec{font-size:0.6rem;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:0.14em;font-weight:700;padding:0.6rem 1.2rem;margin-top:0.4rem;}
+    .sb-a{display:flex;align-items:center;gap:0.7rem;padding:0.65rem 1.2rem;color:rgba(255,255,255,0.58);text-decoration:none;font-size:0.83rem;font-weight:500;transition:all 0.18s;border-right:3px solid transparent;}
+    .sb-a:hover{color:#fff;background:rgba(255,255,255,0.06);}
+    .sb-a.active{color:#fff;background:rgba(0,151,167,0.18);border-right-color:var(--teal);}
+    .sb-a .si{font-size:0.95rem;width:18px;text-align:center;}
+    .sb-ft{padding:1rem 1.2rem;border-top:1px solid rgba(255,255,255,0.08);}
+    .btn-logout{width:100%;padding:0.55rem;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:rgba(239,68,68,0.8);border-radius:var(--radius-sm);font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .btn-logout:hover{background:rgba(239,68,68,0.2);color:#ef4444;}
+
+    /* MAIN */
+    .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+    .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 10px rgba(0,30,60,0.06);}
+    .tb-title{font-family:'Rajdhani',sans-serif;font-size:1.15rem;font-weight:700;color:var(--navy);}
+    .tb-sub{font-size:0.7rem;color:var(--text-3);margin-top:1px;}
+    .tb-pill{display:flex;align-items:center;gap:0.5rem;background:var(--bg);border:1px solid var(--border);border-radius:100px;padding:0.28rem 0.9rem 0.28rem 0.3rem;}
+    .tp-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;font-weight:700;font-size:0.72rem;display:flex;align-items:center;justify-content:center;}
+    .tp-nm{font-size:0.78rem;font-weight:600;color:var(--text);}
+    .content{padding:1.8rem 2rem;flex:1;}
+
+    /* CARDS */
+    .card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:1.2rem;}
+    .card-hdr{padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);}
+    .card-title{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);}
+    .card-sub{font-size:0.72rem;color:var(--text-3);margin-top:2px;}
+    .card-body{padding:1.2rem 1.5rem;}
+
+    /* MAP */
+    #map{height:420px;border-radius:0 0 var(--radius) var(--radius);}
+
+    /* STATE TABLE */
+    .state-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.8rem;padding:1.2rem 1.5rem;}
+    .state-pill{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.9rem 1rem;}
+    .sp-name{font-size:0.82rem;font-weight:700;color:var(--navy);}
+    .sp-total{font-family:'Rajdhani',sans-serif;font-size:1.6rem;font-weight:700;color:var(--teal);line-height:1;margin:4px 0;}
+    .sp-detail{font-size:0.7rem;color:var(--text-3);}
+    .sp-bar{height:4px;border-radius:100px;background:var(--border);margin-top:8px;overflow:hidden;}
+    .sp-fill{height:100%;border-radius:100px;background:linear-gradient(to right,var(--teal),#00bcd4);}
+
+    /* TIME HEATMAP GRID */
+    .hm-wrap{overflow-x:auto;padding:1.2rem 1.5rem;}
+    .hm-grid{display:grid;grid-template-columns:60px repeat(24,1fr);gap:3px;min-width:700px;}
+    .hm-cell{height:28px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:600;}
+    .hm-label{display:flex;align-items:center;font-size:0.68rem;color:var(--text-2);font-weight:600;}
+    .hm-col-label{font-size:0.6rem;color:var(--text-3);text-align:center;padding-bottom:2px;}
+
+    /* CATEGORY MATRIX */
+    .matrix-wrap{overflow-x:auto;padding:1.2rem 1.5rem;}
+    .matrix{border-collapse:collapse;width:100%;}
+    .matrix th{font-size:0.68rem;font-weight:700;color:var(--text-2);text-transform:uppercase;padding:0.4rem 0.6rem;background:var(--bg);border:1px solid var(--border);}
+    .matrix td{padding:0.5rem 0.6rem;border:1px solid var(--border);text-align:center;font-size:0.82rem;font-weight:600;}
+    .matrix .row-label{text-align:left;font-size:0.78rem;font-weight:600;color:var(--text);background:var(--bg);}
+
+    /* LEGEND */
+    .legend{display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-top:0.8rem;}
+    .leg-item{display:flex;align-items:center;gap:0.4rem;font-size:0.72rem;color:var(--text-2);}
+    .leg-dot{width:14px;height:14px;border-radius:3px;}
+
+    .loading{text-align:center;padding:3rem;color:var(--text-3);}
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sb-hdr">
+    <a href="/hydraa-index.html" class="sb-brand">
+      <div class="sb-logo">💧</div>
+      <div class="sb-bt"><div class="t1">HYDRAA</div><div class="t2">Government of Telangana</div></div>
+    </a>
+  </div>
+  <div class="sb-badge">🛡️ &nbsp;Admin Panel</div>
+  <div class="sb-user">
+    <div class="sb-av" id="sb-av">A</div>
+    <div class="sb-ui"><div class="un" id="sb-un">Administrator</div><div class="ur">System Admin</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Overview</div>
+    <a href="/hydraa-admin-dashboard.html" class="sb-a"><span class="si">📊</span> Dashboard</a>
+    <a href="/hydraa-admin-dashboard.html" class="sb-a"><span class="si">📋</span> All Complaints</a>
+    <a href="/hydraa-admin-analytics.html" class="sb-a"><span class="si">📈</span> Analytics</a>
+    <a href="/hydraa-admin-heatmap.html" class="sb-a active"><span class="si">🗺️</span> Heatmap</a>
+    <div class="sb-sec">Management</div>
+    <a href="/hydraa-admin-management.html" class="sb-a"><span class="si">👷</span> Manage Officials</a>
+    <a href="#" class="sb-a"><span class="si">👥</span> Manage Users</a>
+    <a href="#" class="sb-a"><span class="si">🗂️</span> Categories</a>
+    <a href="#" class="sb-a"><span class="si">📍</span> States</a>
+    <div class="sb-sec">Account</div>
+    <a href="/hydraa-change-password.html" class="sb-a"><span class="si">🔒</span> Change Password</a>
+  </nav>
+  <div class="sb-ft">
+    <button class="btn-logout" onclick="logout()">⬅ Logout</button>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="tb-title">Complaint Heatmap</div>
+      <div class="tb-sub">Geographic & time-based complaint distribution</div>
+    </div>
+    <div class="tb-pill">
+      <div class="tp-av" id="tp-av">A</div>
+      <span class="tp-nm" id="tp-nm">Admin</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- MAP CARD -->
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title">🗺️ State-wise Complaint Map</div>
+        <div class="card-sub">Bubble size represents complaint volume per state</div>
+      </div>
+      <div id="map"></div>
+    </div>
+
+    <!-- STATE SUMMARY PILLS -->
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title">📍 State Summary</div>
+        <div class="card-sub">Total complaints filed per state</div>
+      </div>
+      <div class="state-grid" id="stateGrid"><div class="loading">Loading...</div></div>
+    </div>
+
+    <!-- TIME HEATMAP -->
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title">🕐 Complaint Activity Heatmap</div>
+        <div class="card-sub">Filing frequency by day of week and hour of day</div>
+      </div>
+      <div class="hm-wrap" id="timeHeatmap"><div class="loading">Loading...</div></div>
+    </div>
+
+    <!-- CATEGORY × PRIORITY MATRIX -->
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title">📊 Category × Priority Matrix</div>
+        <div class="card-sub">Complaint volume per category and priority level</div>
+      </div>
+      <div class="matrix-wrap" id="catMatrix"><div class="loading">Loading...</div></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="http-client.js"></script>
+<script src="app.js"></script>
+<script>
+  const user = Auth.getUser();
+  if (!user || user.role !== 'admin') window.location.href = '/hydraa-admin-login.html';
+
+  if (user) {
+    const init = (user.full_name || user.username || 'A')[0].toUpperCase();
+    document.getElementById('sb-av').textContent  = init;
+    document.getElementById('sb-un').textContent  = user.full_name || user.username || 'Admin';
+    document.getElementById('tp-av').textContent  = init;
+    document.getElementById('tp-nm').textContent  = user.full_name || user.username || 'Admin';
+  }
+
+  // Approximate centre coordinates for states
+  const STATE_COORDS = {
+    'Telangana':      [17.9, 79.4],
+    'Andhra Pradesh': [15.9, 79.7],
+    'Maharashtra':    [19.7, 75.7],
+    'Karnataka':      [15.3, 75.7],
+    'Tamil Nadu':     [10.9, 78.7],
+  };
+
+  // Heatmap colour scale based on intensity 0-1
+  function heatColor(intensity) {
+    if (intensity === 0) return '#f0f9ff';
+    if (intensity < 0.2) return '#bae6fd';
+    if (intensity < 0.4) return '#38bdf8';
+    if (intensity < 0.6) return '#0ea5e9';
+    if (intensity < 0.8) return '#0284c7';
+    return '#0c4a6e';
+  }
+
+  function cellColor(v, max) {
+    if (!max || v === 0) return { bg: '#f8fafc', color: '#cbd5e1' };
+    const i = v / max;
+    if (i < 0.2)  return { bg: '#e0f7fa', color: '#0097a7' };
+    if (i < 0.4)  return { bg: '#b2ebf2', color: '#00838f' };
+    if (i < 0.6)  return { bg: '#4dd0e1', color: '#fff' };
+    if (i < 0.8)  return { bg: '#0097a7', color: '#fff' };
+    return { bg: '#006978', color: '#fff' };
+  }
+
+  // Init Leaflet map
+  const map = L.map('map').setView([17.5, 78.5], 6);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+
+  async function loadHeatmap() {
+    const res = await http.get('/api/admin/heatmap');
+    if (!res.success) return;
+    const d = res.data;
+
+    // ── MAP BUBBLES ──
+    const maxState = Math.max(...d.stateData.map(s => s.total), 1);
+    d.stateData.forEach(s => {
+      const coords = STATE_COORDS[s.state_name];
+      if (!coords || !s.total) return;
+      const radius = 20000 + (s.total / maxState) * 80000;
+      L.circle(coords, {
+        color: '#0097a7', fillColor: '#0097a7',
+        fillOpacity: 0.4, weight: 2, radius,
+      }).addTo(map).bindPopup(`
+        <strong>${s.state_name}</strong><br>
+        Total: ${s.total}<br>
+        Resolved: ${s.resolved}<br>
+        Pending: ${s.pending}
+      `);
+      L.marker(coords, {
+        icon: L.divIcon({
+          className: '',
+          html: `<div style="background:#0097a7;color:#fff;padding:2px 6px;border-radius:6px;font-size:11px;font-weight:700;white-space:nowrap">${s.total}</div>`,
+          iconAnchor: [16, 0],
+        })
+      }).addTo(map);
+    });
+
+    // ── STATE PILLS ──
+    const maxPill = Math.max(...d.stateData.map(s => s.total), 1);
+    document.getElementById('stateGrid').innerHTML = d.stateData.map(s => `
+      <div class="state-pill">
+        <div class="sp-name">${s.state_name}</div>
+        <div class="sp-total">${s.total}</div>
+        <div class="sp-detail">✅ ${s.resolved} resolved &nbsp; ⏳ ${s.pending} pending</div>
+        <div class="sp-bar"><div class="sp-fill" style="width:${Math.round((s.total/maxPill)*100)}%"></div></div>
+      </div>
+    `).join('') || '<div class="loading">No data yet.</div>';
+
+    // ── TIME HEATMAP ──
+    const DAYS  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const grid  = {};
+    let maxCell = 0;
+    d.timeGrid.forEach(r => {
+      const key = `${r.dow}_${r.hour}`;
+      grid[key]  = r.count;
+      if (r.count > maxCell) maxCell = r.count;
+    });
+
+    let html = '<div class="hm-grid">';
+    html += '<div class="hm-cell"></div>';
+    for (let h = 0; h < 24; h++) {
+      html += `<div class="hm-col-label">${h}</div>`;
+    }
+    for (let dow = 1; dow <= 7; dow++) {
+      html += `<div class="hm-label">${DAYS[dow - 1]}</div>`;
+      for (let h = 0; h < 24; h++) {
+        const v    = grid[`${dow}_${h}`] || 0;
+        const intv = maxCell ? v / maxCell : 0;
+        const bg   = heatColor(intv);
+        const clr  = intv > 0.5 ? '#fff' : '#334155';
+        html += `<div class="hm-cell" style="background:${bg};color:${clr}" title="${DAYS[dow-1]} ${h}:00 — ${v} complaints">${v || ''}</div>`;
+      }
+    }
+    html += '</div>';
+    html += `<div class="legend">
+      <span style="font-size:0.72rem;color:var(--text-2);font-weight:600">Intensity:</span>
+      ${['None','Low','Medium','High','Peak'].map((l,i) => `<div class="leg-item"><div class="leg-dot" style="background:${heatColor(i*0.25)}"></div>${l}</div>`).join('')}
+    </div>`;
+    document.getElementById('timeHeatmap').innerHTML = html;
+
+    // ── CATEGORY × PRIORITY MATRIX ──
+    const cats  = [...new Set(d.catPriMatrix.map(r => r.category))];
+    const pris  = ['low','medium','high','urgent'];
+    const priLbl = { low:'🟢 Low', medium:'🟡 Medium', high:'🔴 High', urgent:'🚨 Urgent' };
+    const mGrid = {};
+    let maxM = 0;
+    d.catPriMatrix.forEach(r => {
+      mGrid[`${r.category}_${r.priority}`] = r.count;
+      if (r.count > maxM) maxM = r.count;
+    });
+
+    let mHtml = '<table class="matrix"><thead><tr><th>Category</th>';
+    pris.forEach(p => { mHtml += `<th>${priLbl[p]}</th>`; });
+    mHtml += '<th>Total</th></tr></thead><tbody>';
+    cats.forEach(cat => {
+      const rowTotal = pris.reduce((s, p) => s + (mGrid[`${cat}_${p}`] || 0), 0);
+      mHtml += `<tr><td class="row-label">${cat}</td>`;
+      pris.forEach(p => {
+        const v = mGrid[`${cat}_${p}`] || 0;
+        const { bg, color } = cellColor(v, maxM);
+        mHtml += `<td style="background:${bg};color:${color}">${v || '—'}</td>`;
+      });
+      mHtml += `<td style="font-weight:700;color:var(--teal)">${rowTotal}</td></tr>`;
+    });
+    if (!cats.length) mHtml += '<tr><td colspan="6" style="text-align:center;padding:1.5rem;color:var(--text-3)">No complaint data yet.</td></tr>';
+    mHtml += '</tbody></table>';
+    document.getElementById('catMatrix').innerHTML = mHtml;
+  }
+
+  loadHeatmap();
+</script>
+</body>
+</html>

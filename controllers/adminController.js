@@ -390,6 +390,55 @@ const getAnalytics = async (req, res) => {
   }
 };
 
+// ────────────────────────────────────────────────────
+//  HEATMAP DATA
+// ────────────────────────────────────────────────────
+const getHeatmapData = async (req, res) => {
+  try {
+    // Complaints by state
+    const [stateData] = await db.query(`
+      SELECT s.state_name, s.code, COUNT(c.id) AS total,
+             SUM(c.status = 'resolved') AS resolved,
+             SUM(c.status IN ('open','assigned','in_progress')) AS pending
+      FROM states s
+      LEFT JOIN complaints c ON c.state_id = s.id
+      GROUP BY s.id, s.state_name, s.code
+      ORDER BY total DESC
+    `);
+
+    // Hour × day-of-week activity grid
+    const [timeGrid] = await db.query(`
+      SELECT HOUR(created_at) AS hour,
+             DAYOFWEEK(created_at) AS dow,
+             COUNT(*) AS count
+      FROM complaints
+      GROUP BY hour, dow
+    `);
+
+    // Category × Priority matrix
+    const [catPriMatrix] = await db.query(`
+      SELECT c.name AS category, comp.priority, COUNT(*) AS count
+      FROM complaints comp
+      JOIN categories c ON comp.category_id = c.id
+      GROUP BY c.name, comp.priority
+      ORDER BY c.name, comp.priority
+    `);
+
+    // Last 30 days daily count
+    const [dailyCount] = await db.query(`
+      SELECT DATE(created_at) AS day, COUNT(*) AS count
+      FROM complaints
+      WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+      GROUP BY day ORDER BY day ASC
+    `);
+
+    res.json({ success: true, data: { stateData, timeGrid, catPriMatrix, dailyCount } });
+  } catch (err) {
+    console.error('Heatmap error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
 module.exports = {
   getCategories,
   createCategory,
@@ -404,4 +453,5 @@ module.exports = {
   getUserLogs,
   getStates,
   getAnalytics,
+  getHeatmapData,
 };
