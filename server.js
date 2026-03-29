@@ -98,14 +98,31 @@ async function seedDefaultAdmin() {
     const bcrypt = require('bcryptjs');
     const db     = require('./utils/db');
 
-    // Ensure username column exists (in case table was created without it)
+    // Check if admins table has all required columns
     const [cols] = await db.query(
-      `SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS
-       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'admins' AND COLUMN_NAME = 'username'`
+      `SELECT COLUMN_NAME FROM information_schema.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'admins'`
     );
-    if (cols[0].cnt === 0) {
-      await db.query('ALTER TABLE admins ADD COLUMN username VARCHAR(100)');
-      console.log('✅ Added username column to admins table');
+    const colNames = cols.map(c => c.COLUMN_NAME);
+    const required = ['id', 'username', 'email', 'password', 'full_name', 'is_active'];
+    const missing  = required.filter(c => !colNames.includes(c));
+
+    if (missing.length > 0) {
+      console.log('⚠️  Admins table missing columns:', missing.join(', '), '— recreating...');
+      await db.query('DROP TABLE IF EXISTS admins');
+      await db.query(`
+        CREATE TABLE admins (
+          id INT PRIMARY KEY AUTO_INCREMENT,
+          username VARCHAR(100) UNIQUE NOT NULL,
+          email VARCHAR(100) UNIQUE NOT NULL,
+          password VARCHAR(255) NOT NULL,
+          full_name VARCHAR(100),
+          is_active BOOLEAN DEFAULT 1,
+          last_login TIMESTAMP NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      console.log('✅ Admins table recreated');
     }
 
     const email    = process.env.ADMIN_EMAIL     || 'admin@hydraa.telangana';
@@ -113,8 +130,6 @@ async function seedDefaultAdmin() {
     const username = process.env.ADMIN_USERNAME  || 'Admin';
     const fullName = process.env.ADMIN_FULL_NAME || 'HYDRAA Administrator';
 
-    // Delete any broken rows (no password set) then check if valid admin exists
-    await db.query('DELETE FROM admins WHERE password IS NULL OR password = ""');
     const [rows] = await db.query('SELECT id FROM admins WHERE email = ?', [email]);
     if (rows.length > 0) {
       console.log('✅ Admin already exists:', email);
