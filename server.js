@@ -45,9 +45,6 @@ app.use((req, res) => {
 });
 
 // ── Error Handler ──
-app.get("/", (req, res) => {
-  res.send("Hydra Telangana API working successfully 🚀");
-});
 app.use((err, req, res, next) => {
   console.error('Server error:', err);
   res.status(500).json({
