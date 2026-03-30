@@ -471,7 +471,7 @@ document.getElementById('officialLoginForm').addEventListener('submit', async (e
       password: document.getElementById('password').value
     });
     if (res.success) {
-      Auth.setSession(res.token, res.user);
+      Auth.setUser(res.user, res.token);
       showLoginAlert('Login successful! Loading portal...', 'success');
       setTimeout(() => initDashboard(), 800);
     } else {
