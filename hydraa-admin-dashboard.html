@@ -185,10 +185,8 @@
     /* Complaint no link */
     .cno{color:var(--teal);font-weight:700;font-size:0.82rem;}
 
-    /* Complaints card scrollable */
-    #view-complaints .table-card{max-height:calc(100vh - 280px);display:flex;flex-direction:column;overflow:hidden;}
-    #view-complaints .table-card .tc-hdr{flex-shrink:0;}
-    #complaintsTable{overflow-y:auto;overflow-x:auto;flex:1;}
+    /* Complaints table horizontal scroll */
+    #view-complaints .table-card{overflow-x:auto;}
 
   </style>
 </head>
@@ -538,8 +536,7 @@ async function loadComplaints() {
     document.getElementById('cUrgent').textContent = data.filter(c=>c.priority==='urgent').length;
 
     document.getElementById('complaintsTable').innerHTML = `
-      <div style="overflow-x:auto">
-      <table style="min-width:900px">
+      <table style="min-width:950px;width:100%">
         <thead><tr><th>No.</th><th>Title</th><th>Citizen</th><th>Category</th><th>Priority</th><th>Status</th><th>Assigned To</th><th>Date</th><th>Actions</th></tr></thead>
         <tbody>${data.map(c=>`
           <tr>
@@ -557,7 +554,7 @@ async function loadComplaints() {
             </div></td>
           </tr>`).join('')}
         </tbody>
-      </table></div>`;
+      </table>`;
   } catch(err) {
     document.getElementById('complaintsTable').innerHTML = `<div class="empty"><div class="empty-icon">❌</div><h3>Failed to load</h3><p>Please try again</p></div>`;
   }
