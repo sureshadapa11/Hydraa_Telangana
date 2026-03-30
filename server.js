@@ -300,14 +300,22 @@ async function fixComplaintsTable() {
         console.log('✅ complaints.id AUTO_INCREMENT fixed');
       } catch(e) {
         console.warn('  MODIFY failed:', e.message, '— will try DROP+CREATE');
-        console.log('  Step 1: disable FK checks');
         await db.query(`SET FOREIGN_KEY_CHECKS = 0`);
-        console.log('  Step 2: drop complaint_history');
+
+        // Find ALL tables with FKs referencing complaints and drop those FKs/tables
+        const [refs] = await db.query(
+          `SELECT TABLE_NAME, CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE
+           WHERE TABLE_SCHEMA = DATABASE() AND REFERENCED_TABLE_NAME = 'complaints'`
+        );
+        for (const ref of refs) {
+          try { await db.query(`ALTER TABLE \`${ref.TABLE_NAME}\` DROP FOREIGN KEY \`${ref.CONSTRAINT_NAME}\``); console.log(`  Dropped FK ${ref.CONSTRAINT_NAME} on ${ref.TABLE_NAME}`); }
+          catch(ex) { try { await db.query(`DROP TABLE IF EXISTS \`${ref.TABLE_NAME}\``); console.log(`  Dropped table ${ref.TABLE_NAME}`); } catch(ex2) {} }
+        }
         await db.query(`DROP TABLE IF EXISTS complaint_history`);
-        console.log('  Step 3: drop complaint_ratings');
         await db.query(`DROP TABLE IF EXISTS complaint_ratings`);
-        console.log('  Step 4: drop complaints');
+        await db.query(`DROP TABLE IF EXISTS ratings`);
         await db.query(`DROP TABLE IF EXISTS complaints`);
+        console.log('  Step 4 done: complaints dropped');
       console.log('  Step 5: create complaints');
       await db.query(`
         CREATE TABLE complaints (
