@@ -214,46 +214,50 @@ const rateComplaint = async (req, res) => {
 const getAdminDashboard = async (req, res) => {
   try {
     // Status counts
-    const [statusCounts] = await db.query(`
-      SELECT status, COUNT(*) as count FROM complaints GROUP BY status
-    `);
+    const [statusRows] = await db.query(`SELECT status, COUNT(*) as count FROM complaints GROUP BY status`);
+    const sc = statusRows.reduce((acc, s) => ({ ...acc, [s.status]: Number(s.count) }), {});
+    const total = statusRows.reduce((sum, s) => sum + Number(s.count), 0);
 
-    // Priority distribution
-    const [priorityCounts] = await db.query(`
-      SELECT priority, COUNT(*) as count FROM complaints GROUP BY priority
-    `);
+    // Overdue: open/assigned complaints older than 7 days
+    const [[{ overdue }]] = await db.query(
+      `SELECT COUNT(*) as overdue FROM complaints WHERE status NOT IN ('resolved','closed','rejected') AND created_at < DATE_SUB(NOW(), INTERVAL 7 DAY)`
+    );
+
+    // Total users & officials
+    const [[{ total_users }]] = await db.query(`SELECT COUNT(*) as total_users FROM users`);
+    const [[{ total_officials }]] = await db.query(`SELECT COUNT(*) as total_officials FROM officials WHERE is_active = 1`);
+
+    // Avg rating
+    const [[{ avg_rating }]] = await db.query(`SELECT ROUND(AVG(rating),1) as avg_rating FROM complaint_ratings`);
 
     // Recent complaints
-    const [recentComplaints] = await db.query(`
-      SELECT 
-        c.id, c.complaint_no, c.title, c.status, c.priority, c.created_at,
-        u.full_name, cat.name as category_name
+    const [recent] = await db.query(`
+      SELECT c.id, c.complaint_no, c.title, c.status, c.priority, c.created_at,
+        u.full_name as user_name, cat.name as category_name
       FROM complaints c
       JOIN users u ON c.user_id = u.id
       LEFT JOIN categories cat ON c.category_id = cat.id
-      ORDER BY c.created_at DESC
-      LIMIT 10
-    `);
-
-    // Official assignment stats
-    const [officialStats] = await db.query(`
-      SELECT o.full_name, COUNT(c.id) as complaints_handled
-      FROM officials o
-      LEFT JOIN complaints c ON o.id = c.official_id
-      GROUP BY o.id
-      ORDER BY complaints_handled DESC
-      LIMIT 5
+      ORDER BY c.created_at DESC LIMIT 10
     `);
 
     res.json({
       success: true,
       data: {
-        statusCounts: statusCounts.reduce((acc, s) => ({ ...acc, [s.status]: s.count }), {}),
-        priorityCounts: priorityCounts.reduce((acc, p) => ({ ...acc, [p.priority]: p.count }), {}),
-        recentComplaints,
-        officialStats,
-        totalComplaints: statusCounts.reduce((sum, s) => sum + s.count, 0),
-        unresolvedComplaints: statusCounts.find(s => s.status !== 'resolved')?.count || 0,
+        complaints: {
+          total,
+          open:        sc.open        || 0,
+          pending:     sc.open        || 0,
+          assigned:    sc.assigned    || 0,
+          in_progress: sc.in_progress || 0,
+          resolved:    sc.resolved    || 0,
+          closed:      sc.closed      || 0,
+          rejected:    sc.rejected    || 0,
+          overdue:     Number(overdue) || 0,
+        },
+        total_users:    Number(total_users)    || 0,
+        total_officials: Number(total_officials) || 0,
+        avg_rating:     avg_rating || 0,
+        recent,
       },
     });
   } catch (err) {

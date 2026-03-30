@@ -69,6 +69,7 @@
 
     /* Views */
     .view{display:none;} .view.active{display:block;}
+    #view-dashboard{display:block;}
 
     /* Stats grid */
     .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
@@ -208,7 +209,7 @@
   <nav class="sb-nav">
     <div class="sb-sec">Overview</div>
     <a href="/hydraa-admin-dashboard.html" class="sb-a active"><span class="si">📊</span> Dashboard</a>
-    <a href="/hydraa-admin-dashboard.html" class="sb-a" onclick="switchView('complaints');return false;"><span class="si">📋</span> All Complaints</a>
+    <a href="#" class="sb-a" onclick="switchView('complaints');return false;"><span class="si">📋</span> All Complaints</a>
     <a href="/hydraa-admin-analytics.html" class="sb-a"><span class="si">📈</span> Analytics</a>
     <a href="/hydraa-admin-heatmap.html" class="sb-a"><span class="si">🗺️</span> Heatmap</a>
     <div class="sb-sec">Management</div>
@@ -241,11 +242,7 @@
   </div>
 
   <div class="content">
-    <!-- PAGE TABS -->
-    <div class="page-tabs">
-      <button class="ptab active" onclick="switchView('dashboard')">📊 Dashboard</button>
-      <button class="ptab" onclick="switchView('complaints')">📋 All Complaints</button>
-    </div>
+    <!-- PAGE TABS removed — All Complaints accessible via sidebar -->
 
     <!-- ═══ DASHBOARD VIEW ═══ -->
     <div class="view active" id="view-dashboard">
