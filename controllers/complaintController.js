@@ -446,13 +446,14 @@ const resolveComplaint = async (req, res) => {
 //  ADMIN: GET ALL COMPLAINTS
 // ────────────────────────────────────────────────────
 const getAllComplaints = async (req, res) => {
-  const { status, category_id, limit = 200 } = req.query;
+  const { status, category_id, district_id, limit = 200 } = req.query;
 
   try {
     let where = '1=1';
     const params = [];
     if (status)      { where += ' AND c.status = ?';      params.push(status); }
     if (category_id) { where += ' AND c.category_id = ?'; params.push(category_id); }
+    if (district_id) { where += ' AND c.district_id = ?'; params.push(district_id); }
 
     const [complaints] = await db.query(
       `SELECT
@@ -462,12 +463,15 @@ const getAllComplaints = async (req, res) => {
         c.address, c.created_at, c.resolved_at,
         c.official_id, o.full_name AS official_name,
         c.admin_remarks, c.official_remarks,
-        u.full_name AS user_name, u.email AS user_email
+        u.full_name AS user_name, u.email AS user_email,
+        d.name AS district_name, m.name AS mandal_name
       FROM complaints c
       JOIN users u ON c.user_id = u.id
       LEFT JOIN categories cat ON c.category_id = cat.id
       LEFT JOIN subcategories subcat ON c.subcategory_id = subcat.id
       LEFT JOIN officials o ON c.official_id = o.id
+      LEFT JOIN districts d ON c.district_id = d.id
+      LEFT JOIN mandals m ON c.mandal_id = m.id
       WHERE ${where}
       ORDER BY c.created_at DESC
       LIMIT ?`,

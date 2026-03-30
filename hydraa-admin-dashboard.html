@@ -215,6 +215,7 @@
     <a href="/hydraa-admin-management.html" class="sb-a"><span class="si">👷</span> Manage Officials</a>
     <a href="/hydraa-admin-users.html" class="sb-a"><span class="si">👥</span> Manage Users</a>
     <a href="/hydraa-admin-categories.html" class="sb-a"><span class="si">🗂️</span> Categories</a>
+    <a href="/hydraa-admin-districts.html" class="sb-a"><span class="si">🗺️</span> Districts & Mandals</a>
 
     <div class="sb-sec">Account</div>
     <a href="/hydraa-change-password.html" class="sb-a"><span class="si">🔒</span> Change Password</a>
@@ -297,6 +298,9 @@
         </select>
         <select id="filterCategory" onchange="loadComplaints()">
           <option value="">All Categories</option>
+        </select>
+        <select id="filterDistrict" onchange="loadComplaints()">
+          <option value="">All Districts</option>
         </select>
         <select id="filterPriority" onchange="loadComplaints()">
           <option value="">All Priorities</option>
@@ -494,22 +498,31 @@ var allComplaints = [];
 
 async function init() {
   try {
-    const [cats, ofRes] = await Promise.all([http.get('/api/admin/categories'), http.get('/api/admin/officials')]);
+    const [cats, ofRes, distRes] = await Promise.all([
+      http.get('/api/admin/categories'),
+      http.get('/api/admin/officials'),
+      http.get('/api/admin/districts'),
+    ]);
     cats.data.forEach(c => document.getElementById('filterCategory').innerHTML += `<option value="${c.id}">${c.name}</option>`);
     officials = ofRes.data;
+    if (distRes.success && distRes.data.length) {
+      distRes.data.forEach(d => document.getElementById('filterDistrict').innerHTML += `<option value="${d.id}">${d.name}</option>`);
+    }
   } catch(e) { console.error(e); }
   loadDashboard();
 }
 
 async function loadComplaints() {
-  const status = document.getElementById('filterStatus').value;
-  const cat    = document.getElementById('filterCategory').value;
-  const prio   = document.getElementById('filterPriority').value;
-  const search = document.getElementById('filterSearch').value.toLowerCase().trim();
+  const status   = document.getElementById('filterStatus').value;
+  const cat      = document.getElementById('filterCategory').value;
+  const district = document.getElementById('filterDistrict').value;
+  const prio     = document.getElementById('filterPriority').value;
+  const search   = document.getElementById('filterSearch').value.toLowerCase().trim();
 
   let url = '/api/complaints/admin/all?limit=200';
-  if (status) url += '&status='+status;
-  if (cat)    url += '&category_id='+cat;
+  if (status)   url += '&status='+status;
+  if (cat)      url += '&category_id='+cat;
+  if (district) url += '&district_id='+district;
 
   document.getElementById('complaintsTable').innerHTML = `<div class="empty"><div class="empty-icon">⏳</div><p>Loading complaints...</p></div>`;
   try {
@@ -532,13 +545,17 @@ async function loadComplaints() {
 
     document.getElementById('complaintsTable').innerHTML = `
       <table style="min-width:950px;width:100%">
-        <thead><tr><th>No.</th><th>Title</th><th>Citizen</th><th>Category</th><th>Priority</th><th>Status</th><th>Assigned To</th><th>Date</th><th>Actions</th></tr></thead>
+        <thead><tr><th>No.</th><th>Title</th><th>Citizen</th><th>Category</th><th>District</th><th>Priority</th><th>Status</th><th>Assigned To</th><th>Date</th><th>Actions</th></tr></thead>
         <tbody>${data.map(c=>`
           <tr>
             <td><span class="cno">${c.complaint_no}</span></td>
             <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.title}"><strong>${c.title}</strong></td>
             <td>${c.user_name}</td>
             <td style="font-size:0.78rem">${c.category_name||'—'}</td>
+            <td style="font-size:0.78rem;white-space:nowrap">
+              ${c.district_name ? `<span style="color:var(--teal);font-weight:600">📍 ${c.district_name}</span>` : '<span style="color:var(--text-3)">—</span>'}
+              ${c.mandal_name ? `<br><span style="color:var(--text-3);font-size:0.7rem">${c.mandal_name}</span>` : ''}
+            </td>
             <td>${pb(c.priority)}</td>
             <td>${sb(c.status)}</td>
             <td style="white-space:nowrap">${c.official_name ? `<span class="assigned-yes">✓ ${c.official_name}</span>` : `<span class="assigned-no">⚠ Unassigned</span>`}</td>
