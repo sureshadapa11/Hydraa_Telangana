@@ -19,10 +19,10 @@
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
     html{scroll-behavior:smooth;}
-    body{font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);overflow-x:clip;}
+    body{font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);}
 
     /* ══ SCREENS ══ */
-    .screen{display:none;min-height:100vh;}
+    .screen{display:none;min-height:100vh;width:100%;}
     .screen.active{display:flex;}
 
     /* ══════════════ LOGIN SCREEN ══════════════ */
@@ -116,7 +116,7 @@
     .btn-logout:hover{background:rgba(239,68,68,0.2);color:#ef4444;}
 
     /* MAIN */
-    .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+    .main{margin-left:var(--sidebar-w);width:calc(100vw - var(--sidebar-w));display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden;}
     .topbar{background:#fff;border-bottom:1px solid var(--border);padding:0 2rem;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 10px rgba(0,30,60,0.06);}
     .tb-title{font-family:'Rajdhani',sans-serif;font-size:1.15rem;font-weight:700;color:var(--navy);line-height:1;}
     .tb-crumb{font-size:0.7rem;color:var(--text-3);margin-top:1px;}
