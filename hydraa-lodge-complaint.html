@@ -814,8 +814,7 @@
         formData.append('attachment', file);
         res = await http.postForm('/api/complaints/lodge', formData);
       } else {
-        // No attachment — use JSON (works with express.json middleware)
-        res = await http.post('/api/complaints/lodge', {
+        const payload = {
           title:          document.getElementById('title').value,
           description:    document.getElementById('description').value,
           category_id:    document.getElementById('category_id').value,
@@ -823,16 +822,19 @@
           state_id:       document.getElementById('state_id').value,
           address:        document.getElementById('address').value,
           priority:       document.getElementById('priority').value || 'medium',
-        });
+        };
+        console.log('Submitting complaint payload:', payload);
+        res = await http.post('/api/complaints/lodge', payload);
       }
 
+      console.log('Server response:', res);
       if (res.success) {
         const complaintNo = (res.data && res.data.complaint_no) || res.complaint_no || '';
         showAlert('alertBox', 'success', `✅ Complaint submitted successfully! Complaint No: ${complaintNo}`);
         document.getElementById('complaintForm').reset();
         setTimeout(() => window.location.href = '/hydraa-my-complaints.html', 3000);
       } else {
-        showAlert('alertBox', 'error', res.message || 'Something went wrong.');
+        showAlert('alertBox', 'error', `Error: ${res.message} | title="${document.getElementById('title').value}" cat="${document.getElementById('category_id').value}" addr="${document.getElementById('address').value}"`);
       }
     } catch (err) {
       showAlert('alertBox', 'error', 'Server error. Please try again.');
