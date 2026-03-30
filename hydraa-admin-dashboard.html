@@ -60,15 +60,15 @@
     .notif-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:#ef4444;border:2px solid #fff;}
 
     /* Content */
-    .content{padding:1.8rem 2rem;flex:1;}
+    .content{padding:1.8rem 2rem;flex:1;display:flex;flex-direction:column;overflow:hidden;}
 
     /* Page tabs */
-    .page-tabs{display:flex;gap:0.5rem;margin-bottom:1.8rem;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:5px;box-shadow:var(--shadow);}
+    .page-tabs{display:flex;gap:0.5rem;margin-bottom:1.8rem;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:5px;box-shadow:var(--shadow);flex-shrink:0;}
     .ptab{flex:1;text-align:center;padding:0.6rem;border-radius:var(--radius-sm);font-size:0.83rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text-2);font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
     .ptab.active{background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;box-shadow:0 3px 12px rgba(0,151,167,0.35);}
 
     /* Views */
-    .view{display:none;} .view.active{display:block;}
+    .view{display:none;} .view.active{display:block;flex:1;min-height:0;}
 
     /* Stats grid */
     .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
@@ -184,6 +184,14 @@
 
     /* Complaint no link */
     .cno{color:var(--teal);font-weight:700;font-size:0.82rem;}
+
+    /* Only the complaints rows scroll — everything else stays fixed */
+    #view-complaints{display:flex;flex-direction:column;height:calc(100vh - 62px);overflow:hidden;}
+    #view-complaints .filter-bar{flex-shrink:0;}
+    #view-complaints .inline-stats{flex-shrink:0;}
+    #view-complaints .table-card{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+    #view-complaints .table-card .tc-hdr{flex-shrink:0;}
+    #complaintsTable{flex:1;overflow-y:auto;overflow-x:auto;}
 
   </style>
 </head>
