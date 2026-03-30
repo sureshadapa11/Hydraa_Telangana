@@ -352,7 +352,10 @@
             </tr>`).join('')}
           </tbody>
         </table>`;
-    } catch(err) { console.error(err); }
+    } catch(err) {
+      console.error(err);
+      document.getElementById('officialsTable').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><p>Error loading officials: ${err.message}</p></div>`;
+    }
   }
 
   async function addOfficial() {

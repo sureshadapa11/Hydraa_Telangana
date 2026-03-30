@@ -185,6 +185,71 @@ async function fixOfficialsTable() {
   }
 }
 
+// ── Fix States Table ──
+async function fixStatesTable() {
+  try {
+    const db = require('./utils/db');
+    const [cols] = await db.query(
+      `SELECT COLUMN_NAME FROM information_schema.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'states'`
+    );
+    const colNames = cols.map(c => c.COLUMN_NAME);
+    const required = [
+      { name: 'state_name', def: "VARCHAR(100) NOT NULL DEFAULT ''" },
+      { name: 'code',       def: 'VARCHAR(10)' },
+    ];
+    const missing = required.filter(c => !colNames.includes(c.name));
+    if (missing.length > 0) {
+      console.log('⚠️  States table missing columns:', missing.map(c => c.name).join(', '), '— fixing...');
+      for (const col of missing) {
+        try { await db.query(`ALTER TABLE states ADD COLUMN ${col.name} ${col.def}`); }
+        catch (e) { console.warn(`  Could not add column ${col.name}:`, e.message); }
+      }
+      console.log('✅ States table altered');
+    } else {
+      console.log('✅ States table OK');
+    }
+  } catch (err) {
+    console.warn('⚠️  States table check skipped:', err.message);
+  }
+}
+
+// ── Fix Complaints Table ──
+async function fixComplaintsTable() {
+  try {
+    const db = require('./utils/db');
+    const [cols] = await db.query(
+      `SELECT COLUMN_NAME FROM information_schema.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'complaints'`
+    );
+    const colNames = cols.map(c => c.COLUMN_NAME);
+    const required = [
+      { name: 'official_id',       def: 'INT' },
+      { name: 'state_id',          def: 'INT' },
+      { name: 'category_id',       def: 'INT' },
+      { name: 'subcategory_id',    def: 'INT' },
+      { name: 'priority',          def: "ENUM('low','medium','high','urgent') DEFAULT 'medium'" },
+      { name: 'admin_remarks',     def: 'TEXT' },
+      { name: 'official_remarks',  def: 'TEXT' },
+      { name: 'attachment',        def: 'VARCHAR(255)' },
+      { name: 'resolved_at',       def: 'TIMESTAMP NULL' },
+    ];
+    const missing = required.filter(c => !colNames.includes(c.name));
+    if (missing.length > 0) {
+      console.log('⚠️  Complaints table missing columns:', missing.map(c => c.name).join(', '), '— fixing...');
+      for (const col of missing) {
+        try { await db.query(`ALTER TABLE complaints ADD COLUMN ${col.name} ${col.def}`); }
+        catch (e) { console.warn(`  Could not add column ${col.name}:`, e.message); }
+      }
+      console.log('✅ Complaints table altered');
+    } else {
+      console.log('✅ Complaints table OK');
+    }
+  } catch (err) {
+    console.warn('⚠️  Complaints table check skipped:', err.message);
+  }
+}
+
 // ── Fix Users Table (add missing columns) ──
 async function fixUsersTable() {
   try {
@@ -319,6 +384,8 @@ app.listen(PORT, async () => {
 ╚════════════════════════════════════════╝
   `);
   await runSchema();
+  await fixStatesTable();
+  await fixComplaintsTable();
   await fixUsersTable();
   await fixOfficialsTable();
   await seedCategories();
