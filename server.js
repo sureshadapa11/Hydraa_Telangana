@@ -313,6 +313,14 @@ async function fixUsersTable() {
     } else {
       console.log('✅ Users table OK');
     }
+
+    // If old 'name' column exists with no default, give it one so it doesn't block inserts
+    if (colNames.includes('name')) {
+      try {
+        await db.query(`ALTER TABLE users ALTER COLUMN name SET DEFAULT ''`);
+        console.log('✅ users.name column default fixed');
+      } catch (e) { /* already has default */ }
+    }
   } catch (err) {
     console.warn('⚠️  Users table check skipped:', err.message);
   }
