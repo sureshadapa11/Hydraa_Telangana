@@ -793,6 +793,14 @@
 
   // Submit
   async function submitComplaint() {
+    // DEBUG: show what values JS can read
+    const _t = document.getElementById('title')?.value;
+    const _d = document.getElementById('description')?.value;
+    const _c = document.getElementById('category_id')?.value;
+    const _a = document.getElementById('address')?.value;
+    showAlert('alertBox', 'error', `DEBUG t="${_t}" d="${_d}" c="${_c}" a="${_a}"`);
+    return;
+
     const btn = document.getElementById('submitBtn');
     setLoading(btn, true);
 
