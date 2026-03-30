@@ -87,9 +87,7 @@
 
     /* ACTION BUTTONS */
     .act-btn{padding:0.28rem 0.7rem;border-radius:var(--radius-sm);font-size:0.72rem;font-weight:600;cursor:pointer;border:1px solid;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.15s;}
-    .ab-logs{background:rgba(59,130,246,0.08);color:var(--blue);border-color:rgba(59,130,246,0.2);}
-    .ab-logs:hover{background:rgba(59,130,246,0.15);}
-    .ab-deact{background:rgba(239,68,68,0.08);color:var(--red);border-color:rgba(239,68,68,0.2);}
+.ab-deact{background:rgba(239,68,68,0.08);color:var(--red);border-color:rgba(239,68,68,0.2);}
     .ab-deact:hover{background:rgba(239,68,68,0.15);}
     .ab-activate{background:rgba(16,185,129,0.08);color:var(--green);border-color:rgba(16,185,129,0.2);}
     .ab-activate:hover{background:rgba(16,185,129,0.15);}
@@ -108,11 +106,6 @@
     .modal-title{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);}
     .modal-close{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;}
     .modal-body{padding:1.2rem 1.5rem;overflow-y:auto;flex:1;}
-    .log-item{display:flex;gap:1rem;padding:0.6rem 0;border-bottom:1px solid var(--border);font-size:0.82rem;}
-    .log-item:last-child{border-bottom:none;}
-    .log-date{color:var(--text-3);white-space:nowrap;font-size:0.72rem;}
-    .log-action{font-weight:600;color:var(--text);}
-
     /* CONFIRM MODAL */
     .confirm-box{background:var(--white);border-radius:var(--radius);width:100%;max-width:400px;box-shadow:var(--shadow-md);overflow:hidden;}
     .confirm-icon{font-size:2.2rem;margin-bottom:0.5rem;}
@@ -201,17 +194,6 @@
       <div id="usersTable"><div class="empty"><div class="empty-icon">⏳</div><p>Loading citizens...</p></div></div>
     </div>
 
-  </div>
-</div>
-
-<!-- LOGS MODAL -->
-<div class="modal" id="logsModal">
-  <div class="modal-box">
-    <div class="modal-hdr">
-      <div class="modal-title" id="logsTitle">Activity Logs</div>
-      <button class="modal-close" onclick="closeLogs()">✕</button>
-    </div>
-    <div class="modal-body" id="logsBody"></div>
   </div>
 </div>
 
@@ -328,7 +310,6 @@
         </td>
         <td style="font-size:0.75rem;white-space:nowrap">${formatDate(u.created_at)}</td>
         <td><div style="display:flex;gap:0.4rem;flex-wrap:wrap">
-          <button class="act-btn ab-logs" onclick="viewLogs(${u.id},'${name}')">📋 Logs</button>
           ${isActive
             ? `<button class="act-btn ab-deact" onclick="confirmDeactivate(${u.id},'${name}')">🚫 Deactivate</button>`
             : `<button class="act-btn ab-activate" onclick="confirmActivate(${u.id},'${name}')">✅ Activate</button>`
@@ -387,27 +368,6 @@
         else showToast(res.message || 'Failed to delete user.', 'error');
       }
     });
-  }
-
-  async function viewLogs(id, name) {
-    document.getElementById('logsTitle').textContent = name + ' — Activity Logs';
-    document.getElementById('logsBody').innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--text-3)">Loading...</div>';
-    document.getElementById('logsModal').classList.add('open');
-    const res = await http.get(`/api/admin/users/${id}/logs`);
-    if (!res.data || !res.data.length) {
-      document.getElementById('logsBody').innerHTML = '<div class="empty"><div class="empty-icon">📭</div><p>No activity logs found.</p></div>';
-      return;
-    }
-    document.getElementById('logsBody').innerHTML = res.data.map(l => `
-      <div class="log-item">
-        <span class="log-date">${formatDate(l.created_at)}</span>
-        <span class="log-action">${l.action}</span>
-        ${l.ip_address ? `<span style="font-size:0.7rem;color:var(--text-3);margin-left:auto">${l.ip_address}</span>` : ''}
-      </div>`).join('');
-  }
-
-  function closeLogs() {
-    document.getElementById('logsModal').classList.remove('open');
   }
 
   // Simple toast (reuse if app.js has one, else fallback alert)
