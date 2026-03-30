@@ -85,7 +85,7 @@ const getSubcategories = async (req, res) => {
 
   try {
     const [subcategories] = await db.query(`
-      SELECT id, name, category_id, created_at FROM subcategories 
+      SELECT id, name, category_id FROM subcategories
       WHERE category_id = ? ORDER BY name ASC
     `, [category_id]);
 

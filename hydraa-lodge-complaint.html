@@ -469,24 +469,6 @@
       </div>
     </div>
 
-    <!-- Progress steps -->
-    <div class="progress-steps">
-      <div class="ps-item">
-        <div class="ps-num active">1</div>
-        <div class="ps-label active">Complaint Details</div>
-      </div>
-      <div class="ps-line"></div>
-      <div class="ps-item">
-        <div class="ps-num">2</div>
-        <div class="ps-label">Review & Submit</div>
-      </div>
-      <div class="ps-line"></div>
-      <div class="ps-item">
-        <div class="ps-num">3</div>
-        <div class="ps-label">Confirmation</div>
-      </div>
-    </div>
-
     <!-- Alert -->
     <div id="alertBox" class="alert"></div>
 
@@ -621,37 +603,10 @@
               <label class="f-label">Detailed Description <span class="req">*</span></label>
               <textarea id="description" class="f-textarea"
                 placeholder="Describe the issue in detail — what happened, when it started, how it affects citizens, any previous complaints filed..."
-                oninput="triggerAIPreview()" required></textarea>
+                required></textarea>
               <div class="f-hint">Minimum 50 characters recommended for faster processing</div>
             </div>
 
-            <!-- AI Preview Box -->
-            <div class="ai-box" id="aiPreview">
-              <div class="ai-box-header">
-                <span>🤖</span>
-                <span class="ai-box-title">AI Classification Result</span>
-                <span class="ai-tag">AI POWERED</span>
-              </div>
-              <div class="ai-box-body">
-                <div class="ai-field">
-                  <div class="ai-field-label">Suggested Category</div>
-                  <div class="ai-field-val" id="aiCategory">—</div>
-                </div>
-                <div class="ai-field">
-                  <div class="ai-field-label">Suggested Priority</div>
-                  <div class="ai-field-val" id="aiPriority">—</div>
-                </div>
-                <div class="ai-field">
-                  <div class="ai-field-label">Assigned Department</div>
-                  <div class="ai-field-val" id="aiDepartment">—</div>
-                </div>
-                <div class="ai-field">
-                  <div class="ai-field-label">AI Confidence</div>
-                  <div class="ai-field-val" id="aiConfidence">—</div>
-                </div>
-                <div class="ai-note">ℹ️ AI has automatically classified your complaint. You can override the category and priority above.</div>
-              </div>
-            </div>
           </div>
 
           <!-- Section 5: Attachment -->
@@ -840,30 +795,11 @@
     const file = document.getElementById('attachment').files[0];
     if (file) formData.append('attachment', file);
 
-    // Update progress
-    document.querySelectorAll('.ps-num')[0].classList.remove('active');
-    document.querySelectorAll('.ps-num')[0].classList.add('done');
-    document.querySelectorAll('.ps-num')[1].classList.add('active');
-    document.querySelectorAll('.ps-label')[0].classList.remove('active');
-    document.querySelectorAll('.ps-label')[0].classList.add('done');
-    document.querySelectorAll('.ps-label')[1].classList.add('active');
-    document.querySelectorAll('.ps-line')[0].classList.add('done');
-
     try {
       const res = await http.postForm('/api/complaints/lodge', formData);
       if (res.success) {
-        // Step 3
-        document.querySelectorAll('.ps-num')[1].classList.remove('active');
-        document.querySelectorAll('.ps-num')[1].classList.add('done');
-        document.querySelectorAll('.ps-num')[2].classList.add('active');
-        document.querySelectorAll('.ps-label')[1].classList.remove('active');
-        document.querySelectorAll('.ps-label')[1].classList.add('done');
-        document.querySelectorAll('.ps-label')[2].classList.add('active');
-        document.querySelectorAll('.ps-line')[1].classList.add('done');
-
-        showAlert('alertBox', `✅ Complaint lodged successfully! Your Complaint No: ${res.complaint_no}`, 'success');
+        showAlert('alertBox', `✅ Complaint submitted successfully! Your Complaint No: ${res.complaint_no}`, 'success');
         document.getElementById('complaintForm').reset();
-        document.getElementById('aiPreview').style.display = 'none';
         setTimeout(() => window.location.href = '/hydraa-my-complaints.html', 3000);
       } else {
         showAlert('alertBox', res.message || 'Something went wrong.', 'error');
@@ -874,55 +810,6 @@
       setLoading(btn, false);
     }
   });
-
-  // AI Preview
-  let aiTimeout;
-  function triggerAIPreview() {
-    clearTimeout(aiTimeout);
-    aiTimeout = setTimeout(showAIPreview, 800);
-  }
-
-  function showAIPreview() {
-    const title = document.getElementById('title').value;
-    const description = document.getElementById('description').value;
-    if (title.length < 5 && description.length < 10) return;
-
-    const text = (title + ' ' + description).toLowerCase();
-    const categories = {
-      'Lake / Water Body Encroachment': ['lake','water','ftl','buffer','nala','tank','pond','encroach','flooding','drain'],
-      'Illegal Construction': ['construction','building','structure','unauthorized','illegal','demolish','built'],
-      'Park / Open Space Violation': ['park','playground','open space','garden','layout'],
-      'Road / Footpath Obstruction': ['road','pothole','pavement','footpath','carriageway','street','highway'],
-      'Flooding & Drainage': ['flood','waterlog','drain','sewage','rainfall','stagnant'],
-      'Government Land Encroachment': ['government land','land grab','encroach','public land'],
-      'Illegal Advertisements': ['hoarding','banner','advertisement','flex','board'],
-      'Disaster / Emergency': ['fire','collapse','emergency','urgent','dangerous','accident']
-    };
-    const urgency = {
-      urgent: ['urgent','emergency','dangerous','fire','death','collapse','immediate'],
-      high:   ['broken','damaged','unsafe','no water','no power','blocked'],
-      low:    ['suggestion','minor','feedback','improvement']
-    };
-
-    let bestCat = 'General', bestScore = 0;
-    for (const [cat, words] of Object.entries(categories)) {
-      const score = words.filter(w => text.includes(w)).length;
-      if (score > bestScore) { bestScore = score; bestCat = cat; }
-    }
-
-    let priority = '🟡 Medium';
-    if (urgency.urgent.some(w => text.includes(w))) priority = '🚨 Urgent';
-    else if (urgency.high.some(w => text.includes(w))) priority = '🔴 High';
-    else if (urgency.low.some(w => text.includes(w))) priority = '🟢 Low';
-
-    const confidence = bestScore > 0 ? Math.min(bestScore * 22, 96) : 38;
-
-    document.getElementById('aiCategory').textContent = bestCat;
-    document.getElementById('aiPriority').textContent = priority;
-    document.getElementById('aiDepartment').textContent = 'HYDRAA — ' + bestCat.split('/')[0].trim();
-    document.getElementById('aiConfidence').textContent = confidence + '%';
-    document.getElementById('aiPreview').style.display = 'block';
-  }
 
   loadDropdowns();
 
