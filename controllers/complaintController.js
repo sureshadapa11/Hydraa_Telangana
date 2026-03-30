@@ -18,11 +18,13 @@ const lodgeComplaint = async (req, res) => {
   const { title, description, category_id, subcategory_id, priority, state_id, address } = req.body;
   const user_id = req.user.id;
 
-  if (!title || !description || !category_id || !address) {
-    return res.status(400).json({
-      success: false,
-      message: 'Title, description, category and address are required.',
-    });
+  const missing = [];
+  if (!title) missing.push('Title');
+  if (!description) missing.push('Description');
+  if (!category_id) missing.push('Category');
+  if (!address) missing.push('Address');
+  if (missing.length > 0) {
+    return res.status(400).json({ success: false, message: `Missing: ${missing.join(', ')}` });
   }
 
   try {
