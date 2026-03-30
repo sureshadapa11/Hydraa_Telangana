@@ -170,6 +170,13 @@
     .mb-ok:hover{transform:translateY(-1px);}
     .mb-cancel{padding:0.75rem 1.2rem;background:none;color:var(--text-2);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:0.85rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
   </style>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0097a7">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="HYDRAA">
+  <link rel="apple-touch-icon" href="/icon.svg">
 </head>
 <body>
 
@@ -495,5 +502,6 @@
 
   loadComplaints();
 </script>
+<script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js").catch(function(){});}</script>
 </body>
 </html>

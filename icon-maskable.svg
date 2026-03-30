@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Full bleed background for maskable -->
+  <rect width="512" height="512" fill="#0097a7"/>
+  <rect width="512" height="512" fill="url(#bgGrad)"/>
+  <!-- Water drop -->
+  <path d="M256 120 C256 120 170 230 170 300 C170 350 208 386 256 386 C304 386 342 350 342 300 C342 230 256 120 256 120Z" fill="white" opacity="0.9"/>
+  <!-- Wave -->
+  <path d="M185 305 Q207 285 229 305 Q251 325 273 305 Q295 285 317 305" fill="none" stroke="#0097a7" stroke-width="7" stroke-linecap="round"/>
+  <!-- H letter -->
+  <text x="256" y="372" font-family="Arial Black, sans-serif" font-size="72" font-weight="900" fill="#0097a7" text-anchor="middle">H</text>
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0097a7"/>
+      <stop offset="100%" stop-color="#006978"/>
+    </linearGradient>
+  </defs>
+</svg>

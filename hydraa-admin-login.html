@@ -117,6 +117,13 @@
     .op-btn{flex:1;text-align:center;text-decoration:none;padding:0.6rem;border-radius:var(--radius-sm);font-size:0.76rem;font-weight:600;border:1px solid var(--border);color:var(--text-2);background:var(--bg);transition:all 0.18s;}
     .op-btn:hover{border-color:var(--teal);color:var(--teal);}
   </style>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0097a7">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="HYDRAA">
+  <link rel="apple-touch-icon" href="/icon.svg">
 </head>
 <body>
 
@@ -247,5 +254,6 @@
     }
   });
 </script>
+<script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js").catch(function(){});}</script>
 </body>
 </html>

@@ -168,6 +168,13 @@
     .modal-ftr{padding:1rem 1.5rem;border-top:1px solid var(--border);}
     .mb-close{width:100%;padding:0.72rem;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);font-size:0.88rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
   </style>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0097a7">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="HYDRAA">
+  <link rel="apple-touch-icon" href="/icon.svg">
 </head>
 <body>
 
@@ -390,5 +397,6 @@
 
   loadOfficials();
 </script>
+<script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js").catch(function(){});}</script>
 </body>
 </html>

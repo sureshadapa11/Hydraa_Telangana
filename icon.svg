@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0b1f3a"/>
+  <circle cx="256" cy="256" r="190" fill="#0097a7" opacity="0.15"/>
+  <!-- Water drop shape -->
+  <path d="M256 100 C256 100 160 220 160 295 C160 349 203 390 256 390 C309 390 352 349 352 295 C352 220 256 100 256 100Z" fill="url(#dropGrad)"/>
+  <!-- Wave inside drop -->
+  <path d="M178 300 Q200 280 222 300 Q244 320 266 300 Q288 280 310 300 Q332 320 334 300" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="6" stroke-linecap="round"/>
+  <!-- Letter H -->
+  <text x="256" y="360" font-family="Arial Black, sans-serif" font-size="80" font-weight="900" fill="white" text-anchor="middle" opacity="0.95">H</text>
+  <defs>
+    <linearGradient id="dropGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00bcd4"/>
+      <stop offset="100%" stop-color="#0097a7"/>
+    </linearGradient>
+  </defs>
+</svg>

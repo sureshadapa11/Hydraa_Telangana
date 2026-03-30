@@ -119,6 +119,13 @@
     .btn-confirm.warning{background:var(--orange);}
     .btn-confirm.success{background:var(--green);}
   </style>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0097a7">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="HYDRAA">
+  <link rel="apple-touch-icon" href="/icon.svg">
 </head>
 <body>
 
@@ -379,5 +386,6 @@
 
   loadUsers();
 </script>
+<script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js").catch(function(){});}</script>
 </body>
 </html>

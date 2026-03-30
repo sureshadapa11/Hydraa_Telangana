@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Offline — HYDRAA Telangana</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0097a7">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Segoe UI',system-ui,sans-serif;background:#0b1f3a;color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;text-align:center;}
+    .card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:3rem 2rem;max-width:360px;width:100%;}
+    .icon{font-size:4rem;margin-bottom:1.5rem;}
+    h1{font-size:1.5rem;font-weight:700;margin-bottom:0.75rem;color:#00e5ff;}
+    p{font-size:0.9rem;color:rgba(255,255,255,0.6);line-height:1.6;margin-bottom:1.5rem;}
+    .badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,151,167,0.2);border:1px solid rgba(0,151,167,0.4);border-radius:100px;padding:0.4rem 1rem;font-size:0.78rem;color:#00e5ff;font-weight:600;margin-bottom:2rem;}
+    .btn{display:inline-block;padding:0.75rem 2rem;background:linear-gradient(135deg,#0097a7,#00bcd4);color:#fff;border:none;border-radius:100px;font-size:0.9rem;font-weight:700;cursor:pointer;text-decoration:none;transition:transform .18s,box-shadow .18s;box-shadow:0 4px 18px rgba(0,151,167,0.4);}
+    .btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,151,167,0.55);}
+    .tips{margin-top:2rem;font-size:0.78rem;color:rgba(255,255,255,0.35);line-height:1.8;}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">📡</div>
+    <div class="badge">💧 HYDRAA Telangana</div>
+    <h1>You're Offline</h1>
+    <p>No internet connection detected. Please check your network and try again. Your data is safe — complaints filed while online are stored securely.</p>
+    <button class="btn" onclick="tryReconnect()">↻ Try Again</button>
+    <div class="tips">
+      ✓ Check your Wi-Fi or mobile data<br>
+      ✓ Previously visited pages may still be available<br>
+      ✓ Complaints will sync when you're back online
+    </div>
+  </div>
+  <script>
+    function tryReconnect() {
+      if (navigator.onLine) {
+        window.history.back();
+      } else {
+        window.location.reload();
+      }
+    }
+    window.addEventListener('online', () => window.history.back());
+  </script>
+</body>
+</html>

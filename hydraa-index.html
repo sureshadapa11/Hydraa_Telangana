@@ -291,6 +291,13 @@
     .reveal{opacity:0;transform:translateY(18px);transition:opacity 0.5s ease,transform 0.5s ease;}
     .reveal.visible{opacity:1;transform:translateY(0);}
   </style>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0097a7">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="HYDRAA">
+  <link rel="apple-touch-icon" href="/icon.svg">
 </head>
 <body>
 
@@ -587,5 +594,6 @@
     }
   }
 </script>
+<script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js").catch(function(){});}</script>
 </body>
 </html>

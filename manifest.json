@@ -1,0 +1,45 @@
+{
+  "name": "HYDRAA Telangana",
+  "short_name": "HYDRAA",
+  "description": "Civic complaint management portal — Government of Telangana",
+  "start_url": "/hydraa-index.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b1f3a",
+  "theme_color": "#0097a7",
+  "orientation": "portrait-primary",
+  "lang": "en-IN",
+  "dir": "ltr",
+  "categories": ["government", "utilities"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Lodge Complaint",
+      "short_name": "New Complaint",
+      "description": "File a new civic complaint",
+      "url": "/hydraa-lodge-complaint.html",
+      "icons": [{ "src": "/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "My Complaints",
+      "short_name": "My Complaints",
+      "description": "Track your complaints",
+      "url": "/hydraa-my-complaints.html",
+      "icons": [{ "src": "/icon.svg", "sizes": "any" }]
+    }
+  ]
+}
