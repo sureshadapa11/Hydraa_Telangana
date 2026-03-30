@@ -42,38 +42,37 @@ const lodgeComplaint = async (req, res) => {
 
     const complaint_id = result.insertId;
 
-    // Insert initial status history
-    await db.query(
-      `INSERT INTO complaint_history (complaint_id, old_status, new_status, changed_by_id, changed_by_role, remarks) 
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [complaint_id, 'draft', 'open', user_id, 'user', 'Complaint lodged']
-    );
+    // Insert status history (non-fatal)
+    try {
+      await db.query(
+        `INSERT INTO complaint_history (complaint_id, old_status, new_status, changed_by_id, changed_by_role, remarks)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [complaint_id, null, 'open', user_id, 'user', 'Complaint lodged']
+      );
+    } catch (e) { console.warn('complaint_history insert skipped:', e.message); }
 
-    // Get user details for email
-    const [users] = await db.query('SELECT full_name, email FROM users WHERE id = ?', [user_id]);
-    const user = users[0];
-
-    // Send confirmation email (non-blocking)
-    sendSafe(sendComplaintNotification, {
-      to: user.email,
-      name: user.full_name,
-      complaintNo: complaint_no,
-      title,
-      priority,
-    });
+    // Send confirmation email (non-blocking, non-fatal)
+    try {
+      const [users] = await db.query('SELECT full_name, email FROM users WHERE id = ?', [user_id]);
+      if (users[0]) {
+        sendSafe(sendComplaintNotification, {
+          to: users[0].email,
+          name: users[0].full_name,
+          complaintNo: complaint_no,
+          title,
+          priority,
+        });
+      }
+    } catch (e) { /* email non-critical */ }
 
     res.status(201).json({
       success: true,
       message: 'Complaint lodged successfully!',
-      data: {
-        complaint_id,
-        complaint_no,
-        status: 'open',
-      },
+      data: { complaint_id, complaint_no, status: 'open' },
     });
   } catch (err) {
-    console.error('Lodge complaint error:', err);
-    res.status(500).json({ success: false, message: 'Server error.' });
+    console.error('Lodge complaint error:', err.message);
+    res.status(500).json({ success: false, message: err.message || 'Server error.' });
   }
 };
 
