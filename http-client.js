@@ -79,7 +79,7 @@ const http = {
       return this.handleResponse(res);
     } catch (err) {
       console.error('HTTP POST error:', err);
-      return { success: false, message: 'Network error' };
+      return { success: false, message: 'Network error: ' + (err && err.message ? err.message : String(err)) };
     }
   },
 

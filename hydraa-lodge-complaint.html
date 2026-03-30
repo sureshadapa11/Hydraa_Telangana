@@ -836,7 +836,7 @@
         showAlert('alertBox', 'error', res.message || 'Something went wrong. Please try again.');
       }
     } catch (err) {
-      showAlert('alertBox', 'error', 'Server error. Please try again.');
+      showAlert('alertBox', 'error', 'Error: ' + (err && err.message ? err.message : String(err)));
     } finally {
       setLoading(btn, false);
     }
