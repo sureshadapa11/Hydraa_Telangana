@@ -704,7 +704,10 @@
       const states = await http.get('/api/admin/states');
       const stateSel = document.getElementById('state_id');
       if (states && states.data && states.data.length) {
-        states.data.forEach(s => stateSel.innerHTML += `<option value="${s.id}">${s.state_name}</option>`);
+        states.data.forEach(s => {
+          const selected = s.state_name === 'Telangana' ? ' selected' : '';
+          stateSel.innerHTML += `<option value="${s.id}"${selected}>${s.state_name}</option>`;
+        });
       } else {
         // Fallback: static Telangana entry
         document.getElementById('state_id').innerHTML =
@@ -819,7 +822,7 @@
           subcategory_id: document.getElementById('subcategory_id').value,
           state_id:       document.getElementById('state_id').value,
           address:        document.getElementById('address').value,
-          priority:       document.getElementById('priority').value,
+          priority:       document.getElementById('priority').value || 'medium',
         });
       }
 
