@@ -258,8 +258,9 @@
     document.getElementById('confirmModal').classList.add('open');
   }
   async function runConfirm() {
+    const action = _confirmAction;
     closeConfirm();
-    if (_confirmAction) await _confirmAction();
+    if (action) await action();
   }
   function closeConfirm() {
     document.getElementById('confirmModal').classList.remove('open');
