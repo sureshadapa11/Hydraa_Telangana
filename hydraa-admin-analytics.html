@@ -94,6 +94,15 @@
     .perf-bar{height:6px;border-radius:100px;background:var(--border);overflow:hidden;margin-top:4px;}
     .perf-fill{height:100%;border-radius:100px;background:linear-gradient(to right,var(--teal),#00bcd4);}
 
+    /* DISTRICT RANKINGS */
+    .rank-badge{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-size:0.72rem;font-weight:700;flex-shrink:0;}
+    .rank-1{background:linear-gradient(135deg,#f4a820,#f59e0b);color:#fff;}
+    .rank-2{background:linear-gradient(135deg,#9ca3af,#6b7280);color:#fff;}
+    .rank-3{background:linear-gradient(135deg,#cd7c39,#b45309);color:#fff;}
+    .rank-n{background:var(--bg);color:var(--text-2);border:1px solid var(--border);}
+    .dist-bar{height:8px;border-radius:100px;background:var(--border);overflow:hidden;margin-top:3px;}
+    .dist-bar-fill{height:100%;border-radius:100px;}
+
     /* LOADING */
     .loading{text-align:center;padding:3rem;color:var(--text-3);font-size:0.9rem;}
 
@@ -195,6 +204,29 @@
       <div id="officialsTable"><div class="loading">Loading...</div></div>
     </div>
 
+    <!-- DISTRICT BAR CHART -->
+    <div class="chart-card full" style="margin-bottom:1.2rem;" id="districtChartWrap">
+      <div class="cc-title">🗺️ District-wise Complaint Volume</div>
+      <div class="cc-sub">Top districts by total complaints filed</div>
+      <div class="chart-wrap tall"><canvas id="districtChart"></canvas></div>
+    </div>
+
+    <!-- DISTRICT RANKINGS TABLE -->
+    <div class="table-card" id="districtTableWrap">
+      <div class="tc-hdr">
+        <div>
+          <div class="tc-title">District Rankings</div>
+          <div class="tc-sub">Performance breakdown across all Telangana districts</div>
+        </div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+          <span style="font-size:0.72rem;background:rgba(16,185,129,0.1);color:var(--green);border-radius:100px;padding:0.25rem 0.7rem;font-weight:600;">● Resolved</span>
+          <span style="font-size:0.72rem;background:rgba(245,158,11,0.1);color:var(--orange);border-radius:100px;padding:0.25rem 0.7rem;font-weight:600;">● Pending</span>
+          <span style="font-size:0.72rem;background:rgba(239,68,68,0.1);color:var(--red);border-radius:100px;padding:0.25rem 0.7rem;font-weight:600;">● Urgent</span>
+        </div>
+      </div>
+      <div id="districtRankingsTable"><div class="loading">Loading...</div></div>
+    </div>
+
   </div>
 </div>
 
@@ -293,28 +325,97 @@
     // ── OFFICIALS TABLE ──
     if (!d.officialStats.length) {
       document.getElementById('officialsTable').innerHTML = '<div class="loading">No officials assigned yet.</div>';
-      return;
+    } else {
+      const maxAssigned = Math.max(...d.officialStats.map(o => o.assigned), 1);
+      document.getElementById('officialsTable').innerHTML = `
+        <table>
+          <thead><tr><th>Official</th><th>Department</th><th>Assigned</th><th>Resolved</th><th>In Progress</th><th>Performance</th></tr></thead>
+          <tbody>${d.officialStats.map(o => {
+            const resPct = o.assigned ? Math.round((o.resolved / o.assigned) * 100) : 0;
+            return `<tr>
+              <td><strong>${o.full_name}</strong></td>
+              <td style="color:var(--text-2)">${o.department}</td>
+              <td>${o.assigned}</td>
+              <td style="color:var(--green);font-weight:600">${o.resolved}</td>
+              <td style="color:var(--orange);font-weight:600">${o.in_progress}</td>
+              <td style="min-width:120px">
+                <div style="font-size:0.72rem;color:var(--text-2);margin-bottom:3px">${resPct}% resolved</div>
+                <div class="perf-bar"><div class="perf-fill" style="width:${resPct}%"></div></div>
+              </td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>`;
     }
-    const maxAssigned = Math.max(...d.officialStats.map(o => o.assigned), 1);
-    document.getElementById('officialsTable').innerHTML = `
-      <table>
-        <thead><tr><th>Official</th><th>Department</th><th>Assigned</th><th>Resolved</th><th>In Progress</th><th>Performance</th></tr></thead>
-        <tbody>${d.officialStats.map(o => {
-          const pct = Math.round((o.assigned / maxAssigned) * 100);
-          const resPct = o.assigned ? Math.round((o.resolved / o.assigned) * 100) : 0;
-          return `<tr>
-            <td><strong>${o.full_name}</strong></td>
-            <td style="color:var(--text-2)">${o.department}</td>
-            <td>${o.assigned}</td>
-            <td style="color:var(--green);font-weight:600">${o.resolved}</td>
-            <td style="color:var(--orange);font-weight:600">${o.in_progress}</td>
-            <td style="min-width:120px">
-              <div style="font-size:0.72rem;color:var(--text-2);margin-bottom:3px">${resPct}% resolved</div>
-              <div class="perf-bar"><div class="perf-fill" style="width:${resPct}%"></div></div>
-            </td>
-          </tr>`;
-        }).join('')}</tbody>
-      </table>`;
+
+    // ── DISTRICT STATS ──
+    const distStats = d.districtStats || [];
+    if (!distStats.length) {
+      document.getElementById('districtChartWrap').style.display = 'none';
+      document.getElementById('districtTableWrap').style.display = 'none';
+    } else {
+      // Top 15 for chart readability
+      const top = distStats.slice(0, 15);
+      const dLabels  = top.map(x => x.district);
+      const dTotal   = top.map(x => Number(x.total));
+      const dRes     = top.map(x => Number(x.resolved));
+      const dPend    = top.map(x => Number(x.pending));
+
+      new Chart(document.getElementById('districtChart'), {
+        type: 'bar',
+        data: {
+          labels: dLabels,
+          datasets: [
+            { label: 'Resolved', data: dRes,  backgroundColor: 'rgba(16,185,129,0.85)', borderRadius: 4 },
+            { label: 'Pending',  data: dPend, backgroundColor: 'rgba(245,158,11,0.85)', borderRadius: 4 },
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+          plugins: { legend: { position: 'top', labels: { padding: 14, font: { size: 12 } } } },
+          scales: {
+            x: { stacked: true, beginAtZero: true, ticks: { precision: 0 } },
+            y: { stacked: true, ticks: { font: { size: 11 } } }
+          }
+        }
+      });
+
+      // Rankings table — all districts
+      const maxTotal = Math.max(...distStats.map(x => Number(x.total)), 1);
+      const rankColors = ['rank-1','rank-2','rank-3'];
+      document.getElementById('districtRankingsTable').innerHTML = `
+        <table>
+          <thead><tr>
+            <th style="width:36px">#</th>
+            <th>District</th>
+            <th>Total</th>
+            <th>Resolved</th>
+            <th>Pending</th>
+            <th>Urgent</th>
+            <th style="min-width:140px">Resolution Rate</th>
+          </tr></thead>
+          <tbody>${distStats.map((x, i) => {
+            const rankCls = rankColors[i] || 'rank-n';
+            const rate    = Number(x.resolution_rate) || 0;
+            const pct     = Math.round((Number(x.total) / maxTotal) * 100);
+            const barColor = rate >= 70 ? 'var(--green)' : rate >= 40 ? 'var(--orange)' : 'var(--red)';
+            return `<tr>
+              <td><span class="rank-badge ${rankCls}">${i+1}</span></td>
+              <td><strong>📍 ${x.district}</strong></td>
+              <td>
+                <div style="font-weight:600">${x.total}</div>
+                <div class="dist-bar"><div class="dist-bar-fill" style="width:${pct}%;background:var(--teal)"></div></div>
+              </td>
+              <td style="color:var(--green);font-weight:600">${x.resolved}</td>
+              <td style="color:var(--orange);font-weight:600">${x.pending}</td>
+              <td style="color:var(--red);font-weight:600">${x.urgent}</td>
+              <td>
+                <div style="font-size:0.78rem;font-weight:700;color:${barColor};margin-bottom:3px">${rate}%</div>
+                <div class="perf-bar"><div class="perf-fill" style="width:${rate}%;background:${barColor}"></div></div>
+              </td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>`;
+    }
   }
 
   loadAnalytics();

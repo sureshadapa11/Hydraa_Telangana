@@ -484,6 +484,27 @@ const getAnalytics = async (req, res) => {
     const [[userCount]]     = await db.query('SELECT COUNT(*) AS count FROM users');
     const [[officialCount]] = await db.query('SELECT COUNT(*) AS count FROM officials');
 
+    // District-wise stats
+    let districtStats = [];
+    try {
+      [districtStats] = await db.query(`
+        SELECT
+          d.id, d.name AS district,
+          COUNT(c.id)                          AS total,
+          SUM(c.status = 'resolved')           AS resolved,
+          SUM(c.status IN ('open','assigned','in_progress')) AS pending,
+          SUM(c.status = 'rejected')           AS rejected,
+          SUM(c.priority = 'urgent')           AS urgent,
+          ROUND(
+            100.0 * SUM(c.status = 'resolved') / NULLIF(COUNT(c.id), 0), 1
+          ) AS resolution_rate
+        FROM districts d
+        LEFT JOIN complaints c ON c.district_id = d.id
+        GROUP BY d.id, d.name
+        ORDER BY total DESC
+      `);
+    } catch(e) { /* districts table may not exist yet */ }
+
     res.json({
       success: true,
       data: {
@@ -499,6 +520,7 @@ const getAnalytics = async (req, res) => {
         categoryCounts,
         monthlyTrend,
         officialStats,
+        districtStats,
       },
     });
   } catch (err) {
