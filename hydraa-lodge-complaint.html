@@ -629,7 +629,7 @@
 
         <!-- Actions -->
         <div class="form-actions">
-          <button type="submit" class="btn-submit" id="submitBtn" data-text="Submit Complaint">
+          <button type="button" class="btn-submit" id="submitBtn" onclick="submitComplaint()">
             ✅ Submit Complaint
           </button>
           <button type="reset" class="btn-reset" onclick="resetForm()">Reset Form</button>
@@ -792,8 +792,7 @@
   }
 
   // Submit
-  document.getElementById('complaintForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
+  async function submitComplaint() {
     const btn = document.getElementById('submitBtn');
     setLoading(btn, true);
 
@@ -841,7 +840,7 @@
     } finally {
       setLoading(btn, false);
     }
-  });
+  }
 
   loadDropdowns();
 
