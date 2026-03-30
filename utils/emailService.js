@@ -1,27 +1,55 @@
 // =====================================================
-//   HYDRAA — Email Service (Nodemailer)
-//   File: backend/utils/emailService.js
+//   HYDRAA — Email Service
+//   Supports: Resend (primary) or Nodemailer SMTP (fallback)
 // =====================================================
 
-const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-// ── Transporter ──────────────────────────────────────
-const transporter = nodemailer.createTransport({
-  host:   process.env.EMAIL_HOST   || 'smtp.gmail.com',
-  port:   parseInt(process.env.EMAIL_PORT || '587'),
-  secure: process.env.EMAIL_SECURE === 'true', // true for 465, false for 587
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,   // Gmail App Password (not account password)
-  },
-});
+// ── Determine email provider ──────────────────────────
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const USE_RESEND     = !!RESEND_API_KEY;
 
-// Verify transporter on startup
-transporter.verify((err) => {
-  if (err) console.error('❌ Email service error:', err.message);
-  else     console.log('✅ Email service ready —', process.env.EMAIL_USER);
-});
+let transporter = null;
+
+if (USE_RESEND) {
+  // Use Resend via HTTPS — never blocked by cloud firewalls
+  const nodemailer = require('nodemailer');
+  transporter = nodemailer.createTransport({
+    host: 'smtp.resend.com',
+    port: 465,
+    secure: true,
+    auth: { user: 'resend', pass: RESEND_API_KEY },
+  });
+  console.log('✅ Email service: Resend');
+} else if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+  const nodemailer = require('nodemailer');
+  transporter = nodemailer.createTransport({
+    host:   process.env.EMAIL_HOST   || 'smtp.gmail.com',
+    port:   parseInt(process.env.EMAIL_PORT || '465'),
+    secure: process.env.EMAIL_SECURE !== 'false', // default true for 465
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+  transporter.verify((err) => {
+    if (err) console.error('❌ Email service error:', err.message);
+    else     console.log('✅ Email service ready (SMTP) —', process.env.EMAIL_USER);
+  });
+} else {
+  console.warn('⚠️  Email service not configured — set RESEND_API_KEY or EMAIL_USER/EMAIL_PASS');
+}
+
+// ── FROM address ──────────────────────────────────────
+const FROM_ADDRESS = USE_RESEND
+  ? (process.env.EMAIL_FROM || 'HYDRAA Telangana <onboarding@resend.dev>')
+  : `"HYDRAA Telangana" <${process.env.EMAIL_USER}>`;
+
+// ── Send helper ───────────────────────────────────────
+const sendMail = async ({ to, subject, html }) => {
+  if (!transporter) throw new Error('Email service not configured.');
+  await transporter.sendMail({ from: FROM_ADDRESS, to, subject, html });
+};
 
 // ── Shared Brand Header / Footer ──────────────────────
 const brandHeader = `
@@ -109,8 +137,7 @@ const sendWelcomeEmail = async ({ to, name, verificationUrl }) => {
       </tr>
     </table>`);
 
-  await transporter.sendMail({
-    from:    `"HYDRAA Telangana" <${process.env.EMAIL_USER}>`,
+  await sendMail({
     to,
     subject: '🎉 Welcome to HYDRAA — Please Verify Your Email',
     html,
@@ -153,8 +180,7 @@ const sendComplaintConfirmation = async ({ to, name, complaint_no, title, catego
       </ol>
     </div>`);
 
-  await transporter.sendMail({
-    from:    `"HYDRAA Telangana" <${process.env.EMAIL_USER}>`,
+  await sendMail({
     to,
     subject: `✅ Complaint ${complaint_no} Filed — HYDRAA Telangana`,
     html,
@@ -181,8 +207,7 @@ const sendComplaintAssigned = async ({ citizenEmail, citizenName, officialEmail,
       <p style="font-size:13px;color:#065f46;margin:0">The official will review the complaint and take necessary field action. You will be notified when the status is updated.</p>
     </div>`);
 
-  await transporter.sendMail({
-    from:    `"HYDRAA Telangana" <${process.env.EMAIL_USER}>`,
+  await sendMail({
     to:      citizenEmail,
     subject: `📌 Complaint ${complaint_no} Assigned to Official — HYDRAA`,
     html:    citizenHtml,
@@ -205,8 +230,7 @@ const sendComplaintAssigned = async ({ citizenEmail, citizenName, officialEmail,
         <p style="font-size:13px;color:#92400e;margin:0">Please log into the HYDRAA Official Portal to review and update the complaint status.</p>
       </div>`);
 
-    await transporter.sendMail({
-      from:    `"HYDRAA Telangana" <${process.env.EMAIL_USER}>`,
+    await sendMail({
       to:      officialEmail,
       subject: `⚡ New Complaint Assigned: ${complaint_no} — HYDRAA`,
       html:    officialHtml,
@@ -264,8 +288,7 @@ const sendStatusUpdate = async ({ to, name, complaint_no, title, oldStatus, newS
       <p style="font-size:13px;color:#065f46;margin:0">✅ Your issue has been resolved. You can rate your experience by visiting the HYDRAA Citizen Portal under "My Complaints".</p>
     </div>` : ''}`);
 
-  await transporter.sendMail({
-    from:    `"HYDRAA Telangana" <${process.env.EMAIL_USER}>`,
+  await sendMail({
     to,
     subject: isResolved
       ? `🎉 Complaint ${complaint_no} Resolved — HYDRAA Telangana`
@@ -304,8 +327,7 @@ const sendForgotPasswordOTP = async ({ to, name, otp, role = 'user' }) => {
       ${infoRow('Request Time', new Date().toLocaleString('en-IN'))}
     </table>`);
 
-  await transporter.sendMail({
-    from:    `"HYDRAA Telangana" <${process.env.EMAIL_USER}>`,
+  await sendMail({
     to,
     subject: `🔒 HYDRAA Password Reset OTP: ${otp}`,
     html,
@@ -340,8 +362,7 @@ const sendPasswordChangedEmail = async ({ to, name, role = 'user' }) => {
       <p style="font-size:13px;color:#b91c1c;margin:0">If you did not change your password, contact HYDRAA immediately at 1800-599-0099 or email us.</p>
     </div>`);
 
-  await transporter.sendMail({
-    from:    `"HYDRAA Telangana" <${process.env.EMAIL_USER}>`,
+  await sendMail({
     to,
     subject: '✅ HYDRAA Password Changed Successfully',
     html,
@@ -378,8 +399,7 @@ const sendOfficialWelcome = async ({ to, name, email, password, department }) =>
       ${infoRow('Responsibilities', 'Review assigned complaints, take field action, update resolution status')}
     </table>`);
 
-  await transporter.sendMail({
-    from:    `"HYDRAA Telangana" <${process.env.EMAIL_USER}>`,
+  await sendMail({
     to,
     subject: '👷 Your HYDRAA Official Account is Ready',
     html,
