@@ -438,7 +438,7 @@ async function loadDashboard() {
     document.getElementById('s-users').textContent = total_users||0;
     document.getElementById('s-officials').textContent = total_officials||0;
     document.getElementById('s-overdue').textContent = s.overdue||0;
-    document.getElementById('s-rating').textContent = (res.data.avg_rating||0)+' ⭐';
+    document.getElementById('s-rating').textContent = res.data.avg_rating ? res.data.avg_rating : '—';
 
     // Resolution bar
     const total = s.total||1;
