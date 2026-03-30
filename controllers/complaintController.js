@@ -436,12 +436,52 @@ const resolveComplaint = async (req, res) => {
   }
 };
 
+// ────────────────────────────────────────────────────
+//  ADMIN: GET ALL COMPLAINTS
+// ────────────────────────────────────────────────────
+const getAllComplaints = async (req, res) => {
+  const { status, category_id, limit = 200 } = req.query;
+
+  try {
+    let where = '1=1';
+    const params = [];
+    if (status)      { where += ' AND c.status = ?';      params.push(status); }
+    if (category_id) { where += ' AND c.category_id = ?'; params.push(category_id); }
+
+    const [complaints] = await db.query(
+      `SELECT
+        c.id, c.complaint_no, c.title, c.description, c.status, c.priority,
+        c.category_id, cat.name AS category_name,
+        c.subcategory_id, subcat.name AS subcategory_name,
+        c.address, c.created_at, c.resolved_at,
+        c.official_id, o.full_name AS official_name,
+        c.admin_remarks, c.official_remarks,
+        u.full_name AS user_name, u.email AS user_email
+      FROM complaints c
+      JOIN users u ON c.user_id = u.id
+      LEFT JOIN categories cat ON c.category_id = cat.id
+      LEFT JOIN subcategories subcat ON c.subcategory_id = subcat.id
+      LEFT JOIN officials o ON c.official_id = o.id
+      WHERE ${where}
+      ORDER BY c.created_at DESC
+      LIMIT ?`,
+      [...params, parseInt(limit)]
+    );
+
+    res.json({ success: true, data: complaints });
+  } catch (err) {
+    console.error('Get all complaints error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
 module.exports = {
   lodgeComplaint,
   trackComplaint,
   getMyComplaints,
   rateComplaint,
   getAdminDashboard,
+  getAllComplaints,
   assignComplaint,
   updateComplaintStatus,
   getOfficialComplaints,

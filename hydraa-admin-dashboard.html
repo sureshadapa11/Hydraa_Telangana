@@ -508,7 +508,7 @@ async function loadComplaints() {
   const prio   = document.getElementById('filterPriority').value;
   const search = document.getElementById('filterSearch').value.toLowerCase().trim();
 
-  let url = '/complaints/admin/all?limit=200';
+  let url = '/api/complaints/admin/all?limit=200';
   if (status) url += '&status='+status;
   if (cat)    url += '&category_id='+cat;
 
