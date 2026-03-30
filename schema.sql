@@ -145,20 +145,4 @@ CREATE INDEX idx_complaint_no ON complaints(complaint_no);
 CREATE INDEX idx_email ON users(email);
 CREATE INDEX idx_official_email ON officials(email);
 
--- ── Insert Sample Data ──
-INSERT INTO states (state_name, code) VALUES
-('Telangana', 'TG'),
-('Andhra Pradesh', 'AP'),
-('Maharashtra', 'MH'),
-('Karnataka', 'KA'),
-('Tamil Nadu', 'TN');
-
-INSERT INTO categories (name, description) VALUES
-('Lake / Water Body Encroachment', 'Illegal construction within FTL or 30m buffer zones around lakes and nalas'),
-('Illegal Construction', 'Unauthorized buildings violating GHMC or town planning regulations'),
-('Park / Open Space Violation', 'Encroachment on designated parks, playgrounds, or open layout spaces'),
-('Road / Footpath Obstruction', 'Blocking of carriageways, footpaths, or public roads by unauthorized structures'),
-('Flooding & Drainage Issue', 'Blocked drains, waterlogging, or flood-risk due to encroachment'),
-('Government Land Encroachment', 'Unauthorized occupation of government-owned land parcels in Hyderabad'),
-('Illegal Advertisements', 'Unauthorized hoardings, banners, or flex boards on public property'),
-('Disaster / Emergency', 'Fire, collapse, or flood emergency requiring immediate HYDRAA response');
+-- Seed data is handled by server.js startup functions (seedCategories, seedStates)

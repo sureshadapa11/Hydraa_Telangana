@@ -326,10 +326,53 @@ async function fixUsersTable() {
   }
 }
 
+// ── Seed States ──
+async function seedStates() {
+  try {
+    const db = require('./utils/db');
+    const states = [
+      { state_name: 'Telangana',       code: 'TG' },
+      { state_name: 'Andhra Pradesh',  code: 'AP' },
+      { state_name: 'Maharashtra',     code: 'MH' },
+      { state_name: 'Karnataka',       code: 'KA' },
+      { state_name: 'Tamil Nadu',      code: 'TN' },
+    ];
+    for (const s of states) {
+      const [[exists]] = await db.query(
+        `SELECT id FROM states WHERE state_name = ? OR (state_name = '' AND code = ?)`, [s.state_name, s.code]
+      );
+      if (exists) {
+        // Update empty state_name rows
+        await db.query(`UPDATE states SET state_name = ?, code = ? WHERE id = ?`, [s.state_name, s.code, exists.id]);
+      } else {
+        // Check if a blank-named row exists for this code slot
+        const [[blank]] = await db.query(`SELECT id FROM states WHERE state_name = ''`);
+        if (blank) {
+          await db.query(`UPDATE states SET state_name = ?, code = ? WHERE id = ?`, [s.state_name, s.code, blank.id]);
+        } else {
+          await db.query(`INSERT INTO states (state_name, code) VALUES (?, ?)`, [s.state_name, s.code]);
+        }
+      }
+    }
+    console.log('✅ States seeded');
+  } catch (err) {
+    console.warn('⚠️  State seed skipped:', err.message);
+  }
+}
+
 // ── Seed Correct Categories ──
 async function seedCategories() {
   try {
     const db = require('./utils/db');
+
+    // Deduplicate: keep lowest id per name, delete the rest
+    const [dupes] = await db.query(
+      `SELECT name, MIN(id) AS keep_id FROM categories GROUP BY name HAVING COUNT(*) > 1`
+    );
+    for (const d of dupes) {
+      await db.query(`DELETE FROM categories WHERE name = ? AND id != ?`, [d.name, d.keep_id]);
+      await db.query(`UPDATE subcategories SET category_id = ? WHERE category_id IN (SELECT id FROM (SELECT id FROM categories WHERE name = ? AND id != ?) t)`, [d.keep_id, d.name, d.keep_id]);
+    }
 
     const correctCategories = [
       { name: 'Lake / Water Body Encroachment', description: 'Illegal construction within FTL or 30m buffer zones around lakes and nalas' },
@@ -427,6 +470,7 @@ app.listen(PORT, async () => {
   await fixComplaintsTable();
   await fixUsersTable();
   await fixOfficialsTable();
+  await seedStates();
   await seedCategories();
   await seedDefaultAdmin();
 });
