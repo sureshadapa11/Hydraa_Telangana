@@ -271,10 +271,15 @@ async function fixComplaintsTable() {
 
     if (!hasAutoInc) {
       console.log('⚠️  complaints.id missing AUTO_INCREMENT — recreating table...');
+      console.log('  Step 1: disable FK checks');
       await db.query(`SET FOREIGN_KEY_CHECKS = 0`);
+      console.log('  Step 2: drop complaint_history');
       await db.query(`DROP TABLE IF EXISTS complaint_history`);
+      console.log('  Step 3: drop complaint_ratings');
       await db.query(`DROP TABLE IF EXISTS complaint_ratings`);
+      console.log('  Step 4: drop complaints');
       await db.query(`DROP TABLE IF EXISTS complaints`);
+      console.log('  Step 5: create complaints');
       await db.query(`
         CREATE TABLE complaints (
           id INT PRIMARY KEY AUTO_INCREMENT,
@@ -300,6 +305,7 @@ async function fixComplaintsTable() {
           INDEX idx_official (official_id)
         )
       `);
+      console.log('  Step 6: create complaint_history');
       await db.query(`
         CREATE TABLE complaint_history (
           id INT PRIMARY KEY AUTO_INCREMENT,
@@ -313,6 +319,7 @@ async function fixComplaintsTable() {
           INDEX idx_complaint (complaint_id)
         )
       `);
+      console.log('  Step 7: create complaint_ratings');
       await db.query(`
         CREATE TABLE complaint_ratings (
           id INT PRIMARY KEY AUTO_INCREMENT,
@@ -325,6 +332,7 @@ async function fixComplaintsTable() {
           UNIQUE KEY unique_rating (complaint_id, user_id)
         )
       `);
+      console.log('  Step 8: re-enable FK checks');
       await db.query(`SET FOREIGN_KEY_CHECKS = 1`);
       console.log('✅ Complaints table recreated');
       return;
