@@ -29,10 +29,12 @@
     .sb-bt .t1{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;color:#fff;letter-spacing:0.08em;line-height:1;}
     .sb-bt .t2{font-size:0.58rem;color:rgba(0,188,212,0.85);letter-spacing:0.12em;text-transform:uppercase;}
     .sb-badge{margin:0.8rem 1.2rem 0;background:rgba(0,151,167,0.15);border:1px solid rgba(0,151,167,0.25);border-radius:6px;padding:0.4rem 0.8rem;display:flex;align-items:center;gap:6px;font-size:0.7rem;color:#4dd6e8;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;}
-    .sb-user{margin:0.8rem 1.2rem 0;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-sm);padding:0.7rem;display:flex;align-items:center;gap:0.7rem;}
-    .sb-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:#fff;flex-shrink:0;}
-    .sb-ui .un{font-size:0.82rem;font-weight:600;color:#fff;}
-    .sb-ui .ur{font-size:0.62rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.08em;}
+    .sb-user{margin:0.8rem 1.2rem 0.4rem;background:linear-gradient(135deg,rgba(0,151,167,0.18),rgba(0,188,212,0.08));border:1px solid rgba(0,188,212,0.2);border-radius:12px;padding:1rem 1rem 0.9rem;display:flex;flex-direction:column;align-items:center;gap:0.6rem;text-align:center;position:relative;overflow:hidden;}
+    .sb-user::before{content:'';position:absolute;top:-18px;right:-18px;width:60px;height:60px;border-radius:50%;background:rgba(0,188,212,0.08);pointer-events:none;}
+    .sb-av{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.25rem;color:#fff;flex-shrink:0;box-shadow:0 0 0 3px rgba(0,188,212,0.25),0 4px 14px rgba(0,151,167,0.45);}
+    .sb-ui{width:100%;}
+    .sb-ui .un{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:#fff;letter-spacing:0.03em;line-height:1.2;}
+    .sb-ui .ur{font-size:0.62rem;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.12em;margin-top:2px;}
     .sb-nav{padding:0.8rem 0;flex:1;}
     .sb-sec{font-size:0.6rem;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:0.14em;font-weight:700;padding:0.6rem 1.2rem;margin-top:0.4rem;}
     .sb-a{display:flex;align-items:center;gap:0.7rem;padding:0.65rem 1.2rem;color:rgba(255,255,255,0.58);text-decoration:none;font-size:0.83rem;font-weight:500;transition:all 0.18s;border-right:3px solid transparent;}
@@ -160,8 +162,14 @@
   </div>
   <div class="sb-badge">👤 Citizen Portal</div>
   <div class="sb-user">
-    <div class="sb-av" id="sb-av">U</div>
-    <div class="sb-ui"><div class="un" id="sb-un">Citizen</div><div class="ur">Citizen Account</div></div>
+    <div style="position:relative;display:inline-block;">
+      <div class="sb-av" id="sb-av">U</div>
+      <span style="position:absolute;bottom:1px;right:1px;width:11px;height:11px;border-radius:50%;background:#22d3a5;border:2px solid var(--navy);box-shadow:0 0 6px rgba(34,211,165,0.7);"></span>
+    </div>
+    <div class="sb-ui">
+      <div class="un" id="sb-un">Citizen</div>
+      <div class="ur">Citizen Account</div>
+    </div>
   </div>
   <nav class="sb-nav">
     <div class="sb-sec">Main Menu</div>
