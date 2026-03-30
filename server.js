@@ -278,24 +278,23 @@ async function fixComplaintsTable() {
       await db.query(`
         CREATE TABLE complaints (
           id INT PRIMARY KEY AUTO_INCREMENT,
-          complaint_no VARCHAR(50) UNIQUE NOT NULL,
-          user_id INT NOT NULL,
-          title VARCHAR(200) NOT NULL,
-          description TEXT NOT NULL,
-          category_id INT,
-          subcategory_id INT,
-          priority ENUM('low','medium','high','urgent') DEFAULT 'medium',
-          state_id INT,
-          address TEXT NOT NULL,
-          status ENUM('open','assigned','in_progress','resolved','rejected','closed') DEFAULT 'open',
-          official_id INT,
+          complaint_no VARCHAR(50) NOT NULL DEFAULT '',
+          user_id INT NOT NULL DEFAULT 0,
+          title VARCHAR(200) NOT NULL DEFAULT '',
+          description TEXT,
+          category_id INT DEFAULT NULL,
+          subcategory_id INT DEFAULT NULL,
+          priority VARCHAR(20) DEFAULT 'medium',
+          state_id INT DEFAULT NULL,
+          address TEXT,
+          status VARCHAR(30) DEFAULT 'open',
+          official_id INT DEFAULT NULL,
           admin_remarks TEXT,
           official_remarks TEXT,
           attachment VARCHAR(255),
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           resolved_at TIMESTAMP NULL,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
           INDEX idx_user (user_id),
           INDEX idx_status (status),
           INDEX idx_official (official_id)
@@ -304,29 +303,26 @@ async function fixComplaintsTable() {
       await db.query(`
         CREATE TABLE complaint_history (
           id INT PRIMARY KEY AUTO_INCREMENT,
-          complaint_id INT NOT NULL,
+          complaint_id INT NOT NULL DEFAULT 0,
           old_status VARCHAR(50),
-          new_status VARCHAR(50) NOT NULL,
+          new_status VARCHAR(50) NOT NULL DEFAULT '',
           changed_by_id INT,
-          changed_by_role ENUM('user','admin','official') DEFAULT 'admin',
+          changed_by_role VARCHAR(20) DEFAULT 'admin',
           remarks TEXT,
           changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (complaint_id) REFERENCES complaints(id) ON DELETE CASCADE,
           INDEX idx_complaint (complaint_id)
         )
       `);
       await db.query(`
         CREATE TABLE complaint_ratings (
           id INT PRIMARY KEY AUTO_INCREMENT,
-          complaint_id INT NOT NULL,
-          user_id INT NOT NULL,
-          rating INT CHECK (rating >= 1 AND rating <= 5),
+          complaint_id INT NOT NULL DEFAULT 0,
+          user_id INT NOT NULL DEFAULT 0,
+          rating INT,
           comment TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-          UNIQUE KEY unique_rating (complaint_id, user_id),
-          FOREIGN KEY (complaint_id) REFERENCES complaints(id) ON DELETE CASCADE,
-          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+          UNIQUE KEY unique_rating (complaint_id, user_id)
         )
       `);
       await db.query(`SET FOREIGN_KEY_CHECKS = 1`);
