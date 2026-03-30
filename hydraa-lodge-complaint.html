@@ -793,46 +793,20 @@
 
   // Submit
   async function submitComplaint() {
-    // DEBUG: show what values JS can read
-    const _t = document.getElementById('title')?.value;
-    const _d = document.getElementById('description')?.value;
-    const _c = document.getElementById('category_id')?.value;
-    const _a = document.getElementById('address')?.value;
-    showAlert('alertBox', 'error', `DEBUG t="${_t}" d="${_d}" c="${_c}" a="${_a}"`);
-    return;
-
     const btn = document.getElementById('submitBtn');
     setLoading(btn, true);
 
-    const file = document.getElementById('attachment').files[0];
-
     try {
-      let res;
-      if (file) {
-        // Has attachment — use FormData (requires multer on backend)
-        const formData = new FormData();
-        formData.append('title', document.getElementById('title').value);
-        formData.append('description', document.getElementById('description').value);
-        formData.append('category_id', document.getElementById('category_id').value);
-        formData.append('subcategory_id', document.getElementById('subcategory_id').value);
-        formData.append('state_id', document.getElementById('state_id').value);
-        formData.append('address', document.getElementById('address').value);
-        formData.append('priority', document.getElementById('priority').value);
-        formData.append('attachment', file);
-        res = await http.postForm('/api/complaints/lodge', formData);
-      } else {
-        const val = id => { const v = document.getElementById(id)?.value; return v || null; };
-        const payload = {
-          title:          val('title'),
-          description:    val('description'),
-          category_id:    val('category_id'),
-          subcategory_id: val('subcategory_id'),
-          state_id:       val('state_id'),
-          address:        val('address'),
-          priority:       val('priority') || 'medium',
-        };
-        res = await http.post('/api/complaints/lodge', payload);
-      }
+      const payload = {
+        title:          document.getElementById('title').value.trim(),
+        description:    document.getElementById('description').value.trim(),
+        category_id:    document.getElementById('category_id').value || null,
+        subcategory_id: document.getElementById('subcategory_id').value || null,
+        state_id:       document.getElementById('state_id').value || null,
+        address:        document.getElementById('address').value.trim(),
+        priority:       document.getElementById('priority').value || 'medium',
+      };
+      const res = await http.post('/api/complaints/lodge', payload);
 
       console.log('Server response:', res);
       if (res.success) {
