@@ -267,6 +267,11 @@ async function fixComplaintsTable() {
     );
     const colNames = cols.map(c => c.COLUMN_NAME);
     const required = [
+      { name: 'complaint_no',      def: "VARCHAR(50) DEFAULT ''" },
+      { name: 'title',             def: "VARCHAR(200) DEFAULT ''" },
+      { name: 'description',       def: 'TEXT' },
+      { name: 'address',           def: 'TEXT' },
+      { name: 'status',            def: "ENUM('open','assigned','in_progress','resolved','rejected','closed') DEFAULT 'open'" },
       { name: 'official_id',       def: 'INT' },
       { name: 'state_id',          def: 'INT' },
       { name: 'category_id',       def: 'INT' },
@@ -276,6 +281,8 @@ async function fixComplaintsTable() {
       { name: 'official_remarks',  def: 'TEXT' },
       { name: 'attachment',        def: 'VARCHAR(255)' },
       { name: 'resolved_at',       def: 'TIMESTAMP NULL' },
+      { name: 'created_at',        def: 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP' },
+      { name: 'updated_at',        def: 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP' },
     ];
     const missing = required.filter(c => !colNames.includes(c.name));
     if (missing.length > 0) {
