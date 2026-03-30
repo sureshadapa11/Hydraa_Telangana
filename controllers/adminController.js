@@ -556,6 +556,116 @@ const getHeatmapData = async (req, res) => {
   }
 };
 
+// ────────────────────────────────────────────────────
+//  DISTRICTS
+// ────────────────────────────────────────────────────
+const getDistricts = async (req, res) => {
+  try {
+    const [districts] = await db.query(`
+      SELECT d.id, d.name, d.created_at,
+             COUNT(DISTINCT m.id)  AS mandal_count,
+             COUNT(DISTINCT c.id)  AS complaint_count
+      FROM districts d
+      LEFT JOIN mandals m  ON m.district_id = d.id
+      LEFT JOIN complaints c ON c.district_id = d.id
+      GROUP BY d.id, d.name, d.created_at
+      ORDER BY d.name ASC
+    `);
+    res.json({ success: true, data: districts });
+  } catch (err) {
+    console.error('Get districts error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+const createDistrict = async (req, res) => {
+  const { name } = req.body;
+  if (!name) return res.status(400).json({ success: false, message: 'District name required.' });
+  try {
+    const [result] = await db.query('INSERT INTO districts (name) VALUES (?)', [name]);
+    res.status(201).json({ success: true, message: 'District added.', data: { id: result.insertId, name } });
+  } catch (err) {
+    if (err.code === 'ER_DUP_ENTRY') return res.status(409).json({ success: false, message: 'District already exists.' });
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+const deleteDistrict = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [result] = await db.query('DELETE FROM districts WHERE id = ?', [id]);
+    if (result.affectedRows === 0) return res.status(404).json({ success: false, message: 'District not found.' });
+    res.json({ success: true, message: 'District deleted.' });
+  } catch (err) {
+    console.error('Delete district error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+const seedDistricts = async (req, res) => {
+  const TELANGANA_DISTRICTS = [
+    'Adilabad','Bhadradri Kothagudem','Hyderabad','Jagtial','Jangaon',
+    'Jayashankar Bhupalpally','Jogulamba Gadwal','Kamareddy','Karimnagar',
+    'Khammam','Kumuram Bheem Asifabad','Mahabubabad','Mahabubnagar',
+    'Mancherial','Medak','Medchal-Malkajgiri','Mulugu','Nagarkurnool',
+    'Nalgonda','Narayanpet','Nirmal','Nizamabad','Peddapalli',
+    'Rajanna Sircilla','Rangareddy','Sangareddy','Siddipet','Suryapet',
+    'Vikarabad','Wanaparthy','Warangal Rural','Warangal Urban','Yadadri Bhuvanagiri',
+  ];
+  try {
+    let added = 0;
+    for (const name of TELANGANA_DISTRICTS) {
+      try {
+        await db.query('INSERT INTO districts (name) VALUES (?)', [name]);
+        added++;
+      } catch (e) { /* skip duplicates */ }
+    }
+    res.json({ success: true, message: `Seeded ${added} new districts (${TELANGANA_DISTRICTS.length - added} already existed).` });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+// ────────────────────────────────────────────────────
+//  MANDALS
+// ────────────────────────────────────────────────────
+const getMandals = async (req, res) => {
+  const { district_id } = req.query;
+  if (!district_id) return res.status(400).json({ success: false, message: 'district_id required.' });
+  try {
+    const [mandals] = await db.query(
+      'SELECT id, name, district_id FROM mandals WHERE district_id = ? ORDER BY name ASC',
+      [district_id]
+    );
+    res.json({ success: true, data: mandals });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+const createMandal = async (req, res) => {
+  const { name, district_id } = req.body;
+  if (!name || !district_id) return res.status(400).json({ success: false, message: 'Name and district_id required.' });
+  try {
+    const [result] = await db.query('INSERT INTO mandals (name, district_id) VALUES (?, ?)', [name, district_id]);
+    res.status(201).json({ success: true, message: 'Mandal added.', data: { id: result.insertId, name, district_id } });
+  } catch (err) {
+    if (err.code === 'ER_DUP_ENTRY') return res.status(409).json({ success: false, message: 'Mandal already exists in this district.' });
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+const deleteMandal = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [result] = await db.query('DELETE FROM mandals WHERE id = ?', [id]);
+    if (result.affectedRows === 0) return res.status(404).json({ success: false, message: 'Mandal not found.' });
+    res.json({ success: true, message: 'Mandal deleted.' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
 module.exports = {
   deleteOfficial,
   getCategories,
@@ -577,4 +687,11 @@ module.exports = {
   deleteState,
   getAnalytics,
   getHeatmapData,
+  getDistricts,
+  createDistrict,
+  deleteDistrict,
+  seedDistricts,
+  getMandals,
+  createMandal,
+  deleteMandal,
 };

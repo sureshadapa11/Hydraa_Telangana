@@ -26,6 +26,13 @@ const {
   deleteState,
   getAnalytics,
   getHeatmapData,
+  getDistricts,
+  createDistrict,
+  deleteDistrict,
+  seedDistricts,
+  getMandals,
+  createMandal,
+  deleteMandal,
 } = require('../controllers/adminController');
 const { verifyToken } = require('../middleware/auth');
 
@@ -56,6 +63,17 @@ router.delete('/users/:id', verifyToken, deleteUser);
 router.get('/states', verifyToken, getStates);
 router.post('/states', verifyToken, createState);
 router.delete('/states/:id', verifyToken, deleteState);
+
+// ── Districts ──
+router.get('/districts', verifyToken, getDistricts);
+router.post('/districts', verifyToken, createDistrict);
+router.delete('/districts/:id', verifyToken, deleteDistrict);
+router.post('/districts/seed', verifyToken, seedDistricts);
+
+// ── Mandals ──
+router.get('/mandals', verifyToken, getMandals);
+router.post('/mandals', verifyToken, createMandal);
+router.delete('/mandals/:id', verifyToken, deleteMandal);
 
 // ── Analytics ──
 router.get('/analytics', verifyToken, getAnalytics);

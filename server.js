@@ -532,6 +532,43 @@ async function seedStates() {
   }
 }
 
+// ── Ensure Districts & Mandals Tables ──
+async function ensureDistrictsTables() {
+  try {
+    const db = require('./utils/db');
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS districts (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(100) NOT NULL UNIQUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS mandals (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(100) NOT NULL,
+        district_id INT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (district_id) REFERENCES districts(id) ON DELETE CASCADE,
+        UNIQUE KEY unique_mandal (district_id, name)
+      )
+    `);
+    // Add district_id / mandal_id to complaints if missing
+    const [cols] = await db.query(
+      `SELECT COLUMN_NAME FROM information_schema.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'complaints'`
+    );
+    const colNames = cols.map(c => c.COLUMN_NAME);
+    if (!colNames.includes('district_id'))
+      try { await db.query('ALTER TABLE complaints ADD COLUMN district_id INT DEFAULT NULL'); } catch(e){}
+    if (!colNames.includes('mandal_id'))
+      try { await db.query('ALTER TABLE complaints ADD COLUMN mandal_id INT DEFAULT NULL'); } catch(e){}
+    console.log('✅ Districts & Mandals tables OK');
+  } catch (err) {
+    console.warn('⚠️  Districts/Mandals setup skipped:', err.message);
+  }
+}
+
 // ── Seed Correct Categories ──
 async function seedCategories() {
   try {
@@ -643,6 +680,7 @@ app.listen(PORT, async () => {
   await fixUsersTable();
   await fixOfficialsTable();
   await seedStates();
+  await ensureDistrictsTables();
   await seedCategories();
   await seedDefaultAdmin();
 });

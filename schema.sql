@@ -70,6 +70,23 @@ CREATE TABLE IF NOT EXISTS states (
   code VARCHAR(10)
 );
 
+-- ── Districts Table (Telangana) ──
+CREATE TABLE IF NOT EXISTS districts (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(100) NOT NULL UNIQUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ── Mandals Table ──
+CREATE TABLE IF NOT EXISTS mandals (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(100) NOT NULL,
+  district_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (district_id) REFERENCES districts(id) ON DELETE CASCADE,
+  UNIQUE KEY unique_mandal (district_id, name)
+);
+
 -- ── Complaints Table ──
 CREATE TABLE IF NOT EXISTS complaints (
   id INT PRIMARY KEY AUTO_INCREMENT,
