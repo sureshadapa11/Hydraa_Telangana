@@ -43,7 +43,7 @@ if (USE_RESEND) {
 // ── FROM address ──────────────────────────────────────
 const FROM_ADDRESS = USE_RESEND
   ? (process.env.EMAIL_FROM || 'HYDRAA Telangana <onboarding@resend.dev>')
-  : `"HYDRAA Telangana" <${process.env.EMAIL_USER}>`;
+  : (process.env.EMAIL_FROM || `"HYDRAA Telangana" <${process.env.EMAIL_USER}>`);
 
 // ── Send helper ───────────────────────────────────────
 const sendMail = async ({ to, subject, html }) => {
