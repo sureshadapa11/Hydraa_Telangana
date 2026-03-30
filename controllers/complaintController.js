@@ -35,7 +35,7 @@ const lodgeComplaint = async (req, res) => {
         complaint_no, user_id, title, description, category_id, subcategory_id,
         priority, state_id, address, status, created_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
-      [complaint_no, user_id, title, description, category_id, subcategory_id || null, priority, state_id, address, 'open']
+      [complaint_no, user_id, title, description, category_id || null, subcategory_id || null, priority || 'medium', state_id || null, address, 'open']
     );
 
     const complaint_id = result.insertId;
