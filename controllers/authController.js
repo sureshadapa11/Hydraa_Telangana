@@ -57,7 +57,7 @@ const registerUser = async (req, res) => {
     });
   } catch (err) {
     console.error('Register error:', err);
-    res.status(500).json({ success: false, message: 'Server error during registration.' });
+    res.status(500).json({ success: false, message: err.message || 'Server error during registration.' });
   }
 };
 

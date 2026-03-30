@@ -185,6 +185,36 @@ async function fixOfficialsTable() {
   }
 }
 
+// ── Fix User Logs Table ──
+async function fixUserLogsTable() {
+  try {
+    const db = require('./utils/db');
+    const [tables] = await db.query(
+      `SELECT TABLE_NAME FROM information_schema.TABLES
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'user_logs'`
+    );
+    if (tables.length === 0) {
+      console.log('⚠️  user_logs table missing — creating...');
+      await db.query(`
+        CREATE TABLE user_logs (
+          id INT PRIMARY KEY AUTO_INCREMENT,
+          user_id INT NOT NULL,
+          action VARCHAR(100),
+          ip_address VARCHAR(50),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          INDEX idx_user (user_id),
+          INDEX idx_created (created_at)
+        )
+      `);
+      console.log('✅ user_logs table created');
+    } else {
+      console.log('✅ user_logs table OK');
+    }
+  } catch (err) {
+    console.warn('⚠️  user_logs table check skipped:', err.message);
+  }
+}
+
 // ── Fix States Table ──
 async function fixStatesTable() {
   try {
@@ -384,6 +414,7 @@ app.listen(PORT, async () => {
 ╚════════════════════════════════════════╝
   `);
   await runSchema();
+  await fixUserLogsTable();
   await fixStatesTable();
   await fixComplaintsTable();
   await fixUsersTable();
