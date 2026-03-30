@@ -44,8 +44,8 @@ const registerUser = async (req, res) => {
     const verificationUrl    = `${process.env.APP_URL || 'http://localhost:5000'}/api/auth/user/verify/${verificationToken}`;
 
     await db.query(
-      'INSERT INTO users (full_name, email, phone, address, password, verification_token) VALUES (?, ?, ?, ?, ?, ?)',
-      [full_name, email, phone || null, address || null, hashedPassword, verificationToken]
+      'INSERT INTO users (name, full_name, email, phone, address, password, verification_token) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [full_name, full_name, email, phone || null, address || null, hashedPassword, verificationToken]
     );
 
     // Send welcome + verification email (non-blocking)
