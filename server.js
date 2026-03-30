@@ -270,15 +270,44 @@ async function fixComplaintsTable() {
     const hasAutoInc = extra[0] && extra[0].EXTRA && extra[0].EXTRA.includes('auto_increment');
 
     if (!hasAutoInc) {
-      console.log('⚠️  complaints.id missing AUTO_INCREMENT — recreating table...');
-      console.log('  Step 1: disable FK checks');
-      await db.query(`SET FOREIGN_KEY_CHECKS = 0`);
-      console.log('  Step 2: drop complaint_history');
-      await db.query(`DROP TABLE IF EXISTS complaint_history`);
-      console.log('  Step 3: drop complaint_ratings');
-      await db.query(`DROP TABLE IF EXISTS complaint_ratings`);
-      console.log('  Step 4: drop complaints');
-      await db.query(`DROP TABLE IF EXISTS complaints`);
+      console.log('⚠️  complaints.id missing AUTO_INCREMENT — fixing...');
+
+      // Drop FK constraints that block MODIFY, then fix id column
+      const [fks] = await db.query(
+        `SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE
+         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'complaint_history'
+         AND REFERENCED_TABLE_NAME = 'complaints'`
+      );
+      for (const fk of fks) {
+        try {
+          await db.query(`ALTER TABLE complaint_history DROP FOREIGN KEY ${fk.CONSTRAINT_NAME}`);
+          console.log(`  Dropped FK: ${fk.CONSTRAINT_NAME}`);
+        } catch(e) { console.warn('  Drop FK skipped:', e.message); }
+      }
+      const [fks2] = await db.query(
+        `SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE
+         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'complaint_ratings'
+         AND REFERENCED_TABLE_NAME = 'complaints'`
+      );
+      for (const fk of fks2) {
+        try {
+          await db.query(`ALTER TABLE complaint_ratings DROP FOREIGN KEY ${fk.CONSTRAINT_NAME}`);
+        } catch(e) {}
+      }
+
+      try {
+        await db.query(`ALTER TABLE complaints MODIFY COLUMN id INT NOT NULL AUTO_INCREMENT`);
+        console.log('✅ complaints.id AUTO_INCREMENT fixed');
+      } catch(e) {
+        console.warn('  MODIFY failed:', e.message, '— will try DROP+CREATE');
+        console.log('  Step 1: disable FK checks');
+        await db.query(`SET FOREIGN_KEY_CHECKS = 0`);
+        console.log('  Step 2: drop complaint_history');
+        await db.query(`DROP TABLE IF EXISTS complaint_history`);
+        console.log('  Step 3: drop complaint_ratings');
+        await db.query(`DROP TABLE IF EXISTS complaint_ratings`);
+        console.log('  Step 4: drop complaints');
+        await db.query(`DROP TABLE IF EXISTS complaints`);
       console.log('  Step 5: create complaints');
       await db.query(`
         CREATE TABLE complaints (
@@ -335,6 +364,7 @@ async function fixComplaintsTable() {
       console.log('  Step 8: re-enable FK checks');
       await db.query(`SET FOREIGN_KEY_CHECKS = 1`);
       console.log('✅ Complaints table recreated');
+      }
       return;
     }
 
