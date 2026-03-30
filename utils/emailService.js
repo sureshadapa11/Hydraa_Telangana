@@ -1,55 +1,76 @@
 // =====================================================
 //   HYDRAA — Email Service
-//   Supports: Resend (primary) or Nodemailer SMTP (fallback)
+//   Provider: Brevo HTTP API (no SMTP, works on Railway)
 // =====================================================
 
 require('dotenv').config();
+const https = require('https');
 
-// ── Determine email provider ──────────────────────────
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const USE_RESEND     = !!RESEND_API_KEY;
+const BREVO_API_KEY   = process.env.BREVO_API_KEY;
+const RESEND_API_KEY  = process.env.RESEND_API_KEY;
 
-let transporter = null;
+// Sender name + address
+const FROM_NAME    = 'HYDRAA Telangana';
+const FROM_ADDRESS = process.env.EMAIL_FROM_ADDRESS || process.env.EMAIL_USER || 'noreply@hydraa.gov';
 
-if (USE_RESEND) {
-  // Use Resend via HTTPS — never blocked by cloud firewalls
-  const nodemailer = require('nodemailer');
-  transporter = nodemailer.createTransport({
-    host: 'smtp.resend.com',
-    port: 465,
-    secure: true,
-    auth: { user: 'resend', pass: RESEND_API_KEY },
+// ── HTTP POST helper (no external deps) ──────────────
+const httpPost = (url, headers, body) => new Promise((resolve, reject) => {
+  const data  = JSON.stringify(body);
+  const parts = new URL(url);
+  const opts  = {
+    hostname: parts.hostname,
+    path:     parts.pathname,
+    method:   'POST',
+    headers:  { ...headers, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) },
+  };
+  const req = https.request(opts, (res) => {
+    let raw = '';
+    res.on('data', c => raw += c);
+    res.on('end', () => {
+      if (res.statusCode >= 200 && res.statusCode < 300) resolve(raw);
+      else reject(new Error(`HTTP ${res.statusCode}: ${raw}`));
+    });
   });
-  console.log('✅ Email service: Resend');
-} else if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-  const nodemailer = require('nodemailer');
-  transporter = nodemailer.createTransport({
-    host:   process.env.EMAIL_HOST   || 'smtp.gmail.com',
-    port:   parseInt(process.env.EMAIL_PORT || '465'),
-    secure: process.env.EMAIL_SECURE !== 'false', // default true for 465
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-  transporter.verify((err) => {
-    if (err) console.error('❌ Email service error:', err.message);
-    else     console.log('✅ Email service ready (SMTP) —', process.env.EMAIL_USER);
-  });
-} else {
-  console.warn('⚠️  Email service not configured — set RESEND_API_KEY or EMAIL_USER/EMAIL_PASS');
-}
+  req.on('error', reject);
+  req.write(data);
+  req.end();
+});
 
-// ── FROM address ──────────────────────────────────────
-const FROM_ADDRESS = USE_RESEND
-  ? (process.env.EMAIL_FROM || 'HYDRAA Telangana <onboarding@resend.dev>')
-  : (process.env.EMAIL_FROM || `"HYDRAA Telangana" <${process.env.EMAIL_USER}>`);
-
-// ── Send helper ───────────────────────────────────────
-const sendMail = async ({ to, subject, html }) => {
-  if (!transporter) throw new Error('Email service not configured.');
-  await transporter.sendMail({ from: FROM_ADDRESS, to, subject, html });
+// ── Send via Brevo HTTP API ───────────────────────────
+const sendViaBrevo = async ({ to, subject, html }) => {
+  await httpPost(
+    'https://api.brevo.com/v3/smtp/email',
+    { 'api-key': BREVO_API_KEY },
+    {
+      sender:      { name: FROM_NAME, email: FROM_ADDRESS },
+      to:          [{ email: to }],
+      subject,
+      htmlContent: html,
+    }
+  );
 };
+
+// ── Send via Resend HTTP API ──────────────────────────
+const sendViaResend = async ({ to, subject, html }) => {
+  await httpPost(
+    'https://api.resend.com/emails',
+    { 'Authorization': `Bearer ${RESEND_API_KEY}` },
+    { from: `${FROM_NAME} <${FROM_ADDRESS}>`, to, subject, html }
+  );
+};
+
+// ── Choose provider ───────────────────────────────────
+let sendMail;
+if (BREVO_API_KEY) {
+  sendMail = sendViaBrevo;
+  console.log('✅ Email service: Brevo API —', FROM_ADDRESS);
+} else if (RESEND_API_KEY) {
+  sendMail = sendViaResend;
+  console.log('✅ Email service: Resend API —', FROM_ADDRESS);
+} else {
+  sendMail = async () => { throw new Error('No email provider configured.'); };
+  console.warn('⚠️  Email service not configured — set BREVO_API_KEY or RESEND_API_KEY');
+}
 
 // ── Shared Brand Header / Footer ──────────────────────
 const brandHeader = `
