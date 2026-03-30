@@ -214,6 +214,22 @@ const createOfficial = async (req, res) => {
 };
 
 // ────────────────────────────────────────────────────
+//  OFFICIALS: DELETE
+// ────────────────────────────────────────────────────
+const deleteOfficial = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [result] = await db.query('DELETE FROM officials WHERE id = ?', [id]);
+    if (result.affectedRows === 0)
+      return res.status(404).json({ success: false, message: 'Official not found.' });
+    res.json({ success: true, message: 'Official deleted.' });
+  } catch (err) {
+    console.error('Delete official error:', err);
+    res.status(500).json({ success: false, message: err.message || 'Server error.' });
+  }
+};
+
+// ────────────────────────────────────────────────────
 //  OFFICIALS: UPDATE
 // ────────────────────────────────────────────────────
 const updateOfficial = async (req, res) => {
@@ -498,6 +514,7 @@ const getHeatmapData = async (req, res) => {
 };
 
 module.exports = {
+  deleteOfficial,
   getCategories,
   createCategory,
   deleteCategory,

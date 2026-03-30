@@ -6,6 +6,7 @@
 const express = require('express');
 const router = express.Router();
 const {
+  deleteOfficial,
   getCategories,
   createCategory,
   deleteCategory,
@@ -40,6 +41,7 @@ router.delete('/subcategories/:id', verifyToken, deleteSubcategory);
 router.get('/officials', verifyToken, getOfficials);
 router.post('/officials', verifyToken, createOfficial);
 router.put('/officials/:id', verifyToken, updateOfficial);
+router.delete('/officials/:id', verifyToken, deleteOfficial);
 
 // ── Users ──
 router.get('/users', verifyToken, getUsers);

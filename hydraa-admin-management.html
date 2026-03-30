@@ -231,7 +231,10 @@
           <div class="sh-title">Field Officials</div>
           <div class="sh-sub">Add and manage HYDRAA field officials</div>
         </div>
-        <button class="btn-add" onclick="toggleAddForm('officials')">+ Add Official</button>
+        <div style="display:flex;gap:0.6rem;">
+          <button class="btn-add" onclick="toggleAddForm('officials')">+ Add Official</button>
+          <button class="btn-add" style="background:linear-gradient(135deg,#ef4444,#dc2626);" onclick="deleteAllOfficials()">🗑 Delete All</button>
+        </div>
       </div>
 
       <!-- Add form -->
@@ -323,7 +326,7 @@
 
       document.getElementById('officialsTable').innerHTML = `
         <table>
-          <thead><tr><th>Official</th><th>Email</th><th>Phone</th><th>Department</th><th>Status</th><th>Added On</th><th>Action</th></tr></thead>
+          <thead><tr><th>Official</th><th>Email</th><th>Phone</th><th>Department</th><th>Status</th><th>Added On</th><th>Actions</th></tr></thead>
           <tbody>${officials.map(o => `
             <tr>
               <td>
@@ -338,10 +341,13 @@
               <td><span class="badge ${o.is_active?'b-active':'b-inactive'}">${o.is_active?'Active':'Inactive'}</span></td>
               <td style="font-size:0.78rem;white-space:nowrap">${formatDate(o.created_at)}</td>
               <td>
-                <button class="act-btn ${o.is_active?'ab-deactivate':'ab-activate'}"
-                  onclick="toggleOfficialStatus(${o.id},${o.is_active},this)">
-                  ${o.is_active?'Deactivate':'Activate'}
-                </button>
+                <div style="display:flex;gap:0.4rem;">
+                  <button class="act-btn ${o.is_active?'ab-deactivate':'ab-activate'}"
+                    onclick="toggleOfficialStatus(${o.id},${o.is_active},this)">
+                    ${o.is_active?'Deactivate':'Activate'}
+                  </button>
+                  <button class="act-btn ab-delete" onclick="deleteOfficial(${o.id},this)">🗑</button>
+                </div>
               </td>
             </tr>`).join('')}
           </tbody>
@@ -363,6 +369,22 @@
         setTimeout(()=>{ toggleAddForm('officials'); ['of_name','of_dept','of_email','of_phone','of_password'].forEach(id=>document.getElementById(id).value=''); alert_el.className='add-alert'; loadOfficials(); },1200);
       } else { alert_el.textContent=res.message; alert_el.className='add-alert err'; }
     } catch(e) { alert_el.textContent='Server error.'; alert_el.className='add-alert err'; }
+  }
+
+  async function deleteOfficial(id, btn) {
+    if (!confirm('Delete this official permanently?')) return;
+    const res = await http.delete(`/api/admin/officials/${id}`);
+    if (res.success) loadOfficials(); else alert(res.message);
+  }
+
+  async function deleteAllOfficials() {
+    if (!confirm('Delete ALL officials? This cannot be undone.')) return;
+    const res = await http.get('/api/admin/officials');
+    if (!res.success || !res.data.length) { alert('No officials to delete.'); return; }
+    for (const o of res.data) {
+      await http.delete(`/api/admin/officials/${o.id}`);
+    }
+    loadOfficials();
   }
 
   async function toggleOfficialStatus(id, current, btn) {
