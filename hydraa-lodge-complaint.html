@@ -814,16 +814,16 @@
         formData.append('attachment', file);
         res = await http.postForm('/api/complaints/lodge', formData);
       } else {
+        const val = id => { const v = document.getElementById(id)?.value; return v || null; };
         const payload = {
-          title:          document.getElementById('title').value,
-          description:    document.getElementById('description').value,
-          category_id:    document.getElementById('category_id').value,
-          subcategory_id: document.getElementById('subcategory_id').value,
-          state_id:       document.getElementById('state_id').value,
-          address:        document.getElementById('address').value,
-          priority:       document.getElementById('priority').value || 'medium',
+          title:          val('title'),
+          description:    val('description'),
+          category_id:    val('category_id'),
+          subcategory_id: val('subcategory_id'),
+          state_id:       val('state_id'),
+          address:        val('address'),
+          priority:       val('priority') || 'medium',
         };
-        console.log('Submitting complaint payload:', payload);
         res = await http.post('/api/complaints/lodge', payload);
       }
 
@@ -834,7 +834,7 @@
         document.getElementById('complaintForm').reset();
         setTimeout(() => window.location.href = '/hydraa-my-complaints.html', 3000);
       } else {
-        showAlert('alertBox', 'error', `Error: ${res.message} | title="${document.getElementById('title').value}" cat="${document.getElementById('category_id').value}" addr="${document.getElementById('address').value}"`);
+        showAlert('alertBox', 'error', res.message || 'Something went wrong. Please try again.');
       }
     } catch (err) {
       showAlert('alertBox', 'error', 'Server error. Please try again.');
