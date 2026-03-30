@@ -644,6 +644,16 @@
 
 <script src="http-client.js"></script><script src="app.js"></script>
 <script>
+  // Override showAlert to match this page's CSS (.alert.show.success / .alert.show.error)
+  function showAlert(id, type, msg) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = msg;
+    el.className = 'alert show ' + type;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => el.className = 'alert', 6000);
+  }
+
   Auth.requireLogin('user');
 
   // Populate sidebar & topbar with user info
@@ -784,28 +794,45 @@
     const btn = document.getElementById('submitBtn');
     setLoading(btn, true);
 
-    const formData = new FormData();
-    formData.append('title', document.getElementById('title').value);
-    formData.append('description', document.getElementById('description').value);
-    formData.append('category_id', document.getElementById('category_id').value);
-    formData.append('subcategory_id', document.getElementById('subcategory_id').value);
-    formData.append('state_id', document.getElementById('state_id').value);
-    formData.append('address', document.getElementById('address').value);
-    formData.append('priority', document.getElementById('priority').value);
     const file = document.getElementById('attachment').files[0];
-    if (file) formData.append('attachment', file);
 
     try {
-      const res = await http.postForm('/api/complaints/lodge', formData);
+      let res;
+      if (file) {
+        // Has attachment — use FormData (requires multer on backend)
+        const formData = new FormData();
+        formData.append('title', document.getElementById('title').value);
+        formData.append('description', document.getElementById('description').value);
+        formData.append('category_id', document.getElementById('category_id').value);
+        formData.append('subcategory_id', document.getElementById('subcategory_id').value);
+        formData.append('state_id', document.getElementById('state_id').value);
+        formData.append('address', document.getElementById('address').value);
+        formData.append('priority', document.getElementById('priority').value);
+        formData.append('attachment', file);
+        res = await http.postForm('/api/complaints/lodge', formData);
+      } else {
+        // No attachment — use JSON (works with express.json middleware)
+        res = await http.post('/api/complaints/lodge', {
+          title:          document.getElementById('title').value,
+          description:    document.getElementById('description').value,
+          category_id:    document.getElementById('category_id').value,
+          subcategory_id: document.getElementById('subcategory_id').value,
+          state_id:       document.getElementById('state_id').value,
+          address:        document.getElementById('address').value,
+          priority:       document.getElementById('priority').value,
+        });
+      }
+
       if (res.success) {
-        showAlert('alertBox', `✅ Complaint submitted successfully! Your Complaint No: ${res.complaint_no}`, 'success');
+        const complaintNo = (res.data && res.data.complaint_no) || res.complaint_no || '';
+        showAlert('alertBox', 'success', `✅ Complaint submitted successfully! Complaint No: ${complaintNo}`);
         document.getElementById('complaintForm').reset();
         setTimeout(() => window.location.href = '/hydraa-my-complaints.html', 3000);
       } else {
-        showAlert('alertBox', res.message || 'Something went wrong.', 'error');
+        showAlert('alertBox', 'error', res.message || 'Something went wrong.');
       }
     } catch (err) {
-      showAlert('alertBox', 'Server error. Please try again.', 'error');
+      showAlert('alertBox', 'error', 'Server error. Please try again.');
     } finally {
       setLoading(btn, false);
     }
