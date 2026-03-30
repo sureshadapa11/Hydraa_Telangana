@@ -317,22 +317,32 @@ const getUserLogs = async (req, res) => {
 // ────────────────────────────────────────────────────
 const getStates = async (req, res) => {
   try {
+    // Simple query first; complaint_count is added via subquery so missing state_id column won't break it
     const [states] = await db.query(`
-      SELECT s.id, s.state_name, s.code,
-             COUNT(c.id) AS complaint_count
-      FROM states s
-      LEFT JOIN complaints c ON c.state_id = s.id
-      GROUP BY s.id, s.state_name, s.code
-      ORDER BY s.state_name ASC
+      SELECT id, state_name, code FROM states
+      WHERE state_name IS NOT NULL AND state_name != ''
+      ORDER BY state_name ASC
     `);
 
-    res.json({
-      success: true,
-      data: states,
-    });
+    // Try to add complaint counts (non-fatal if complaints.state_id doesn't exist yet)
+    let result = states;
+    try {
+      const [withCount] = await db.query(`
+        SELECT s.id, s.state_name, s.code,
+               COUNT(c.id) AS complaint_count
+        FROM states s
+        LEFT JOIN complaints c ON c.state_id = s.id
+        WHERE s.state_name IS NOT NULL AND s.state_name != ''
+        GROUP BY s.id, s.state_name, s.code
+        ORDER BY s.state_name ASC
+      `);
+      result = withCount;
+    } catch (_) { /* complaints.state_id not yet available — return states without count */ }
+
+    res.json({ success: true, data: result });
   } catch (err) {
     console.error('Get states error:', err);
-    res.status(500).json({ success: false, message: 'Server error.' });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 

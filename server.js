@@ -239,6 +239,19 @@ async function fixStatesTable() {
     } else {
       console.log('✅ States table OK');
     }
+
+    // If old 'name' column exists with no default, give it one so it doesn't block inserts
+    if (colNames.includes('name')) {
+      try {
+        const [colInfo] = await db.query(
+          `SELECT COLUMN_TYPE, IS_NULLABLE FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'states' AND COLUMN_NAME = 'name'`
+        );
+        const colType = colInfo[0] ? colInfo[0].COLUMN_TYPE : 'VARCHAR(100)';
+        await db.query(`ALTER TABLE states MODIFY COLUMN name ${colType} DEFAULT ''`);
+        console.log('✅ states.name column default fixed');
+      } catch (e) { console.warn('  states.name default fix failed:', e.message); }
+    }
   } catch (err) {
     console.warn('⚠️  States table check skipped:', err.message);
   }
@@ -317,9 +330,14 @@ async function fixUsersTable() {
     // If old 'name' column exists with no default, give it one so it doesn't block inserts
     if (colNames.includes('name')) {
       try {
-        await db.query(`ALTER TABLE users ALTER COLUMN name SET DEFAULT ''`);
+        const [colInfo] = await db.query(
+          `SELECT COLUMN_TYPE FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'name'`
+        );
+        const colType = colInfo[0] ? colInfo[0].COLUMN_TYPE : 'VARCHAR(100)';
+        await db.query(`ALTER TABLE users MODIFY COLUMN name ${colType} DEFAULT ''`);
         console.log('✅ users.name column default fixed');
-      } catch (e) { /* already has default */ }
+      } catch (e) { console.warn('  users.name default fix failed:', e.message); }
     }
   } catch (err) {
     console.warn('⚠️  Users table check skipped:', err.message);
@@ -330,28 +348,59 @@ async function fixUsersTable() {
 async function seedStates() {
   try {
     const db = require('./utils/db');
-    const states = [
-      { state_name: 'Telangana',       code: 'TG' },
-      { state_name: 'Andhra Pradesh',  code: 'AP' },
-      { state_name: 'Maharashtra',     code: 'MH' },
-      { state_name: 'Karnataka',       code: 'KA' },
-      { state_name: 'Tamil Nadu',      code: 'TN' },
+
+    // Check which columns exist so we build INSERT/UPDATE dynamically
+    const [colRows] = await db.query(
+      `SELECT COLUMN_NAME FROM information_schema.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'states'`
+    );
+    const colNames = colRows.map(c => c.COLUMN_NAME);
+    const hasName      = colNames.includes('name');
+    const hasStateName = colNames.includes('state_name');
+
+    // If legacy 'name' column exists with no default, fix it now
+    if (hasName) {
+      try {
+        const [ci] = await db.query(
+          `SELECT COLUMN_TYPE FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'states' AND COLUMN_NAME = 'name'`
+        );
+        const colType = ci[0] ? ci[0].COLUMN_TYPE : 'VARCHAR(100)';
+        await db.query(`ALTER TABLE states MODIFY COLUMN name ${colType} DEFAULT ''`);
+        console.log('✅ states.name column default fixed');
+      } catch (e) { /* already OK */ }
+    }
+
+    if (!hasStateName) {
+      console.warn('⚠️  states.state_name column missing — skipping seed');
+      return;
+    }
+
+    const stateList = [
+      { state_name: 'Telangana',      code: 'TG' },
+      { state_name: 'Andhra Pradesh', code: 'AP' },
+      { state_name: 'Maharashtra',    code: 'MH' },
+      { state_name: 'Karnataka',      code: 'KA' },
+      { state_name: 'Tamil Nadu',     code: 'TN' },
     ];
-    for (const s of states) {
+
+    for (const s of stateList) {
       const [[exists]] = await db.query(
-        `SELECT id FROM states WHERE state_name = ? OR (state_name = '' AND code = ?)`, [s.state_name, s.code]
+        `SELECT id FROM states WHERE state_name = ?`, [s.state_name]
       );
-      if (exists) {
-        // Update empty state_name rows
-        await db.query(`UPDATE states SET state_name = ?, code = ? WHERE id = ?`, [s.state_name, s.code, exists.id]);
+      if (exists) continue; // already seeded
+
+      // Build INSERT dynamically — only include 'name' if the column exists
+      if (hasName) {
+        await db.query(
+          `INSERT INTO states (state_name, code, name) VALUES (?, ?, ?)`,
+          [s.state_name, s.code, s.state_name]
+        );
       } else {
-        // Check if a blank-named row exists for this code slot
-        const [[blank]] = await db.query(`SELECT id FROM states WHERE state_name = ''`);
-        if (blank) {
-          await db.query(`UPDATE states SET state_name = ?, code = ? WHERE id = ?`, [s.state_name, s.code, blank.id]);
-        } else {
-          await db.query(`INSERT INTO states (state_name, code) VALUES (?, ?)`, [s.state_name, s.code]);
-        }
+        await db.query(
+          `INSERT INTO states (state_name, code) VALUES (?, ?)`,
+          [s.state_name, s.code]
+        );
       }
     }
     console.log('✅ States seeded');

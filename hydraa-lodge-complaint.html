@@ -702,15 +702,63 @@
   }
 
   // Load dropdowns
+  // Hardcoded subcategories — used as fallback if DB returns empty
+  const SUBCATEGORY_FALLBACK = {
+    'Lake / Water Body Encroachment': ['FTL Zone Encroachment','Nala / Drain Encroachment','Buffer Zone Violation','Lake Bund Damage','Illegal Filling of Water Body'],
+    'Illegal Construction':           ['Residential Illegal Building','Commercial Illegal Building','Building Without Permission','Violation of Setback Rules','Excess Floor Area'],
+    'Park / Open Space Violation':    ['Park Land Encroachment','Playground Encroachment','Open Layout Space Misuse','Unauthorized Structure in Park','Dumping in Open Space'],
+    'Road / Footpath Obstruction':    ['Footpath Encroachment','Road Blocked by Structure','Unauthorized Parking Area','Construction Material on Road','Vendor Encroachment on Road'],
+    'Flooding & Drainage Issue':      ['Blocked Storm Drain','Waterlogging','Sewage Overflow','Drain Encroachment Causing Flood','Nala Blockage'],
+    'Flooding & Drainage Issues':     ['Blocked Storm Drain','Waterlogging','Sewage Overflow','Drain Encroachment Causing Flood','Nala Blockage'],
+    'Government Land Encroachment':   ['Poramboke Land Occupied','Revenue Land Encroachment','GHMC Land Misuse','Unauthorized Fence / Wall','Long-term Unauthorized Occupation'],
+    'Illegal Advertisements':         ['Unauthorized Hoarding','Illegal Flex / Banner','Wall Painting Without Permission','Digital Sign Without NOC','Temporary Structure for Advertisement'],
+    'Disaster / Emergency':           ['Building Collapse','Fire Incident','Flood Emergency','Tree Fall','Structural Instability'],
+  };
+
+  // Map category name → fallback list (populated after categories load)
+  let catIdToName = {};
+
   async function loadDropdowns() {
-    const [cats, states] = await Promise.all([
-      http.get('/api/admin/categories'),
-      http.get('/api/admin/states')
-    ]);
-    const catSel = document.getElementById('category_id');
-    cats.data.forEach(c => catSel.innerHTML += `<option value="${c.id}">${c.name}</option>`);
-    const stateSel = document.getElementById('state_id');
-    states.data.forEach(s => stateSel.innerHTML += `<option value="${s.id}">${s.state_name}</option>`);
+    try {
+      // ── Categories from DB ──
+      const cats = await http.get('/api/admin/categories');
+      const catSel = document.getElementById('category_id');
+      if (cats && cats.data && cats.data.length) {
+        cats.data.forEach(c => {
+          catSel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+          catIdToName[c.id] = c.name;
+        });
+      }
+    } catch (e) {
+      console.error('loadDropdowns categories error:', e);
+    }
+
+    // ── States — hardcoded for Telangana (HYDRAA jurisdiction) ──
+    // Try DB first, fall back to hardcoded list
+    try {
+      const states = await http.get('/api/admin/states');
+      const stateSel = document.getElementById('state_id');
+      if (states && states.data && states.data.length) {
+        states.data.forEach(s => stateSel.innerHTML += `<option value="${s.id}">${s.state_name}</option>`);
+      } else {
+        // Fallback: static Telangana entry
+        document.getElementById('state_id').innerHTML =
+          '<option value="">— Select State —</option>' +
+          '<option value="1" selected>Telangana</option>' +
+          '<option value="2">Andhra Pradesh</option>' +
+          '<option value="3">Maharashtra</option>' +
+          '<option value="4">Karnataka</option>' +
+          '<option value="5">Tamil Nadu</option>';
+      }
+    } catch (e) {
+      document.getElementById('state_id').innerHTML =
+        '<option value="">— Select State —</option>' +
+        '<option value="1" selected>Telangana</option>' +
+        '<option value="2">Andhra Pradesh</option>' +
+        '<option value="3">Maharashtra</option>' +
+        '<option value="4">Karnataka</option>' +
+        '<option value="5">Tamil Nadu</option>';
+    }
   }
 
   async function loadSubcategories() {
@@ -718,8 +766,19 @@
     const subSel = document.getElementById('subcategory_id');
     subSel.innerHTML = '<option value="">— Select Sub-Category —</option>';
     if (!cat_id) return;
-    const res = await http.get(`/api/admin/subcategories?category_id=${cat_id}`);
-    res.data.forEach(s => subSel.innerHTML += `<option value="${s.id}">${s.name}</option>`);
+
+    try {
+      const res = await http.get(`/api/admin/subcategories?category_id=${cat_id}`);
+      if (res && res.data && res.data.length) {
+        res.data.forEach(s => subSel.innerHTML += `<option value="${s.id}">${s.name}</option>`);
+        return;
+      }
+    } catch (e) { /* fall through to fallback */ }
+
+    // Fallback: use hardcoded subcategories matched by category name
+    const catName = catIdToName[cat_id] || '';
+    const fallback = SUBCATEGORY_FALLBACK[catName] || [];
+    fallback.forEach((s, i) => subSel.innerHTML += `<option value="fb_${i}">${s}</option>`);
   }
 
   // Priority pills
