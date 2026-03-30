@@ -528,62 +528,21 @@
             <div class="f-section-title">📍 Location Details — Telangana</div>
             <div class="f-row">
               <div class="f-group">
-                <label class="f-label">State</label>
-                <select id="state_id" class="f-select">
-                  <option value="">— Select State —</option>
-                </select>
-              </div>
-              <div class="f-group">
                 <label class="f-label">District <span class="req">*</span></label>
-                <select id="district_id" class="f-select" onchange="loadMandals()">
+                <select id="district_id" class="f-select" required onchange="loadMandalsFromAPI()">
                   <option value="">— Select District —</option>
-                  <option value="hyderabad">Hyderabad</option>
-                  <option value="rangareddy">Rangareddy</option>
-                  <option value="medchal">Medchal-Malkajgiri</option>
-                  <option value="sangareddy">Sangareddy</option>
-                  <option value="vikarabad">Vikarabad</option>
-                  <option value="yadadri">Yadadri Bhuvanagiri</option>
-                  <option value="nalgonda">Nalgonda</option>
-                  <option value="suryapet">Suryapet</option>
-                  <option value="khammam">Khammam</option>
-                  <option value="bhadradri">Bhadradri Kothagudem</option>
-                  <option value="warangal_urban">Warangal Urban</option>
-                  <option value="warangal_rural">Warangal Rural</option>
-                  <option value="hanamkonda">Hanamkonda</option>
-                  <option value="jangaon">Jangaon</option>
-                  <option value="mahabubabad">Mahabubabad</option>
-                  <option value="karimnagar">Karimnagar</option>
-                  <option value="peddapalli">Peddapalli</option>
-                  <option value="jayashankar">Jayashankar Bhupalpally</option>
-                  <option value="rajanna">Rajanna Sircilla</option>
-                  <option value="nizamabad">Nizamabad</option>
-                  <option value="kamareddy">Kamareddy</option>
-                  <option value="nirmal">Nirmal</option>
-                  <option value="adilabad">Adilabad</option>
-                  <option value="mancherial">Mancherial</option>
-                  <option value="kumuram">Kumuram Bheem Asifabad</option>
-                  <option value="mulugu">Mulugu</option>
-                  <option value="narayanpet">Narayanpet</option>
-                  <option value="wanaparthy">Wanaparthy</option>
-                  <option value="nagarkurnool">Nagarkurnool</option>
-                  <option value="jogulamba">Jogulamba Gadwal</option>
-                  <option value="mahabubnagar">Mahabubnagar</option>
-                  <option value="narsampet">Narsampet</option>
-                  <option value="siddipet">Siddipet</option>
                 </select>
               </div>
-            </div>
-            <div class="f-row">
               <div class="f-group">
                 <label class="f-label">Mandal / Area</label>
                 <select id="mandal_id" class="f-select">
                   <option value="">— Select District First —</option>
                 </select>
               </div>
-              <div class="f-group">
-                <label class="f-label">Specific Address / Location</label>
-                <input type="text" id="address" class="f-input" placeholder="Colony, Landmark, Street"/>
-              </div>
+            </div>
+            <div class="f-group">
+              <label class="f-label">Specific Address / Location <span class="req">*</span></label>
+              <input type="text" id="address" class="f-input" placeholder="Colony, Landmark, Street, Near landmark..."/>
             </div>
           </div>
 
@@ -691,8 +650,8 @@
   let catIdToName = {};
 
   async function loadDropdowns() {
+    // ── Categories ──
     try {
-      // ── Categories from DB ──
       const cats = await http.get('/api/admin/categories');
       const catSel = document.getElementById('category_id');
       if (cats && cats.data && cats.data.length) {
@@ -701,39 +660,35 @@
           catIdToName[c.id] = c.name;
         });
       }
-    } catch (e) {
-      console.error('loadDropdowns categories error:', e);
-    }
+    } catch (e) { console.error('loadDropdowns categories error:', e); }
 
-    // ── States — hardcoded for Telangana (HYDRAA jurisdiction) ──
-    // Try DB first, fall back to hardcoded list
+    // ── Districts from DB ──
     try {
-      const states = await http.get('/api/admin/states');
-      const stateSel = document.getElementById('state_id');
-      if (states && states.data && states.data.length) {
-        states.data.forEach(s => {
-          const selected = s.state_name === 'Telangana' ? ' selected' : '';
-          stateSel.innerHTML += `<option value="${s.id}"${selected}>${s.state_name}</option>`;
+      const res = await http.get('/api/admin/districts');
+      const distSel = document.getElementById('district_id');
+      if (res.success && res.data && res.data.length) {
+        res.data.forEach(d => {
+          distSel.innerHTML += `<option value="${d.id}">${d.name}</option>`;
         });
       } else {
-        // Fallback: static Telangana entry
-        document.getElementById('state_id').innerHTML =
-          '<option value="">— Select State —</option>' +
-          '<option value="1" selected>Telangana</option>' +
-          '<option value="2">Andhra Pradesh</option>' +
-          '<option value="3">Maharashtra</option>' +
-          '<option value="4">Karnataka</option>' +
-          '<option value="5">Tamil Nadu</option>';
+        distSel.innerHTML += '<option value="" disabled>No districts configured — contact admin</option>';
       }
-    } catch (e) {
-      document.getElementById('state_id').innerHTML =
-        '<option value="">— Select State —</option>' +
-        '<option value="1" selected>Telangana</option>' +
-        '<option value="2">Andhra Pradesh</option>' +
-        '<option value="3">Maharashtra</option>' +
-        '<option value="4">Karnataka</option>' +
-        '<option value="5">Tamil Nadu</option>';
-    }
+    } catch (e) { console.error('loadDropdowns districts error:', e); }
+  }
+
+  async function loadMandalsFromAPI() {
+    const distId = document.getElementById('district_id').value;
+    const sel = document.getElementById('mandal_id');
+    sel.innerHTML = '<option value="">— Select Mandal —</option>';
+    if (!distId) return;
+    try {
+      const res = await http.get(`/api/admin/mandals?district_id=${distId}`);
+      if (res.success && res.data && res.data.length) {
+        res.data.forEach(m => sel.innerHTML += `<option value="${m.id}">${m.name}</option>`);
+      } else {
+        sel.innerHTML = '<option value="">— No mandals added yet —</option>';
+      }
+    } catch (e) { sel.innerHTML = '<option value="">— Failed to load mandals —</option>'; }
   }
 
   async function loadSubcategories() {
@@ -809,7 +764,8 @@
         description:    document.getElementById('description').value.trim(),
         category_id:    document.getElementById('category_id').value || null,
         subcategory_id: document.getElementById('subcategory_id').value || null,
-        state_id:       document.getElementById('state_id').value || null,
+        district_id:    document.getElementById('district_id').value || null,
+        mandal_id:      document.getElementById('mandal_id').value || null,
         address:        document.getElementById('address').value.trim(),
         priority:       document.getElementById('priority').value || 'medium',
       };
@@ -831,8 +787,6 @@
     }
   }
 
-  loadDropdowns();
-
   // ═══════════════ HYDRAA CATEGORY DATA ═══════════════
   const HYDRAA_CATEGORIES = [
     { id: 1, name: 'Lake / Water Body Encroachment', icon: '🌊', keywords: ['lake','water','ftl','buffer','nala','tank','pond','encroach','hussain sagar','osmansagar','himayat','mir alam','durgam cheruvu'] },
@@ -845,54 +799,6 @@
     { id: 8, name: 'Disaster / Emergency',           icon: '🚨', keywords: ['fire','collapse','emergency','dangerous','accident','hazard','gas leak','landslide'] },
   ];
 
-  // Telangana mandal data
-  const MANDALS = {
-    hyderabad:      ['Amberpet','Bandlaguda Jagir','Begumpet','Charminar','Golconda','Karwan','Khairatabad','Musheerabad','Nampally','Secunderabad','Shaikpet','Yousufguda'],
-    rangareddy:     ['Abdullapurmet','Balapur','Chevella','Ghatkesar','Hayathnagar','Ibrahimpatnam','Keesara','Maheshwaram','Moinabad','Rajendranagar','Shamirpet','Shamshabad','Yacharam'],
-    medchal:        ['Alwal','Balanagar','Dundigal','Ghatkesar','Kompally','Medchal','Malkajgiri','Quthbullapur','Uppal','Bachupally','Medipally','Suraram'],
-    sangareddy:     ['Ameenpur','Bollaram','Hathnoora','Jharasangam','Kohir','Narayankhed','Nyalkal','Patancheru','Pulkal','Sangareddy','Vatpally','Zaheerabad','Andole','Kangti','Manoor'],
-    vikarabad:      ['Vikarabad','Tandur','Pargi','Kodangal','Basheerabad','Doma','Kotepalle','Kulkacharla','Lagacherla','Marpalle','Nawabpet','Peddemul','Yalal'],
-    yadadri:        ['Yadadri','Bhongir','Choutuppal','Alair','Aler','Bhuvanagiri','Mothkur','Ramannapet','Turkapally','Pochampally','Nakrekal','Bibinagar'],
-    nalgonda:       ['Nalgonda','Miryalaguda','Devarakonda','Nakrekal','Chandur','Chityal','Dameracherla','Marriguda','Munugode','Narayanapur','Pedda Adiserla Pally','Thipparthy','Tripuraram','Umamaheshwaram'],
-    suryapet:       ['Suryapet','Kodad','Huzurnagar','Mothkur','Tirumalgiri','Chilkur','Garidepally','Mattampalle','Nadigudem','Nereducharla','Palakurthi','Penpahad','Rayagiri','Tungaturthy'],
-    khammam:        ['Khammam','Kothagudem','Madhira','Palvancha','Sathupalli','Wyra','Aswaraopeta','Bhadrachalam','Enkoor','Julurpad','Kamepalle','Kusumanchi','Mudigonda','Nelakondapalle','Thirumalayapalem','Yerrupalem'],
-    bhadradri:      ['Bhadrachalam','Kothagudem','Palvancha','Aswaraopeta','Bayyaram','Burgampahad','Chandrugonda','Cherla','Dummugudem','Gundala','Julurpad','Manuguru','Pinapaka','Tekulapalle','Yellandu'],
-    warangal_urban: ['Hanamkonda','Kazipet','Warangal','Dharmasagar','Geesugonda','Hasanparthy','Nallabelly','Atmakur','Duggondi','Khanapur','Parvathagiri','Sangem','Shayampet','Wardhannapet'],
-    warangal_rural: ['Narsampet','Parkal','Station Ghanpur','Atmakur','Cherial','Chityal','Damaracherla','Dharmasagar','Ghhanpur','Kodakandla','Lingalaghanpur','Nekkonda','Pembi','Raiparthy'],
-    hanamkonda:     ['Hanamkonda','Kazipet','Elkathurthi','Geesugonda','Hasanparthy','Parvathagiri','Sangem','Shayampet','Wardhannapet'],
-    jangaon:        ['Jangaon','Ghanpur','Bachannapet','Devaruppula','Kodakandla','Lingalaghanpur','Narmetta','Palakurthi','Raghunathpalle','Rayaparthi','Regonda','Zaffergadh'],
-    mahabubabad:    ['Mahabubabad','Thorrur','Bayyaram','Dornakal','Gudur','Kesamudram','Khanapur','Kuravi','Maripeda','Nellikudur','Nellipaka','Narsimhulapet','Odela'],
-    karimnagar:     ['Karimnagar','Huzurabad','Choppadandi','Dharmapuri','Gangadhara','Manakondur','Manthani','Metpalli','Vemulawada','Yellareddypet','Kothapalle','Srirampur'],
-    peddapalli:     ['Peddapalli','Manthani','Ramagundam','Sultanabad','Anthergaon','Godavarikhani','Julapalle','Kalwapalle','Karimnagar Rural','Odela','Ramakistapuram','Srirampur'],
-    jayashankar:    ['Bhupalpally','Mahadevpur','Chityal','Eturunagaram','Kataram','Maaripeda','Mogulla Pally','Mulugu','Palimela','Regonda','Tadvai','Thadvai','Venkatapur','Zaffergadh'],
-    rajanna:        ['Sircilla','Vemulawada','Boinpalle','Channeraopet','Chandurthi','Cheriyal','Elgandal','Gambhiraopet','Gopalraopet','Konaraopet','Mustabad','Yellareddypet'],
-    nizamabad:      ['Nizamabad','Armur','Bodhan','Banswada','Dichpally','Domakonda','Enkoor','Fertilizernagar','Kotagiri','Nizamabad Urban','Nizamabad Rural','Varni','Yellareddy','Balkonda','Bheemgal'],
-    kamareddy:      ['Kamareddy','Banswada','Bichkunda','Bhiknoor','Domakonda','Gandhari','Jukkal','Lingampet','Madnoor','Machareddy','Narayankhed','Pitlam','Ramareddy','Renjal','Tadwai','Yellareddy'],
-    nirmal:         ['Nirmal','Bhainsa','Mudhole','Armur','Bheemgal','Dilawarpur','Kaddam','Khanapur','Kuntala','Laxmanchanda','Lingampet','Mamda','Narsapur','Sarangapur','Tanur'],
-    adilabad:       ['Adilabad','Utnoor','Bela','Bhainsa','Boath','Gadiguda','Gudihatnoor','Ichoda','Indervelly','Jainath','Kankerghat','Kerameri','Narnoor','Neradigonda','Talamadugu','Tamsi'],
-    mancherial:     ['Mancherial','Bellampalle','Luxettipet','Chennur','Dandepalle','Hajipur','Jaipur','Kasipet','Kotapalle','Mandamarri','Naspur','Nennel','Ramakrishnapur','Vemanpalle'],
-    kumuram:        ['Asifabad','Kagaznagar','Sirpur','Bejjur','Dahegaon','Jainoor','Kaghaznagar','Kerameri','Rebbena','Sirpur Chanda','Tiryani','Wankidi'],
-    mulugu:         ['Mulugu','Venkatapuram','Eturunagaram','Govindaraopet','Mangapet','Tadvai','Venkatapur','Wazeedu'],
-    narayanpet:     ['Narayanpet','Makthal','Kosgi','Damaragidda','Dhanwada','Kalwakurthy','Kothakota','Maganoor','Marikal','Narva','Utkoor'],
-    wanaparthy:     ['Wanaparthy','Atmakur','Addakal','Amangal','Balanagar','Gopalpet','Ghanpur','Kothakota','Madanapur','Pebbair','Peddamandadi','Reddyangidda','Srirangapur'],
-    nagarkurnool:   ['Nagarkurnool','Achampet','Kalwakurthy','Kollapur','Bijinapalle','Gadwal','Kodair','Lingal','Maddur','Nandikota','Padara','Telkapalle','Umapur','Veldanda','Vangara'],
-    jogulamba:      ['Gadwal','Alampur','Waddepalle','Dharur','Gattupalle','Gattu','Ieeja','Itikyal','Kalwakurthy','Kodangal','Maldakal','Undavelli'],
-    mahabubnagar:   ['Mahabubnagar','Jadcherla','Shadnagar','Devarkadra','Balanagar','Nawabpet','Hanwada','Dhanwada','Farooqnagar','Kondurg','Kothakota','Maddur','Makthal','Midjil','Narayanpet'],
-    narsampet:      ['Narsampet','Parkal','Cherial','Duggondi','Khanapur','Kodakandla','Narmetta','Pembi','Raiparthy','Regonda','Station Ghanpur','Thorrur'],
-    siddipet:       ['Siddipet','Gajwel','Dubbak','Cheriyal','Doultabad','Koheda','Kondapak','Markook','Mirdoddi','Nanganur','Thoguta','Wargal'],
-  };
-
-  function loadMandals() {
-    const dist = document.getElementById('district_id').value;
-    const sel = document.getElementById('mandal_id');
-    sel.innerHTML = '<option value="">— Select Mandal —</option>';
-    const list = MANDALS[dist] || [];
-    if (list.length === 0) {
-      sel.innerHTML = '<option value="">— No mandals listed —</option>';
-      return;
-    }
-    list.forEach(m => sel.innerHTML += `<option value="${m.toLowerCase().replace(/ /g,'_')}">${m}</option>`);
-  }
 
   // ═══════════════ SMART TITLE SUGGEST ═══════════════
   let suggestTimeout;

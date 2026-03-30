@@ -15,7 +15,7 @@ const {
 //  LODGE COMPLAINT
 // ────────────────────────────────────────────────────
 const lodgeComplaint = async (req, res) => {
-  const { title, description, category_id, subcategory_id, priority, state_id, address } = req.body;
+  const { title, description, category_id, subcategory_id, priority, address, district_id, mandal_id } = req.body;
   const user_id = req.user.id;
 
   const missing = [];
@@ -23,6 +23,7 @@ const lodgeComplaint = async (req, res) => {
   if (!description) missing.push('Description');
   if (!category_id) missing.push('Category');
   if (!address) missing.push('Address');
+  if (!district_id) missing.push('District');
   if (missing.length > 0) {
     return res.status(400).json({ success: false, message: `Missing: ${missing.join(', ')}` });
   }
@@ -35,9 +36,10 @@ const lodgeComplaint = async (req, res) => {
     const [result] = await db.query(
       `INSERT INTO complaints (
         complaint_no, user_id, title, description, category_id, subcategory_id,
-        priority, state_id, address, status, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
-      [complaint_no, user_id, title, description, category_id || null, subcategory_id || null, priority || 'medium', state_id || null, address, 'open']
+        priority, address, district_id, mandal_id, status, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+      [complaint_no, user_id, title, description, category_id || null, subcategory_id || null,
+       priority || 'medium', address, district_id || null, mandal_id || null, 'open']
     );
 
     const complaint_id = result.insertId;
