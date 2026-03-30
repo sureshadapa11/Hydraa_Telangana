@@ -295,6 +295,14 @@ async function fixComplaintsTable() {
     } else {
       console.log('✅ Complaints table OK');
     }
+
+    // Force-update status and priority ENUM columns to ensure correct values
+    try {
+      await db.query(`ALTER TABLE complaints MODIFY COLUMN status ENUM('open','assigned','in_progress','resolved','rejected','closed') DEFAULT 'open'`);
+      await db.query(`ALTER TABLE complaints MODIFY COLUMN priority ENUM('low','medium','high','urgent') DEFAULT 'medium'`);
+      console.log('✅ Complaints ENUM columns updated');
+    } catch (e) { console.warn('  Complaints ENUM update skipped:', e.message); }
+
   } catch (err) {
     console.warn('⚠️  Complaints table check skipped:', err.message);
   }
