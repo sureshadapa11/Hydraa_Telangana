@@ -206,10 +206,12 @@
 <div class="main">
   <div class="topbar">
     <div>
-      <div class="tb-title" id="tb-title">Manage Officials</div>
-      <div class="tb-sub">HYDRAA Admin · <span id="tb-sub">Officials Management</span></div>
+      <div class="tb-title" id="tb-title">👷 Manage Officials</div>
+      <div class="tb-sub">Add, activate or remove HYDRAA field officials assigned to handle complaints</div>
     </div>
     <div class="tb-right">
+      <button class="btn-add" onclick="toggleAddForm('officials')">+ Add Official</button>
+      <button class="btn-add" style="background:linear-gradient(135deg,#ef4444,#dc2626);" onclick="deleteAllOfficials()">🗑 Delete All</button>
       <div class="tb-pill">
         <div class="tp-av" id="tp-av">A</div>
         <div class="tp-nm" id="tp-nm">Admin</div>
@@ -218,20 +220,8 @@
   </div>
 
   <div class="content">
-    <!-- Page tabs -->
-
     <!-- ═══ OFFICIALS VIEW ═══ -->
     <div class="view active" id="view-officials">
-      <div class="sec-hdr">
-        <div class="sh-left">
-          <div class="sh-title">👷 Manage Officials</div>
-          <div class="sh-sub">Add, activate or remove HYDRAA field officials assigned to handle complaints</div>
-        </div>
-        <div style="display:flex;gap:0.6rem;">
-          <button class="btn-add" onclick="toggleAddForm('officials')">+ Add Official</button>
-          <button class="btn-add" style="background:linear-gradient(135deg,#ef4444,#dc2626);" onclick="deleteAllOfficials()">🗑 Delete All</button>
-        </div>
-      </div>
 
       <!-- Add form -->
       <div class="add-card" id="add-officials">
