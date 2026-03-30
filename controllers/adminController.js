@@ -259,7 +259,8 @@ const updateOfficial = async (req, res) => {
 const getUsers = async (req, res) => {
   try {
     const [users] = await db.query(`
-      SELECT u.id, u.full_name, u.email, u.phone, u.is_verified, u.created_at,
+      SELECT u.id, u.full_name, u.email, u.phone, u.is_verified,
+             u.created_at,
              COUNT(c.id) AS complaint_count,
              SUM(c.status = 'resolved') AS resolved_count
       FROM users u
@@ -284,6 +285,38 @@ const deactivateUser = async (req, res) => {
     res.json({ success: true, message: 'User deactivated.' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+const activateUser = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [result] = await db.query('UPDATE users SET is_verified = 1 WHERE id = ?', [id]);
+    if (result.affectedRows === 0)
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    res.json({ success: true, message: 'User activated.' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+const deleteUser = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [[{ count }]] = await db.query('SELECT COUNT(*) as count FROM complaints WHERE user_id = ?', [id]);
+    if (Number(count) > 0) {
+      return res.status(409).json({
+        success: false,
+        message: `Cannot delete — user has ${count} complaint(s) on record. Deactivate instead.`,
+      });
+    }
+    const [result] = await db.query('DELETE FROM users WHERE id = ?', [id]);
+    if (result.affectedRows === 0)
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    res.json({ success: true, message: 'User deleted.' });
+  } catch (err) {
+    console.error('Delete user error:', err);
+    res.status(500).json({ success: false, message: err.message || 'Server error.' });
   }
 };
 
@@ -536,6 +569,8 @@ module.exports = {
   updateOfficial,
   getUsers,
   deactivateUser,
+  activateUser,
+  deleteUser,
   getUserLogs,
   getStates,
   createState,

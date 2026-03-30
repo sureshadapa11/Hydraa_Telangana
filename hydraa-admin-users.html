@@ -79,6 +79,8 @@
     .badge{display:inline-flex;align-items:center;padding:0.2rem 0.6rem;border-radius:100px;font-size:0.7rem;font-weight:700;}
     .b-verified{background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.2);}
     .b-unverified{background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.2);}
+    .b-active{background:rgba(0,151,167,0.1);color:var(--teal);border:1px solid rgba(0,151,167,0.2);}
+    .b-inactive{background:rgba(239,68,68,0.08);color:var(--red);border:1px solid rgba(239,68,68,0.18);}
 
     /* AVATAR */
     .av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.78rem;color:#fff;flex-shrink:0;}
@@ -89,6 +91,10 @@
     .ab-logs:hover{background:rgba(59,130,246,0.15);}
     .ab-deact{background:rgba(239,68,68,0.08);color:var(--red);border-color:rgba(239,68,68,0.2);}
     .ab-deact:hover{background:rgba(239,68,68,0.15);}
+    .ab-activate{background:rgba(16,185,129,0.08);color:var(--green);border-color:rgba(16,185,129,0.2);}
+    .ab-activate:hover{background:rgba(16,185,129,0.15);}
+    .ab-delete{background:rgba(239,68,68,0.06);color:#b91c1c;border-color:rgba(185,28,28,0.2);}
+    .ab-delete:hover{background:rgba(185,28,28,0.12);}
 
     /* EMPTY */
     .empty{text-align:center;padding:3rem;color:var(--text-3);}
@@ -106,6 +112,19 @@
     .log-item:last-child{border-bottom:none;}
     .log-date{color:var(--text-3);white-space:nowrap;font-size:0.72rem;}
     .log-action{font-weight:600;color:var(--text);}
+
+    /* CONFIRM MODAL */
+    .confirm-box{background:var(--white);border-radius:var(--radius);width:100%;max-width:400px;box-shadow:var(--shadow-md);overflow:hidden;}
+    .confirm-icon{font-size:2.2rem;margin-bottom:0.5rem;}
+    .confirm-body{padding:1.8rem 1.5rem;text-align:center;}
+    .confirm-title{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;color:var(--navy);margin-bottom:0.4rem;}
+    .confirm-msg{font-size:0.85rem;color:var(--text-2);line-height:1.5;}
+    .confirm-actions{display:flex;gap:0.6rem;padding:1rem 1.5rem;border-top:1px solid var(--border);justify-content:flex-end;}
+    .btn-cancel{padding:0.5rem 1.1rem;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg);font-size:0.82rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
+    .btn-confirm{padding:0.5rem 1.2rem;border-radius:var(--radius-sm);border:none;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;color:#fff;}
+    .btn-confirm.danger{background:var(--red);}
+    .btn-confirm.warning{background:var(--orange);}
+    .btn-confirm.success{background:var(--green);}
   </style>
 </head>
 <body>
@@ -158,8 +177,8 @@
     <!-- STATS -->
     <div class="stats-grid" id="statsGrid">
       <div class="stat-card"><div class="sc-icon ic-teal">👥</div><div><div class="sc-val" id="s-total">—</div><div class="sc-lbl">Total Citizens</div></div></div>
-      <div class="stat-card"><div class="sc-icon ic-green">✅</div><div><div class="sc-val" id="s-verified">—</div><div class="sc-lbl">Verified</div></div></div>
-      <div class="stat-card"><div class="sc-icon ic-orange">⏳</div><div><div class="sc-val" id="s-unverified">—</div><div class="sc-lbl">Unverified</div></div></div>
+      <div class="stat-card"><div class="sc-icon ic-green">✅</div><div><div class="sc-val" id="s-active">—</div><div class="sc-lbl">Active</div></div></div>
+      <div class="stat-card"><div class="sc-icon ic-orange">🚫</div><div><div class="sc-val" id="s-inactive">—</div><div class="sc-lbl">Deactivated</div></div></div>
       <div class="stat-card"><div class="sc-icon ic-purple">📋</div><div><div class="sc-val" id="s-complaints">—</div><div class="sc-lbl">Total Complaints Filed</div></div></div>
     </div>
 
@@ -171,10 +190,10 @@
         </div>
         <div class="tc-search">
           <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search name or email..." oninput="filterUsers()"/>
-          <select class="filter-sel" id="filterVerified" onchange="filterUsers()">
+          <select class="filter-sel" id="filterStatus" onchange="filterUsers()">
             <option value="">All</option>
-            <option value="1">Verified</option>
-            <option value="0">Unverified</option>
+            <option value="active">Active</option>
+            <option value="inactive">Deactivated</option>
           </select>
           <span class="tc-count" id="usersCount">Loading...</span>
         </div>
@@ -196,6 +215,21 @@
   </div>
 </div>
 
+<!-- CONFIRM MODAL -->
+<div class="modal" id="confirmModal">
+  <div class="confirm-box">
+    <div class="confirm-body">
+      <div class="confirm-icon" id="confirmIcon">⚠️</div>
+      <div class="confirm-title" id="confirmTitle">Are you sure?</div>
+      <div class="confirm-msg" id="confirmMsg"></div>
+    </div>
+    <div class="confirm-actions">
+      <button class="btn-cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="btn-confirm" id="confirmBtn" onclick="runConfirm()">Confirm</button>
+    </div>
+  </div>
+</div>
+
 <script src="http-client.js"></script>
 <script src="app.js"></script>
 <script>
@@ -211,33 +245,60 @@
 
   let allUsers = [];
 
+  // ── Confirm modal state ──
+  let _confirmAction = null;
+  function showConfirm({ icon, title, msg, btnLabel, btnClass, action }) {
+    document.getElementById('confirmIcon').textContent  = icon;
+    document.getElementById('confirmTitle').textContent = title;
+    document.getElementById('confirmMsg').textContent   = msg;
+    const btn = document.getElementById('confirmBtn');
+    btn.textContent  = btnLabel;
+    btn.className    = 'btn-confirm ' + btnClass;
+    _confirmAction   = action;
+    document.getElementById('confirmModal').classList.add('open');
+  }
+  async function runConfirm() {
+    closeConfirm();
+    if (_confirmAction) await _confirmAction();
+  }
+  function closeConfirm() {
+    document.getElementById('confirmModal').classList.remove('open');
+    _confirmAction = null;
+  }
+
+  // ── Load ──
   async function loadUsers() {
     const res = await http.get('/api/admin/users');
     if (!res.success) return;
     allUsers = res.data;
 
-    const total      = allUsers.length;
-    const verified   = allUsers.filter(u => u.is_verified).length;
-    const unverified = total - verified;
+    const total    = allUsers.length;
+    const active   = allUsers.filter(u => u.is_verified).length;
+    const inactive = total - active;
     const complaints = allUsers.reduce((s, u) => s + (parseInt(u.complaint_count) || 0), 0);
 
-    document.getElementById('s-total').textContent     = total;
-    document.getElementById('s-verified').textContent  = verified;
-    document.getElementById('s-unverified').textContent = unverified;
+    document.getElementById('s-total').textContent    = total;
+    document.getElementById('s-active').textContent   = active;
+    document.getElementById('s-inactive').textContent = inactive;
     document.getElementById('s-complaints').textContent = complaints;
 
     renderTable(allUsers);
   }
 
   function filterUsers() {
-    const q    = document.getElementById('searchInput').value.toLowerCase();
-    const vf   = document.getElementById('filterVerified').value;
+    const q  = document.getElementById('searchInput').value.toLowerCase();
+    const sf = document.getElementById('filterStatus').value;
     const list = allUsers.filter(u => {
       const matchQ = !q || u.full_name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
-      const matchV = vf === '' || String(u.is_verified ? 1 : 0) === vf;
-      return matchQ && matchV;
+      const isActive = !!u.is_verified;
+      const matchS = sf === '' || (sf === 'active' && u.is_verified) || (sf === 'inactive' && !u.is_verified);
+      return matchQ && matchS;
     });
     renderTable(list);
+  }
+
+  function esc(str) {
+    return String(str).replace(/'/g, "\\'");
   }
 
   function renderTable(list) {
@@ -246,33 +307,85 @@
       document.getElementById('usersTable').innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><p>No citizens match your search.</p></div>';
       return;
     }
+    const rows = list.map((u, i) => {
+      const isActive = !!u.is_verified;
+      const name = esc(u.full_name);
+      return `<tr>
+        <td style="color:var(--text-3);font-size:0.75rem">${i + 1}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:0.6rem">
+            <div class="av" style="background:linear-gradient(135deg,${isActive ? '#6366f1,#8b5cf6' : '#94a3b8,#64748b'})">${u.full_name[0].toUpperCase()}</div>
+            <strong style="color:${isActive ? 'var(--text)' : 'var(--text-3)'}">${u.full_name}</strong>
+          </div>
+        </td>
+        <td style="font-size:0.78rem">${u.email}</td>
+        <td style="font-size:0.78rem">${u.phone || '—'}</td>
+        <td style="text-align:center;font-weight:700;color:var(--teal)">${u.complaint_count || 0}</td>
+        <td style="text-align:center;font-weight:700;color:var(--green)">${u.resolved_count || 0}</td>
+        <td>
+          <span class="badge ${isActive ? 'b-active' : 'b-inactive'}">${isActive ? '● Active' : '● Deactivated'}</span>
+        </td>
+        <td style="font-size:0.75rem;white-space:nowrap">${formatDate(u.created_at)}</td>
+        <td><div style="display:flex;gap:0.4rem;flex-wrap:wrap">
+          <button class="act-btn ab-logs" onclick="viewLogs(${u.id},'${name}')">📋 Logs</button>
+          ${isActive
+            ? `<button class="act-btn ab-deact" onclick="confirmDeactivate(${u.id},'${name}')">🚫 Deactivate</button>`
+            : `<button class="act-btn ab-activate" onclick="confirmActivate(${u.id},'${name}')">✅ Activate</button>`
+          }
+          <button class="act-btn ab-delete" onclick="confirmDelete(${u.id},'${name}')">🗑 Delete</button>
+        </div></td>
+      </tr>`;
+    }).join('');
     document.getElementById('usersTable').innerHTML = `
-      <table>
-        <thead>
-          <tr><th>#</th><th>Citizen</th><th>Email</th><th>Phone</th><th>Complaints</th><th>Resolved</th><th>Status</th><th>Registered</th><th>Actions</th></tr>
-        </thead>
-        <tbody>${list.map((u, i) => `
-          <tr>
-            <td style="color:var(--text-3);font-size:0.75rem">${i + 1}</td>
-            <td>
-              <div style="display:flex;align-items:center;gap:0.6rem">
-                <div class="av" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">${u.full_name[0].toUpperCase()}</div>
-                <strong>${u.full_name}</strong>
-              </div>
-            </td>
-            <td style="font-size:0.78rem">${u.email}</td>
-            <td style="font-size:0.78rem">${u.phone || '—'}</td>
-            <td style="text-align:center;font-weight:700;color:var(--teal)">${u.complaint_count || 0}</td>
-            <td style="text-align:center;font-weight:700;color:var(--green)">${u.resolved_count || 0}</td>
-            <td><span class="badge ${u.is_verified ? 'b-verified' : 'b-unverified'}">${u.is_verified ? '✓ Verified' : '⏳ Unverified'}</span></td>
-            <td style="font-size:0.75rem;white-space:nowrap">${formatDate(u.created_at)}</td>
-            <td style="display:flex;gap:0.4rem;flex-wrap:wrap">
-              <button class="act-btn ab-logs" onclick="viewLogs(${u.id},'${u.full_name.replace(/'/g, "\\'")}')">📋 Logs</button>
-              ${u.is_verified ? `<button class="act-btn ab-deact" onclick="deactivate(${u.id},'${u.full_name.replace(/'/g, "\\'")}')">🚫 Deactivate</button>` : ''}
-            </td>
-          </tr>`).join('')}
-        </tbody>
-      </table>`;
+      <div style="overflow-x:auto">
+        <table style="min-width:900px;width:100%">
+          <thead><tr>
+            <th>#</th><th>Citizen</th><th>Email</th><th>Phone</th>
+            <th>Complaints</th><th>Resolved</th><th>Status</th><th>Registered</th><th>Actions</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  }
+
+  // ── Actions ──
+  function confirmDeactivate(id, name) {
+    showConfirm({
+      icon: '🚫', title: 'Deactivate User',
+      msg: `Deactivate "${name}"? Their account will be disabled until reactivated.`,
+      btnLabel: 'Deactivate', btnClass: 'warning',
+      action: async () => {
+        const res = await http.put(`/api/admin/users/${id}/deactivate`);
+        if (res.success) loadUsers();
+        else showToast(res.message || 'Failed to deactivate.', 'error');
+      }
+    });
+  }
+
+  function confirmActivate(id, name) {
+    showConfirm({
+      icon: '✅', title: 'Activate User',
+      msg: `Re-activate "${name}"? They will be able to login again.`,
+      btnLabel: 'Activate', btnClass: 'success',
+      action: async () => {
+        const res = await http.put(`/api/admin/users/${id}/activate`);
+        if (res.success) loadUsers();
+        else showToast(res.message || 'Failed to activate.', 'error');
+      }
+    });
+  }
+
+  function confirmDelete(id, name) {
+    showConfirm({
+      icon: '🗑️', title: 'Delete User',
+      msg: `Permanently delete "${name}"? This cannot be undone. Users with existing complaints cannot be deleted.`,
+      btnLabel: 'Delete', btnClass: 'danger',
+      action: async () => {
+        const res = await http.delete(`/api/admin/users/${id}`);
+        if (res.success) loadUsers();
+        else showToast(res.message || 'Failed to delete user.', 'error');
+      }
+    });
   }
 
   async function viewLogs(id, name) {
@@ -292,15 +405,14 @@
       </div>`).join('');
   }
 
-  async function deactivate(id, name) {
-    if (!confirm(`Deactivate ${name}? They will need to re-verify their email to login.`)) return;
-    const res = await http.put(`/api/admin/users/${id}/deactivate`);
-    if (res.success) { loadUsers(); }
-    else { alert(res.message || 'Failed to deactivate user.'); }
-  }
-
   function closeLogs() {
     document.getElementById('logsModal').classList.remove('open');
+  }
+
+  // Simple toast (reuse if app.js has one, else fallback alert)
+  function showToast(msg, type) {
+    if (typeof toast === 'function') { toast(msg, type); return; }
+    alert(msg);
   }
 
   loadUsers();

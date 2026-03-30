@@ -18,6 +18,8 @@ const {
   updateOfficial,
   getUsers,
   deactivateUser,
+  activateUser,
+  deleteUser,
   getUserLogs,
   getStates,
   createState,
@@ -47,6 +49,8 @@ router.delete('/officials/:id', verifyToken, deleteOfficial);
 router.get('/users', verifyToken, getUsers);
 router.get('/users/:id/logs', verifyToken, getUserLogs);
 router.put('/users/:id/deactivate', verifyToken, deactivateUser);
+router.put('/users/:id/activate', verifyToken, activateUser);
+router.delete('/users/:id', verifyToken, deleteUser);
 
 // ── States ──
 router.get('/states', verifyToken, getStates);
