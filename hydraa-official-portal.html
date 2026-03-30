@@ -570,7 +570,7 @@ function updateDashboard() {
   const recent = c.slice(0,5);
   document.getElementById('recentTable').innerHTML = recent.length === 0
     ? '<div class="empty"><div class="empty-icon">📭</div><p>No complaints assigned yet</p></div>'
-    : `<table><thead><tr><th>No.</th><th>Title</th><th>Category</th><th>Citizen</th><th>Priority</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+    : `<div style="overflow-x:auto"><table><thead><tr><th>No.</th><th>Title</th><th>Category</th><th>Citizen</th><th>Priority</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
        <tbody>${recent.map(x=>`<tr>
          <td><span class="cno">${x.complaint_no}</span></td>
          <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><strong>${x.title}</strong></td>
@@ -579,9 +579,9 @@ function updateDashboard() {
          <td>${pb(x.priority)}</td>
          <td>${sb(x.status)}</td>
          <td style="white-space:nowrap">${formatDate(x.created_at)}</td>
-         <td>${(x.status!=='resolved'&&x.status!=='closed') ? `<button class="upd-btn" onclick="openUpdate(${x.id})">✏️ Update</button>` : '<span class="done-tag">✅ Done</span>'}</td>
+         <td style="white-space:nowrap">${(x.status!=='resolved'&&x.status!=='closed') ? `<button class="upd-btn" onclick="openUpdate(${x.id})">✏️ Update</button>` : '<span class="done-tag">✅ Done</span>'}</td>
        </tr>`).join('')}
-       </tbody></table>`;
+       </tbody></table></div>`;
 }
 
 function taskItem(x) {
@@ -605,20 +605,18 @@ function filterComplaints() {
 
   document.getElementById('complaintsTable').innerHTML = data.length === 0
     ? '<div class="empty"><div class="empty-icon">📭</div><p>No complaints match your filters</p></div>'
-    : `<table><thead><tr><th>No.</th><th>Title</th><th>Category</th><th>Citizen</th><th>Phone</th><th>Location</th><th>Priority</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+    : `<div style="overflow-x:auto"><table><thead><tr><th>No.</th><th>Title</th><th>Category</th><th>Citizen</th><th>Priority</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
        <tbody>${data.map(c=>`<tr>
          <td><span class="cno">${c.complaint_no}</span></td>
-         <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.title}"><strong>${c.title}</strong></td>
+         <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.title}"><strong>${c.title}</strong></td>
          <td style="font-size:0.78rem">${c.category_name||'—'}</td>
          <td>${c.user_name}</td>
-         <td style="font-size:0.78rem">${c.user_phone||'—'}</td>
-         <td style="font-size:0.78rem">${c.state_name||c.address||'—'}</td>
          <td>${pb(c.priority)}</td>
          <td>${sb(c.status)}</td>
          <td style="white-space:nowrap">${formatDate(c.created_at)}</td>
-         <td>${(c.status!=='resolved'&&c.status!=='closed') ? `<button class="upd-btn" onclick="openUpdate(${c.id})">✏️ Update</button>` : '<span class="done-tag">✅ Done</span>'}</td>
+         <td style="white-space:nowrap">${(c.status!=='resolved'&&c.status!=='closed') ? `<button class="upd-btn" onclick="openUpdate(${c.id})">✏️ Update</button>` : '<span class="done-tag">✅ Done</span>'}</td>
        </tr>`).join('')}
-       </tbody></table>`;
+       </tbody></table></div>`;
 }
 
 // ═══ MODAL ═══
