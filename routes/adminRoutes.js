@@ -33,6 +33,7 @@ const {
   getMandals,
   createMandal,
   deleteMandal,
+  seedMandals,
 } = require('../controllers/adminController');
 const { verifyToken } = require('../middleware/auth');
 
@@ -74,6 +75,7 @@ router.post('/districts/seed', verifyToken, seedDistricts);
 router.get('/mandals', verifyToken, getMandals);
 router.post('/mandals', verifyToken, createMandal);
 router.delete('/mandals/:id', verifyToken, deleteMandal);
+router.post('/mandals/seed', verifyToken, seedMandals);
 
 // ── Analytics ──
 router.get('/analytics', verifyToken, getAnalytics);

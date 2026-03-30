@@ -688,6 +688,62 @@ const deleteMandal = async (req, res) => {
   }
 };
 
+const seedMandals = async (req, res) => {
+  const MANDALS_BY_DISTRICT = {
+    'Adilabad':                   ['Adilabad','Bela','Boath','Gudihatnoor','Ichoda','Jainoor','Mavala','Narnoor','Talamadugu','Bazarhatnoor','Neradigonda','Kubeer','Tamsi','Tiryani','Utnoor','Gadiguda','Indervelly'],
+    'Bhadradri Kothagudem':       ['Aswaraopet','Aswapuram','Bhadrachalam','Bhurgampadu','Chandrugonda','Cherla','Dammapet','Dummugudem','Gundala','Julurpad','Kothagudem','Kunavaram','Laxmidevipally','Manuguru','Mulkalapalli','Palvoncha','Pinapaka','Sujathanagar','Tekulapally','Thirumalayapalem','Venkatapuram','Wazeedu','Yellandu','Burgampadu','Rajolu','Seetharampuram'],
+    'Hyderabad':                  ['Amberpet','Bahadurpura','Bandlaguda Jagir','Charminar','Golconda','Hayathnagar','Kapra','Khairatabad','LB Nagar','Malakpet','Malkajgiri','Musheerabad','Neredmet','Saroornagar','Secunderabad','Shaikpet'],
+    'Jagtial':                    ['Buggaram','Dharmapuri','Gollapally','Jagtial','Korutla','Mallapur','Medipally','Metpally','Pegadapally','Raikal','Sarangapur','Vadlapally','Velgatoor','Kodimial','Ibrahimpatnam','Beerpur','Kathlapur','Channaram','Julapally','Konaraopet','Manthani','Sultanabad','Gambhiraopet'],
+    'Jangaon':                    ['Bachannapeta','Chilpur','Devaruppula','Ghanpur Station','Jangaon','Kodakandla','Lingal Ghanpur','Narsimhulapet','Nellipaka','Palakurthi','Raghunathapally','Regonda','Roopanagudi','Shayampet','Tadvai','Thorrur','Zaffergadh'],
+    'Jayashankar Bhupalpally':    ['Bhupalpally','Chityal','Eleswaram','Gambhiraopet','Govindaraopet','Kataram','Mahadevpur','Maripeda','Mogullapally','Mulug','Palimela','Regonda','Tadvai','Tekumatla','Venkatapur','Wazedu','Eturunagaram','Kothaguda','Mangapet'],
+    'Jogulamba Gadwal':           ['Alampur','Atturu','Dharur','Gadwal','Gattu','Gopal','Ieeja','Itikyala','Kalwakurthy','Krishnur','Lingal','Maldakal','Undavalli','Waddepally','Makthal','Wanaparthy','Nagarkurnool','Dhanwada'],
+    'Kamareddy':                  ['Banswada','Bichkunda','Bhiknur','Bommakal','Domakonda','Ellareddy','Gandhari','Jakranpally','Jukkal','Kamareddy','Lingampet','Machnur','Madnur','Makloor','Mupkal','Narayankhed','Nizamsagar','Pitlam','Ramareddy','Ranjole','Sadasivanagar','Thimmapur','Yellareddy','Bibipet','Kotagiri','Nagireddypet','Rajampet','Tadwai','Wargal','Dichpally'],
+    'Karimnagar':                 ['Bommakal','Choppadandi','Dharmapuri','Gangadhara','Husnabad','Huzurabad','Jammikunta','Karimnagar','Kattangur','Koheda','Manakondur','Manthani','Metpally','Ramadugu','Saidapur','Shankarapatnam','Sultanabad','Timmapur','Veenavanka','Yellareddypet','Kodimial','Ibrahimpatnam','Konaraopet','Kathlapur','Gambhiraopet','Pegadapally','Julapally'],
+    'Khammam':                    ['Bonakal','Chintakani','Enkoor','Errupalem','Garla','Kallur','Khanapuram Haveli','Khammam','Kusumanchi','Madhira','Mudigonda','Nelakondapally','Nellipaka','Raghunadhapalem','Sattupally','Singareni','Thirumalayapalem','Vemsoor','Wyra','Konijerla','Nuguru','Penuballi','Tallapally','Tallada','Yerrupalem','Dammapet','Tirumalayapalem','Bonakal','Madhira','Khammam Rural'],
+    'Kumuram Bheem Asifabad':     ['Asifabad','Bejjur','Chenur','Dahegaon','Gadiguda','Gunjala','Jainoor','Kagaznagar','Kouthala','Lingapur','Narsapur','Rebbena','Sirpur T','Tiryani','Tamsi','Utnoor','Wankidi','Kerameri'],
+    'Mahabubabad':                ['Bayyaram','Cheriyal','Dornakal','Gudur','Kesamudram','Khanapur','Kodakandla','Mahabubabad','Maripeda','Narsimhulapet','Nellikudur','Nellipaka','Palakurthi','Reguvanipalle','Santhoshpur','Subhashpur','Thorrur','Usikayal','Garla','Kothaguda','Kuravi','Mahbubabad'],
+    'Mahabubnagar':               ['Achampet','Addakal','Amarchintha','Atmakur','Balanagar','Bhoothpur','Bijinapally','Devarkadra','Hanwada','Jadcherla','Kalwakurthi','Kothakota','Mahabubnagar','Makthal','Midjil','Pangal','Ravinuthala','Shadnagar','Utkoor','Veldanda','Gadwal','Kodangal','Narayanpet','Wanaparthy','Dharur','Chinnachintakunta'],
+    'Mancherial':                 ['Bellampally','Bheemaram','Bopapuram','Chennur','Dandepally','Hajipur','Jaipur','Kasipet','Kotapally','Laxmipur','Luxettipet','Mancherial','Mandamarri','Naspur','Nennel','Ramakrishnapur','Soanpet','Tandur','Vemanpally','Yellareddypet','Jannaram','Umerabad'],
+    'Medak':                      ['Alladurg','Andole','Chegunta','Chilodde','Doulathabad','Dubbak','Gajwel','Havelighanpur','Jogipet','Kondapak','Kulcharam','Medak','Narsapur','Papannapet','Ramayampet','Shankarampet','Siddipet','Tekmal','Toopran','Yeldurthy','Narayankhed','Manoor','Sadasivapet','Ramayampet A','Shankarampet R'],
+    'Medchal-Malkajgiri':         ['Badangpet','Ghatkesar','Keesara','Kompally','Malkajgiri','Medchal','Quthbullapur','Shamirpet','Uppal','Alwal','Dundigal','Kapra','Balanagar','Medipally'],
+    'Mulugu':                     ['Eturnagaram','Govindaraopet','Mangapet','Mulugu','Tekumatla','Tadvai','Venkatapuram','Wazeedu','Venkatapur'],
+    'Nagarkurnool':               ['Achampet','Amarchintha','Bijinapally','Chandampet','Charakonda','Chinnachintakunta','Kollapur','Kodair','Kothakota','Lingal','Maddur','Nagarkurnool','Nawabpet','Padara','Peddakothapally','Telkapally','Thimmajipet','Utkoor','Veldanda','Vangoor','Vatwarlapally','Waddepally','Kalwakurthi','Tadoor','Amrabad','Badvel'],
+    'Nalgonda':                   ['Addakal','Alair','Aler','Bhongir','Bibinagar','Chandur','Chivvemla','Chityal','Devarakonda','Dindi','Huzurnagar','Kodad','Mothkur','Munagala','Nalgonda','Nakrekal','Narketpally','Nampally','Nidmanur','Pampanur','Peddavoora','Ramannapeta','Thirumalagiri','Tripuraram','Tungaturthy','Valigonda','Yadagirigutta','Yacharam','Anumula','Decherla','Marriguda','Kanagal','Suryapet','Thungathurthi','Mellacheruvu','Mattampally','Garidepally','Katangur','Ramannapeta'],
+    'Narayanpet':                 ['Amangal','Balanagar','Damaragidda','Dhanwada','Kosgi','Kulkacherla','Maddur','Maganur','Marikal','Makthal','Narayanpet','Utkoor'],
+    'Nirmal':                     ['Armur','Bhainsa','Bheemgal','Dilawarpur','Kaddam','Kanapur','Kubeer','Lokeshwaram','Laxmanchanda','Mamda','Mudhole','Muzafarabad','Narsapur','Nirmal','Pembi','Pitlapur','Ranjole','Sarangapur','Tanur','Talamadugu','Utnoor','Wankidi','Khanapur'],
+    'Nizamabad':                  ['Armur','Balanagar','Banswada','Bheemgal','Bhiknur','Bodhan','Dichpally','Domakonda','Enkuru','Gandhari','Indalwai','Jakranpally','Jukkal','Kotagiri','Linkaspur','Lokeshwaram','Morthad','Mudhole','Nandipet','Navipet','Nidgul','Nizamabad Rural','Nizamabad Urban','Pitlam','Renjal','Rudrur','Sirkilla','Sultanabad','Velpur','Yellareddy','Rajampet','Wargal','Bichkunda','Kamareddy','Thimmapur','Varni'],
+    'Peddapalli':                 ['Dharmaram','Gambhiraopet','Godavarikhani','Husnabad','Julapally','Kataram','Konaraopet','Manthani','Mutharam','Odela','Peddapalli','Ramagiri','Ramakrishnapur','Sultanabad','Veenavanka','Karimnagar Urban'],
+    'Rajanna Sircilla':           ['Boinpally','Choppadandi','Dharmapuri','Elkaturthi','Gambhiraopet','Illanthakunta','Koheda','Konaraopet','Mustabad','Pegadapally','Sircilla','Thangallapally','Vemulawada','Yellareddypet','Rudrannapet','Kotapally'],
+    'Rangareddy':                 ['Abdullapurmet','Amangal','Balapur','Chevella','Farooqnagar','Gandeed','Hayathnagar','Ibrahimpatnam','Kandukur','Keesara','Kothur','Maheswaram','Manchal','Marpalle','Nawabpet','Pudur','Rajendranagar','Saroornagar','Shamshabad','Shadnagar','Shabad','Tandur','Yacharam','Vikarabad','Meerkhanpet'],
+    'Sangareddy':                 ['Andole','Chegunta','Gummadidala','Isnapur','Jinnaram','Jogipet','Kangti','Kondapur','Kandi','Manur','Narayankhed','Nyalkal','Patancheru','Pulkal','Ramachandrapuram','Sadasivapet','Sangareddy','Shankarampet A','Shankarampet R','Tekmal','Vatpally','Zahirabad','Hathnoora','Narsapur','Masaipet','Mogudampally','Doulatabad','Kalher','Kohir','Raikode','Wargal'],
+    'Siddipet':                   ['Akkannapet','Bejjanki','Cheriyal','Chinnaodela','Doultabad','Dubbak','Gajwel','Ghanpur Siddipet','Husnabad','Kondapak','Koheda','Komuravelli','Mirdoddi','Nanganur','Narayanraopet','Pragnapur','Siddipet','Thoguta','Yeldurthy','Rajpet','Hatnoora','Waddepally','Sirikonda','Medak','Sirdhan','Mulug','Wargal','Cheriyal'],
+    'Suryapet':                   ['Alair','Athmakur','Bhongir','Decherla','Devarakonda','Dindi','Garidepally','Huzurnagar','Kodad','Mothkur','Nampally','Nidmanur','Nuthankal','Penpahad','Rayagiri','Sattupally','Suryapet','Thungathurthi','Tripuraram','Tungaturthy','Vemsoor','Chityal','Mellacheruvu','Mattampally','Marriguda','Anumula','Tirumalgiri','Munagala','Adavi Devulapally','Yadagirigutta'],
+    'Vikarabad':                  ['Basheerabad','Dhulkote','Doulatabad','Kulkacherla','Kotapally','Kodangal','Marpalle','Mominpet','Nawabpet','Parigi','Pudur','Shabad','Tandur','Vikarabad','Yalal','Dharur','Doma','Bomraspet','Lagacherla','Peddemul','Chevella','Bantwaram','Imampur'],
+    'Wanaparthy':                 ['Addakal','Atmakur','Chennaraopet','Chinnambavi','Gopalpet','Hanwada','Kothakota','Madanapuram','Maddur','Peddamandadi','Pebbair','Pangal','Reddyal','Revelly','Roopanagudi','Sribhavani','Utkoor','Veepanagandla','Wanaparthy','Ghanpur','Shabad','Amarpur','Bhoothpur','Marikal','Damaragidda'],
+    'Warangal Rural':             ['Atmakur','Cherial','Chityal','Dharmasagar','Duggondi','Geesugonda','Khanapur','Narsampet','Nekkonda','Nellipaka','Parkal','Parvathagiri','Rayaparthi','Sangem','Shayampet','Thorrur'],
+    'Warangal Urban':             ['Dharmasagar','Geesugonda','Hasanparthy','Khanapur','Parkal','Rayaparthi','Sangem','Shayampet','Wardhannapet'],
+    'Yadadri Bhuvanagiri':        ['Addaguduru','Alair','Aler','Bibinagar','Bhuvanagiri','Bhongir','Choutuppal','Chivvemla','Chityal','Mothkur','Munagala','Narketpally','Nampally','Penpahad','Ramannapeta','Yadadri','Devarakonda'],
+  };
+
+  try {
+    let added = 0, skipped = 0;
+    for (const [districtName, mandals] of Object.entries(MANDALS_BY_DISTRICT)) {
+      const [[district]] = await db.query('SELECT id FROM districts WHERE name = ?', [districtName]);
+      if (!district) { skipped += mandals.length; continue; }
+      for (const mandalName of mandals) {
+        try {
+          await db.query('INSERT INTO mandals (name, district_id) VALUES (?, ?)', [mandalName, district.id]);
+          added++;
+        } catch (e) { skipped++; /* skip duplicates */ }
+      }
+    }
+    res.json({ success: true, message: `Seeded ${added} mandals (${skipped} already existed or district not found).` });
+  } catch (err) {
+    console.error('Seed mandals error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
 module.exports = {
   deleteOfficial,
   getCategories,
@@ -716,4 +772,5 @@ module.exports = {
   getMandals,
   createMandal,
   deleteMandal,
+  seedMandals,
 };

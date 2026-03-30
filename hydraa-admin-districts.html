@@ -209,7 +209,10 @@
           <div class="sb-pill"><span id="b-mandals">—</span> Mandals</div>
           <div class="sb-pill">33 Official Districts</div>
         </div>
-        <button class="seed-btn" id="seedBtn" onclick="seedAllDistricts()">⚡ Auto-seed All 33 Districts</button>
+        <div style="display:flex;gap:0.6rem;flex-wrap:wrap;">
+          <button class="seed-btn" id="seedBtn" onclick="seedAllDistricts()">⚡ Auto-seed All 33 Districts</button>
+          <button class="seed-btn" id="seedMandalsBtn" onclick="seedAllMandals()" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);box-shadow:0 4px 14px rgba(139,92,246,0.35);">🏘️ Seed All Mandals</button>
+        </div>
       </div>
     </div>
 
@@ -450,6 +453,19 @@
     if (!res.success) { showToast(res.message || 'Seed failed', 'error'); return; }
     showToast(res.message, 'success');
     loadDistricts();
+  }
+
+  async function seedAllMandals() {
+    const btn = document.getElementById('seedMandalsBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Seeding mandals...';
+    const res = await http.post('/api/admin/mandals/seed', {});
+    btn.disabled = false;
+    btn.textContent = '🏘️ Seed All Mandals';
+    if (!res.success) { showToast(res.message || 'Mandal seed failed', 'error'); return; }
+    showToast(res.message, 'success');
+    loadDistricts();
+    if (selectedDistrictId) loadMandals(selectedDistrictId);
   }
 
   // ─────────────────────────────────────────
