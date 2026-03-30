@@ -290,7 +290,7 @@
 
 <script src="http-client.js"></script><script src="app.js"></script>
 <script>
-  Auth.requireLogin('admin');
+  if (!Auth.isLoggedIn()) { window.location.href = '/hydraa-admin-login.html'; }
 
   const user = Auth.getUser();
   if (user) {

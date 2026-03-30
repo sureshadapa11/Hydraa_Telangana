@@ -151,6 +151,12 @@ const Auth = {
     return !!http.getToken();
   },
 
+  requireLogin(role) {
+    if (!http.getToken()) {
+      window.location.href = role === 'admin' ? '/hydraa-admin-login.html' : '/hydraa-login.html';
+    }
+  },
+
   logout() {
     localStorage.removeItem('hydraa_user');
     http.clearToken();
