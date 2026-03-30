@@ -108,7 +108,7 @@
 
     table{width:100%;border-collapse:collapse;}
     th,td{padding:0.75rem 1rem;text-align:left;font-size:0.82rem;}
-    th{background:var(--bg);font-weight:700;color:var(--text-3);text-transform:uppercase;font-size:0.68rem;letter-spacing:0.07em;border-bottom:1px solid var(--border);}
+    th{background:var(--bg);font-weight:700;color:var(--text-3);text-transform:uppercase;font-size:0.68rem;letter-spacing:0.07em;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:2;}
     td{border-bottom:1px solid rgba(208,228,236,0.5);color:var(--text-2);}
     td strong{color:var(--text);font-weight:700;}
     tr:last-child td{border-bottom:none;}
@@ -184,6 +184,10 @@
 
     /* Complaint no link */
     .cno{color:var(--teal);font-weight:700;font-size:0.82rem;}
+
+    /* Scrollable complaints table */
+    #complaintsTable{max-height:calc(100vh - 320px);overflow-y:auto;overflow-x:auto;}
+    #complaintsTable table{min-width:900px;}
   </style>
 </head>
 <body>
