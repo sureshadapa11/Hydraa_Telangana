@@ -49,6 +49,9 @@
     .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 10px rgba(0,30,60,0.06);}
     .tb-title{font-family:'Rajdhani',sans-serif;font-size:1.15rem;font-weight:700;color:var(--navy);}
     .tb-sub{font-size:0.7rem;color:var(--text-3);margin-top:1px;}
+    .tb-pill{display:flex;align-items:center;gap:0.5rem;background:var(--bg);border:1px solid var(--border);border-radius:100px;padding:0.28rem 0.9rem 0.28rem 0.3rem;}
+    .tp-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;font-weight:700;font-size:0.72rem;display:flex;align-items:center;justify-content:center;}
+    .tp-nm{font-size:0.78rem;font-weight:600;color:var(--text);}
     .content{padding:1.8rem 2rem;flex:1;}
 
     /* STAT CARDS */
@@ -188,6 +191,9 @@
       <div class="tb-title">Analytics</div>
       <div class="tb-sub">Complaint performance & insights</div>
     </div>
+    <div class="tb-pill">
+      <div class="tp-av" id="tp-av">A</div>
+      <span class="tp-nm" id="tp-nm">Admin</span>
     </div>
   </div>
 
@@ -273,6 +279,8 @@
     const init = (user.full_name || user.username || 'A')[0].toUpperCase();
     document.getElementById('sb-av').textContent = init;
     document.getElementById('sb-un').textContent = user.full_name || user.username || 'Admin';
+    document.getElementById('tp-av').textContent = init;
+    document.getElementById('tp-nm').textContent = user.full_name || user.username || 'Admin';
   }
 
   const CHART_COLORS = {
