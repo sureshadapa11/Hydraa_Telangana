@@ -52,9 +52,6 @@
     .tb-left .tb-sub{font-size:0.7rem;color:var(--text-3);margin-top:1px;}
     .tb-left .tb-sub span{color:var(--teal);font-weight:600;}
     .tb-right{display:flex;align-items:center;gap:0.7rem;}
-    .tb-pill{display:flex;align-items:center;gap:0.5rem;background:var(--bg);border:1px solid var(--border);border-radius:100px;padding:0.28rem 0.9rem 0.28rem 0.3rem;}
-    .tp-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;font-weight:700;font-size:0.72rem;display:flex;align-items:center;justify-content:center;}
-    .tp-nm{font-size:0.78rem;font-weight:600;color:var(--text);}
 
     /* Content */
     .content{padding:1.8rem 2rem;flex:1;}
@@ -233,9 +230,6 @@
       <div class="tb-sub">HYDRAA Citizen Portal · <span id="tb-date"></span></div>
     </div>
     <div class="tb-right">
-      <div class="tb-pill">
-        <div class="tp-av" id="tp-av">U</div>
-        <div class="tp-nm" id="tp-nm">Citizen</div>
       </div>
     </div>
   </div>
@@ -329,8 +323,6 @@
     const name = user.full_name || user.username || 'Citizen';
     document.getElementById('sb-av').textContent = init;
     document.getElementById('sb-un').textContent = name;
-    document.getElementById('tp-av').textContent = init;
-    document.getElementById('tp-nm').textContent = name;
     document.getElementById('wb-name').textContent = name + ' 👋';
   }
   document.getElementById('tb-date').textContent = new Date().toLocaleDateString('en-IN', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
