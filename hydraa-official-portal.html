@@ -254,7 +254,7 @@
 
   .urgency-row{grid-template-columns:1fr!important;}.complaints-grid{grid-template-columns:1fr!important;}
 
-  #screen-login{flex-direction:column!important;grid-template-columns:1fr!important;padding:2rem 1.2rem!important;gap:1.5rem!important;align-items:flex-start!important;}
+  #screen-login{flex-direction:column!important;grid-template-columns:1fr!important;padding:0!important;gap:0!important;align-items:stretch!important;background:#fff!important;}
   .login-left{display:none!important;}
   .login-right{width:100%;max-width:100%!important;}
   .login-card{padding:1.8rem 1.2rem!important;border-radius:12px!important;}
@@ -262,12 +262,30 @@
 
   .tb-sub,.topbar-crumb{display:none!important;}
   .table-card,div[style*="overflow-x:auto"]{overflow-x:auto!important;}
+
+  #screen-login{background:#fff!important;padding:0!important;gap:0!important;align-items:stretch!important;}
+  .login-grid-bg,.login-orb{display:none!important;}
+  .login-right{background:#fff;padding:1.5rem 1.4rem 2rem;width:100%!important;max-width:100%!important;}
+  .login-card{box-shadow:none!important;padding:0!important;border-radius:0!important;background:transparent!important;}
+  .mob-header.official-header{background:linear-gradient(160deg,#061526,#0b2040);padding:1.4rem 1.4rem 1.2rem;}
+  .mob-header.official-header .mob-n1{color:#fff!important;}
+  .mob-header.official-header .mob-n2{color:rgba(0,188,212,0.85)!important;}
 }
 @media(max-width:400px){
   .stats-grid{grid-template-columns:1fr 1fr!important;}
   .topbar{padding:0 0.7rem!important;}
 }
-</style>
+
+    .mob-header{display:none;align-items:center;gap:12px;padding:1.2rem 1.4rem 1rem;margin-bottom:0.5rem;}
+    .mob-logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(145deg,#0097a7,#00bcd4);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;box-shadow:0 4px 12px rgba(0,151,167,0.35);}
+    .mob-brand .mob-n1{font-family:'Rajdhani',sans-serif;font-size:1.2rem;font-weight:700;color:#0b1f3a;letter-spacing:0.08em;line-height:1;}
+    .mob-brand .mob-n2{font-size:0.62rem;color:#0097a7;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;margin-top:1px;}
+    .mob-badge{font-size:1.3rem;margin-left:auto;}
+    .admin-header .mob-brand .mob-n1{color:#0b1f3a;}
+    @media(max-width:768px){
+      .mob-header{display:flex!important;}
+    }
+  </style>
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#0097a7">
   <meta name="mobile-web-app-capable" content="yes">
@@ -301,6 +319,15 @@
   </div>
 
   <div class="login-right">
+<div class="mob-header official-header">
+  <div class="mob-logo">💧</div>
+  <div class="mob-brand">
+    <div class="mob-n1">HYDRAA</div>
+    <div class="mob-n2">Officials Portal · Telangana</div>
+  </div>
+  <div class="mob-badge">👷</div>
+</div>
+
     <div class="login-card">
       <div class="lc-tag">👷 Official Access</div>
       <div class="lc-title">Official Login</div>
