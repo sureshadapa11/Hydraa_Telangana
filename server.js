@@ -180,6 +180,15 @@ async function fixOfficialsTable() {
     } else {
       console.log('✅ Officials table OK');
     }
+    // Add district_id column if missing (migration for district feature)
+    if (!colNames.includes('district_id')) {
+      try {
+        await db.query('ALTER TABLE officials ADD COLUMN district_id INT DEFAULT NULL');
+        console.log('✅ Officials table: district_id column added');
+      } catch (e) {
+        console.warn('  Could not add district_id to officials:', e.message);
+      }
+    }
   } catch (err) {
     console.warn('⚠️  Officials table check skipped:', err.message);
   }

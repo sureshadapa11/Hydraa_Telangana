@@ -154,8 +154,6 @@ const deleteSubcategory = async (req, res) => {
 // ────────────────────────────────────────────────────
 const getOfficials = async (req, res) => {
   try {
-    // Ensure district_id column exists
-    await db.query(`ALTER TABLE officials ADD COLUMN IF NOT EXISTS district_id INT NULL`).catch(()=>{});
     const [officials] = await db.query(`
       SELECT o.id, o.full_name, o.email, o.phone, o.department, o.is_active, o.created_at,
              o.district_id, d.name AS district_name
@@ -184,7 +182,6 @@ const createOfficial = async (req, res) => {
   }
 
   try {
-    await db.query(`ALTER TABLE officials ADD COLUMN IF NOT EXISTS district_id INT NULL`).catch(()=>{});
     const [existing] = await db.query('SELECT id FROM officials WHERE email = ?', [email]);
     if (existing.length > 0) {
       return res.status(409).json({ success: false, message: 'Email already in use.' });
