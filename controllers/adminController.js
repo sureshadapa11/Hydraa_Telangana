@@ -154,15 +154,16 @@ const deleteSubcategory = async (req, res) => {
 // ────────────────────────────────────────────────────
 const getOfficials = async (req, res) => {
   try {
+    // Ensure district_id column exists
+    await db.query(`ALTER TABLE officials ADD COLUMN IF NOT EXISTS district_id INT NULL`).catch(()=>{});
     const [officials] = await db.query(`
-      SELECT id, full_name, email, phone, department, is_active, created_at 
-      FROM officials ORDER BY full_name ASC
+      SELECT o.id, o.full_name, o.email, o.phone, o.department, o.is_active, o.created_at,
+             o.district_id, d.name AS district_name
+      FROM officials o
+      LEFT JOIN districts d ON d.id = o.district_id
+      ORDER BY o.full_name ASC
     `);
-
-    res.json({
-      success: true,
-      data: officials,
-    });
+    res.json({ success: true, data: officials });
   } catch (err) {
     console.error('Get officials error:', err);
     res.status(500).json({ success: false, message: 'Server error.' });
@@ -173,17 +174,17 @@ const getOfficials = async (req, res) => {
 //  OFFICIALS: CREATE
 // ────────────────────────────────────────────────────
 const createOfficial = async (req, res) => {
-  const { full_name, email, phone, department, password } = req.body;
+  const { full_name, email, phone, department, password, district_id } = req.body;
 
-  if (!full_name || !email || !password || !department) {
+  if (!full_name || !email || !password || !department || !district_id) {
     return res.status(400).json({
       success: false,
-      message: 'Full name, email, password, and department are required.',
+      message: 'Full name, email, district, department and password are required.',
     });
   }
 
   try {
-    // Check if email exists
+    await db.query(`ALTER TABLE officials ADD COLUMN IF NOT EXISTS district_id INT NULL`).catch(()=>{});
     const [existing] = await db.query('SELECT id FROM officials WHERE email = ?', [email]);
     if (existing.length > 0) {
       return res.status(409).json({ success: false, message: 'Email already in use.' });
@@ -192,9 +193,9 @@ const createOfficial = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const [result] = await db.query(
-      `INSERT INTO officials (full_name, email, phone, department, password, is_active, created_at)
-       VALUES (?, ?, ?, ?, ?, 1, NOW())`,
-      [full_name, email, phone || null, department, hashedPassword]
+      `INSERT INTO officials (full_name, email, phone, department, password, is_active, district_id, created_at)
+       VALUES (?, ?, ?, ?, ?, 1, ?, NOW())`,
+      [full_name, email, phone || null, department, hashedPassword, district_id || null]
     );
 
     res.status(201).json({

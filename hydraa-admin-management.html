@@ -259,7 +259,6 @@
     </div>
     <div class="tb-right">
       <button class="btn-add" onclick="toggleAddForm('officials')">+ Add Official</button>
-      <button class="btn-add" style="background:linear-gradient(135deg,#ef4444,#dc2626);" onclick="deleteAllOfficials()">🗑 Delete All</button>
       <div class="tb-pill">
         <div class="tp-av" id="tp-av">A</div>
         <div class="tp-nm" id="tp-nm">Admin</div>
@@ -276,6 +275,13 @@
         <div class="add-card-title">👷 Add New Official</div>
         <div class="f-row">
           <div class="f-group"><label class="f-label">Full Name <span>*</span></label><input type="text" id="of_name" class="f-input" placeholder="Official's full name"/></div>
+          <div class="f-group"><label class="f-label">District <span>*</span></label>
+            <select id="of_district" class="f-input">
+              <option value="">— Select District —</option>
+            </select>
+          </div>
+        </div>
+        <div class="f-row">
           <div class="f-group"><label class="f-label">Department <span>*</span></label>
             <select id="of_dept" class="f-input">
               <option value="">— Select Department —</option>
@@ -337,9 +343,24 @@
   }
 
 
+  // Load districts into the Add Official dropdown
+  async function loadDistricts() {
+    const res = await http.get('/api/admin/districts');
+    if (!res.success) return;
+    const sel = document.getElementById('of_district');
+    sel.innerHTML = '<option value="">— Select District —</option>';
+    res.data.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d.id;
+      opt.textContent = d.name;
+      sel.appendChild(opt);
+    });
+  }
+
   function toggleAddForm(view) {
     const el = document.getElementById('add-'+view);
     el.classList.toggle('open');
+    if (el.classList.contains('open')) loadDistricts();
   }
 
   // ── OFFICIALS ──
@@ -360,8 +381,8 @@
 
       document.getElementById('officialsTable').innerHTML = `
         <div style="overflow-x:auto">
-        <table style="min-width:640px;width:100%">
-          <thead><tr><th>Official</th><th>Email</th><th>Phone</th><th>Department</th><th>Status</th><th>Added On</th><th>Actions</th></tr></thead>
+        <table style="min-width:600px;width:100%">
+          <thead><tr><th>Official</th><th>District</th><th>Email</th><th>Phone</th><th>Department</th><th>Added On</th><th>Actions</th></tr></thead>
           <tbody>${officials.map(o => `
             <tr>
               <td>
@@ -370,19 +391,13 @@
                   <strong>${o.full_name||'—'}</strong>
                 </div>
               </td>
+              <td style="font-size:0.78rem">${o.district_name||'—'}</td>
               <td style="font-size:0.78rem">${o.email}</td>
               <td style="font-size:0.78rem">${o.phone||'—'}</td>
               <td style="font-size:0.78rem">${o.department||'—'}</td>
-              <td><span class="badge ${o.is_active?'b-active':'b-inactive'}">${o.is_active?'Active':'Inactive'}</span></td>
               <td style="font-size:0.78rem;white-space:nowrap">${formatDate(o.created_at)}</td>
               <td>
-                <div style="display:flex;gap:0.4rem;">
-                  <button class="act-btn ${o.is_active?'ab-deactivate':'ab-activate'}"
-                    onclick="toggleOfficialStatus(${o.id},${o.is_active},this)">
-                    ${o.is_active?'Deactivate':'Activate'}
-                  </button>
-                  <button class="act-btn ab-delete" onclick="deleteOfficial(${o.id},this)">🗑</button>
-                </div>
+                <button class="act-btn ab-delete" onclick="deleteOfficial(${o.id},this)">🗑 Delete</button>
               </td>
             </tr>`).join('')}
           </tbody>
@@ -394,17 +409,29 @@
   }
 
   async function addOfficial() {
-    const name     = document.getElementById('of_name').value.trim();
-    const email    = document.getElementById('of_email').value.trim();
-    const password = document.getElementById('of_password').value;
-    const alert_el = document.getElementById('addOfficialAlert');
-    const dept = document.getElementById('of_dept').value;
-    if (!name||!email||!password||!dept) { alert_el.textContent='Name, email, department and password are required.'; alert_el.className='add-alert err'; return; }
+    const name       = document.getElementById('of_name').value.trim();
+    const email      = document.getElementById('of_email').value.trim();
+    const password   = document.getElementById('of_password').value;
+    const dept       = document.getElementById('of_dept').value;
+    const district_id = document.getElementById('of_district').value;
+    const alert_el   = document.getElementById('addOfficialAlert');
+    if (!name||!email||!password||!dept||!district_id) {
+      alert_el.textContent='Name, email, district, department and password are required.';
+      alert_el.className='add-alert err'; return;
+    }
     try {
-      const res = await http.post('/api/admin/officials', {full_name:name,email,phone:document.getElementById('of_phone').value,department:dept,password});
+      const res = await http.post('/api/admin/officials', {
+        full_name:name, email,
+        phone: document.getElementById('of_phone').value,
+        department: dept, password, district_id
+      });
       if (res.success) {
         alert_el.textContent='Official added successfully!'; alert_el.className='add-alert ok';
-        setTimeout(()=>{ toggleAddForm('officials'); ['of_name','of_dept','of_email','of_phone','of_password'].forEach(id=>document.getElementById(id).value=''); alert_el.className='add-alert'; loadOfficials(); },1200);
+        setTimeout(()=>{
+          toggleAddForm('officials');
+          ['of_name','of_dept','of_district','of_email','of_phone','of_password'].forEach(id=>document.getElementById(id).value='');
+          alert_el.className='add-alert'; loadOfficials();
+        },1200);
       } else { alert_el.textContent=res.message; alert_el.className='add-alert err'; }
     } catch(e) { alert_el.textContent='Server error.'; alert_el.className='add-alert err'; }
   }
@@ -414,27 +441,6 @@
     const res = await http.delete(`/api/admin/officials/${id}`);
     if (res.success) loadOfficials(); else alert(res.message);
   }
-
-  async function deleteAllOfficials() {
-    if (!confirm('Delete ALL officials? This cannot be undone.')) return;
-    const res = await http.get('/api/admin/officials');
-    if (!res.success || !res.data.length) { alert('No officials to delete.'); return; }
-    for (const o of res.data) {
-      await http.delete(`/api/admin/officials/${o.id}`);
-    }
-    loadOfficials();
-  }
-
-  async function toggleOfficialStatus(id, current, btn) {
-    const row = btn.closest('tr');
-    const name = row.cells[0].querySelector('strong').textContent;
-    const phone = row.cells[2].textContent.trim().replace('—','');
-    const dept  = row.cells[3].textContent.trim();
-    if (!confirm(`${current?'Deactivate':'Activate'} official "${name}"?`)) return;
-    const res = await http.put(`/api/admin/officials/${id}`, {full_name:name,phone,department:dept,is_active:current?0:1});
-    if (res.success) loadOfficials(); else alert(res.message);
-  }
-
 
   loadOfficials();
 </script>
