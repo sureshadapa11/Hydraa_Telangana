@@ -49,10 +49,10 @@
     .tb-title{font-family:'Rajdhani',sans-serif;font-size:1.2rem;font-weight:700;color:#fff;line-height:1;}
     .tb-sub{font-size:0.7rem;color:rgba(255,255,255,0.5);margin-top:2px;}
     .tb-sub span{color:#00bcd4;font-weight:600;}
-    .tb-right{display:flex;align-items:center;gap:0.7rem;}
-    .tb-pill{display:flex;align-items:center;gap:0.5rem;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);border-radius:100px;padding:0.28rem 0.9rem 0.28rem 0.3rem;}
-    .tp-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;font-weight:700;font-size:0.72rem;display:flex;align-items:center;justify-content:center;}
-    .tp-nm{font-size:0.78rem;font-weight:600;color:#fff;}
+    .tb-right{display:flex;align-items:center;gap:0.8rem;}
+    .tb-count-box{display:flex;flex-direction:column;align-items:center;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:var(--radius-sm);padding:0.3rem 0.9rem;min-width:80px;}
+    .tb-count-num{font-family:'Rajdhani',sans-serif;font-size:1.3rem;font-weight:700;color:#fff;line-height:1;}
+    .tb-count-lbl{font-size:0.6rem;color:rgba(0,188,212,0.85);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;white-space:nowrap;}
 
     /* Content */
     .content{padding:1.8rem 2rem;flex:1;}
@@ -126,13 +126,6 @@
     .dist-chip{display:inline-flex;align-items:center;gap:4px;font-size:0.75rem;color:var(--text-2);font-weight:500;}
     .dist-chip::before{content:'📍';font-size:0.65rem;}
 
-    /* Stats bar */
-    .stats-bar{display:flex;gap:1rem;margin-bottom:1.4rem;}
-    .stat-card{flex:1;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.3rem;display:flex;align-items:center;gap:1rem;box-shadow:var(--shadow);}
-    .stat-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
-    .si-teal{background:rgba(0,151,167,0.1);}
-    .stat-num{font-family:'Rajdhani',sans-serif;font-size:1.8rem;font-weight:700;color:var(--navy);line-height:1;}
-    .stat-lbl{font-size:0.68rem;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;margin-top:1px;}
 
     /* Form steps */
     .form-steps{display:flex;align-items:center;gap:0;margin-bottom:1.2rem;}
@@ -216,7 +209,7 @@
 
   .sidebar{height:100dvh!important;}
   .sb-ft{padding-bottom:max(env(safe-area-inset-bottom,0px),1rem)!important;}
-  .stats-bar{gap:0.6rem;}
+  .tb-count-box{padding:0.25rem 0.6rem!important;min-width:60px!important;}
   .form-steps{flex-wrap:wrap;gap:0.3rem;}
   .fs-arrow{display:none;}
 }
@@ -277,28 +270,17 @@
       <div class="tb-sub">Assign officials by district &amp; department to handle field complaints</div>
     </div>
     <div class="tb-right">
-      <button class="btn-add" onclick="toggleAddForm('officials')">+ Add Official</button>
-      <div class="tb-pill">
-        <div class="tp-av" id="tp-av">A</div>
-        <div class="tp-nm" id="tp-nm">Admin</div>
+      <div class="tb-count-box">
+        <span class="tb-count-num" id="ph-count">—</span>
+        <span class="tb-count-lbl">Total Officials</span>
       </div>
+      <button class="btn-add" onclick="toggleAddForm('officials')">+ Add Official</button>
     </div>
   </div>
 
   <div class="content">
     <!-- ═══ OFFICIALS VIEW ═══ -->
     <div class="view active" id="view-officials">
-
-      <!-- Stats bar -->
-      <div class="stats-bar">
-        <div class="stat-card">
-          <div class="stat-icon si-teal">👷</div>
-          <div>
-            <div class="stat-num" id="ph-count">—</div>
-            <div class="stat-lbl">Total Officials</div>
-          </div>
-        </div>
-      </div>
 
       <!-- Add form -->
       <div class="add-card" id="add-officials">
