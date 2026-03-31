@@ -87,10 +87,6 @@
 
     /* ACTION BUTTONS */
     .act-btn{padding:0.28rem 0.7rem;border-radius:var(--radius-sm);font-size:0.72rem;font-weight:600;cursor:pointer;border:1px solid;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.15s;}
-.ab-deact{background:rgba(239,68,68,0.08);color:var(--red);border-color:rgba(239,68,68,0.2);}
-    .ab-deact:hover{background:rgba(239,68,68,0.15);}
-    .ab-activate{background:rgba(16,185,129,0.08);color:var(--green);border-color:rgba(16,185,129,0.2);}
-    .ab-activate:hover{background:rgba(16,185,129,0.15);}
     .ab-delete{background:rgba(239,68,68,0.06);color:#b91c1c;border-color:rgba(185,28,28,0.2);}
     .ab-delete:hover{background:rgba(185,28,28,0.12);}
 
@@ -179,7 +175,7 @@
     <div class="stats-grid" id="statsGrid">
       <div class="stat-card"><div class="sc-icon ic-teal">👥</div><div><div class="sc-val" id="s-total">—</div><div class="sc-lbl">Total Citizens</div></div></div>
       <div class="stat-card"><div class="sc-icon ic-green">✅</div><div><div class="sc-val" id="s-active">—</div><div class="sc-lbl">Active</div></div></div>
-      <div class="stat-card"><div class="sc-icon ic-orange">🚫</div><div><div class="sc-val" id="s-inactive">—</div><div class="sc-lbl">Deactivated</div></div></div>
+      <div class="stat-card"><div class="sc-icon ic-blue">📅</div><div><div class="sc-val" id="s-inactive">—</div><div class="sc-lbl">This Month</div></div></div>
       <div class="stat-card"><div class="sc-icon ic-purple">📋</div><div><div class="sc-val" id="s-complaints">—</div><div class="sc-lbl">Total Complaints Filed</div></div></div>
     </div>
 
@@ -191,11 +187,6 @@
         </div>
         <div class="tc-search">
           <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search name or email..." oninput="filterUsers()"/>
-          <select class="filter-sel" id="filterStatus" onchange="filterUsers()">
-            <option value="">All</option>
-            <option value="active">Active</option>
-            <option value="inactive">Deactivated</option>
-          </select>
           <span class="tc-count" id="usersCount">Loading...</span>
         </div>
       </div>
@@ -265,26 +256,26 @@
 
     const total    = allUsers.length;
     const active   = allUsers.filter(u => u.is_verified).length;
-    const inactive = total - active;
     const complaints = allUsers.reduce((s, u) => s + (parseInt(u.complaint_count) || 0), 0);
+    const now = new Date();
+    const thisMonth = allUsers.filter(u => {
+      const d = new Date(u.created_at);
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    }).length;
 
     document.getElementById('s-total').textContent    = total;
     document.getElementById('s-active').textContent   = active;
-    document.getElementById('s-inactive').textContent = inactive;
+    document.getElementById('s-inactive').textContent = thisMonth;
     document.getElementById('s-complaints').textContent = complaints;
 
     renderTable(allUsers);
   }
 
   function filterUsers() {
-    const q  = document.getElementById('searchInput').value.toLowerCase();
-    const sf = document.getElementById('filterStatus').value;
-    const list = allUsers.filter(u => {
-      const matchQ = !q || u.full_name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
-      const isActive = !!u.is_verified;
-      const matchS = sf === '' || (sf === 'active' && u.is_verified) || (sf === 'inactive' && !u.is_verified);
-      return matchQ && matchS;
-    });
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const list = allUsers.filter(u =>
+      !q || u.full_name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+    );
     renderTable(list);
   }
 
@@ -299,39 +290,31 @@
       return;
     }
     const rows = list.map((u, i) => {
-      const isActive = !!u.is_verified;
       const name = esc(u.full_name);
       return `<tr>
         <td style="color:var(--text-3);font-size:0.75rem">${i + 1}</td>
         <td>
           <div style="display:flex;align-items:center;gap:0.6rem">
-            <div class="av" style="background:linear-gradient(135deg,${isActive ? '#6366f1,#8b5cf6' : '#94a3b8,#64748b'})">${u.full_name[0].toUpperCase()}</div>
-            <strong style="color:${isActive ? 'var(--text)' : 'var(--text-3)'}">${u.full_name}</strong>
+            <div class="av" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">${u.full_name[0].toUpperCase()}</div>
+            <strong>${u.full_name}</strong>
           </div>
         </td>
         <td style="font-size:0.78rem">${u.email}</td>
         <td style="font-size:0.78rem">${u.phone || '—'}</td>
         <td style="text-align:center;font-weight:700;color:var(--teal)">${u.complaint_count || 0}</td>
         <td style="text-align:center;font-weight:700;color:var(--green)">${u.resolved_count || 0}</td>
-        <td>
-          <span class="badge ${isActive ? 'b-active' : 'b-inactive'}">${isActive ? '● Active' : '● Deactivated'}</span>
-        </td>
         <td style="font-size:0.75rem;white-space:nowrap">${formatDate(u.created_at)}</td>
-        <td><div style="display:flex;gap:0.4rem;flex-wrap:wrap">
-          ${isActive
-            ? `<button class="act-btn ab-deact" onclick="confirmDeactivate(${u.id},'${name}')">🚫 Deactivate</button>`
-            : `<button class="act-btn ab-activate" onclick="confirmActivate(${u.id},'${name}')">✅ Activate</button>`
-          }
+        <td>
           <button class="act-btn ab-delete" onclick="confirmDelete(${u.id},'${name}')">🗑 Delete</button>
-        </div></td>
+        </td>
       </tr>`;
     }).join('');
     document.getElementById('usersTable').innerHTML = `
       <div style="overflow-x:auto">
-        <table style="min-width:900px;width:100%">
+        <table style="min-width:750px;width:100%">
           <thead><tr>
             <th>#</th><th>Citizen</th><th>Email</th><th>Phone</th>
-            <th>Complaints</th><th>Resolved</th><th>Status</th><th>Registered</th><th>Actions</th>
+            <th>Complaints</th><th>Resolved</th><th>Registered</th><th>Actions</th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>
@@ -339,32 +322,6 @@
   }
 
   // ── Actions ──
-  function confirmDeactivate(id, name) {
-    showConfirm({
-      icon: '🚫', title: 'Deactivate User',
-      msg: `Deactivate "${name}"? Their account will be disabled until reactivated.`,
-      btnLabel: 'Deactivate', btnClass: 'warning',
-      action: async () => {
-        const res = await http.put(`/api/admin/users/${id}/deactivate`);
-        if (res.success) loadUsers();
-        else showToast(res.message || 'Failed to deactivate.', 'error');
-      }
-    });
-  }
-
-  function confirmActivate(id, name) {
-    showConfirm({
-      icon: '✅', title: 'Activate User',
-      msg: `Re-activate "${name}"? They will be able to login again.`,
-      btnLabel: 'Activate', btnClass: 'success',
-      action: async () => {
-        const res = await http.put(`/api/admin/users/${id}/activate`);
-        if (res.success) loadUsers();
-        else showToast(res.message || 'Failed to activate.', 'error');
-      }
-    });
-  }
-
   function confirmDelete(id, name) {
     showConfirm({
       icon: '🗑️', title: 'Delete User',
