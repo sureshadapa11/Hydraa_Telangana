@@ -302,7 +302,15 @@
       transition: color 0.2s;
     }
     .back-link:hover { color: var(--teal); }
-  </style>
+  
+@media(max-width:768px){
+  body{grid-template-columns:1fr!important;min-height:100vh;}
+  .left-panel,.left{display:none!important;}
+  .right-panel,.right{padding:2rem 1.4rem!important;min-height:100vh;overflow-y:auto;}
+  .field-row{grid-template-columns:1fr!important;}
+  .form-wrap{max-width:100%!important;}
+}
+</style>
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#0097a7">
   <meta name="mobile-web-app-capable" content="yes">

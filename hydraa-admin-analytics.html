@@ -110,7 +110,29 @@
       .stats-grid{grid-template-columns:repeat(2,1fr);}
       .charts-grid,.charts-grid-3{grid-template-columns:1fr;}
     }
-  </style>
+  
+    .ham-btn{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:var(--bg,#f2f6f9);border:1px solid var(--border,#d0e4ec);border-radius:8px;cursor:pointer;font-size:1.1rem;flex-shrink:0;margin-right:0.7rem;}
+
+@media(max-width:768px){
+  :root{--sidebar-w:0px;}
+  .sidebar{transform:translateX(-260px);transition:transform 0.28s ease;width:260px!important;}
+  .sidebar.sb-open{transform:translateX(0);box-shadow:4px 0 32px rgba(0,0,0,0.35);}
+  .sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:99;backdrop-filter:blur(2px);}
+  .sb-overlay.open{display:block;}
+  .main{margin-left:0!important;width:100vw!important;}
+  .ham-btn{display:flex!important;}
+  .topbar{padding:0 1rem!important;}
+  .content{padding:1rem!important;}
+  .stats-grid{grid-template-columns:1fr 1fr!important;}
+  .two-col,.f-row,.f-row-3,.quick-actions,.info-grid{grid-template-columns:1fr!important;}
+  .complaints-grid{grid-template-columns:1fr!important;}
+  .cc-mid{grid-template-columns:1fr 1fr!important;}
+}
+@media(max-width:400px){
+  .stats-grid{grid-template-columns:1fr 1fr!important;}
+  .topbar{padding:0 0.7rem!important;}
+}
+</style>
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#0097a7">
   <meta name="mobile-web-app-capable" content="yes">
@@ -121,7 +143,8 @@
 </head>
 <body>
 
-<aside class="sidebar">
+<div class="sb-overlay" id="sbOverlay" onclick="closeSidebar()"></div>
+<aside class="sidebar" id="mainSidebar">
   <div class="sb-hdr">
     <a href="/hydraa-index.html" class="sb-brand">
       <div class="sb-logo">💧</div>
@@ -155,6 +178,7 @@
 
 <div class="main">
   <div class="topbar">
+    <button class="ham-btn" onclick="openSidebar()" aria-label="Open Menu">☰</button>
     <div>
       <div class="tb-title">Analytics</div>
       <div class="tb-sub">Complaint performance & insights</div>
@@ -428,5 +452,24 @@
   loadAnalytics();
 </script>
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js").catch(function(){});}</script>
+
+<script>
+function openSidebar(){
+  document.getElementById('mainSidebar').classList.add('sb-open');
+  document.getElementById('sbOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeSidebar(){
+  document.getElementById('mainSidebar').classList.remove('sb-open');
+  document.getElementById('sbOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+// Close sidebar when a nav link is clicked on mobile
+document.addEventListener('DOMContentLoaded',function(){
+  document.querySelectorAll('.sb-a').forEach(function(a){
+    a.addEventListener('click',function(){ if(window.innerWidth<=768) closeSidebar(); });
+  });
+});
+</script>
 </body>
 </html>
