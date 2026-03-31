@@ -128,18 +128,16 @@ const button = (text, url, color = '#0097a7') =>
 // ─────────────────────────────────────────────────────
 //  1. WELCOME / REGISTRATION EMAIL
 // ─────────────────────────────────────────────────────
-const sendWelcomeEmail = async ({ to, name, verificationUrl }) => {
+const sendWelcomeEmail = async ({ to, name }) => {
   const html = wrap(`
     <h2 style="font-size:22px;color:#0b1f3a;margin:0 0 8px">Welcome to HYDRAA, ${name}! 👋</h2>
     <p style="font-size:14px;color:#3d5a72;margin:0 0 24px;line-height:1.7">
       Your account has been created successfully. You can now file complaints, track resolutions, and hold officials accountable through the HYDRAA Citizen Portal.
     </p>
     <div style="background:#e0f7fa;border-left:4px solid #0097a7;border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:24px">
-      <p style="font-size:13px;font-weight:700;color:#0097a7;margin:0 0 4px">📧 Verify Your Email</p>
-      <p style="font-size:13px;color:#3d5a72;margin:0">Please click the button below to verify your email address and activate your account.</p>
+      <p style="font-size:13px;font-weight:700;color:#0097a7;margin:0 0 4px">✅ Account Activated</p>
+      <p style="font-size:13px;color:#3d5a72;margin:0">Your account is ready to use. Login now to file your first complaint.</p>
     </div>
-    ${button('✅ Verify My Email', verificationUrl)}
-    <p style="font-size:12px;color:#aac4d0;margin-top:16px">This link expires in 24 hours. If you did not register, please ignore this email.</p>
     <hr style="border:none;border-top:1px solid #eef3f6;margin:24px 0"/>
     <table width="100%">
       <tr>

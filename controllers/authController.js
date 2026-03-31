@@ -39,21 +39,19 @@ const registerUser = async (req, res) => {
     if (existing.length > 0)
       return res.status(409).json({ success: false, message: 'Email already registered.' });
 
-    const hashedPassword     = await bcrypt.hash(password, 10);
-    const verificationToken  = uuidv4();
-    const verificationUrl    = `${process.env.APP_URL || 'http://localhost:5000'}/api/auth/user/verify/${verificationToken}`;
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     await db.query(
-      'INSERT INTO users (name, full_name, email, phone, address, password, verification_token) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [full_name, full_name, email, phone || null, address || null, hashedPassword, verificationToken]
+      'INSERT INTO users (name, full_name, email, phone, address, password, is_verified) VALUES (?, ?, ?, ?, ?, ?, 1)',
+      [full_name, full_name, email, phone || null, address || null, hashedPassword]
     );
 
-    // Send welcome + verification email (non-blocking)
-    sendSafe(sendWelcomeEmail, { to: email, name: full_name, verificationUrl });
+    // Send welcome email (non-blocking)
+    sendSafe(sendWelcomeEmail, { to: email, name: full_name, verificationUrl: null });
 
     res.status(201).json({
       success: true,
-      message: 'Registration successful! A verification email has been sent to your inbox.',
+      message: 'Registration successful! You can now login.',
     });
   } catch (err) {
     console.error('Register error:', err);
