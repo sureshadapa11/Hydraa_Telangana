@@ -86,6 +86,11 @@
     .f-input,.f-select{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0.68rem 0.9rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.85rem;color:var(--text);background:var(--bg);outline:none;transition:all 0.2s;width:100%;}
     .f-input:focus,.f-select:focus{border-color:var(--teal);background:#fff;box-shadow:0 0 0 3px rgba(0,151,167,0.1);}
     .f-input::placeholder{color:var(--text-3);}
+    /* Multi-department checkboxes */
+    .dept-check-box{border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);padding:0.6rem 0.9rem;max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:0.4rem;}
+    .dept-check-box:focus-within{border-color:var(--teal);background:#fff;box-shadow:0 0 0 3px rgba(0,151,167,0.1);}
+    .dept-check-item{display:flex;align-items:center;gap:0.5rem;font-size:0.83rem;color:var(--text);cursor:pointer;padding:0.15rem 0;}
+    .dept-check-item input[type=checkbox]{accent-color:var(--teal);width:15px;height:15px;cursor:pointer;flex-shrink:0;}
     .add-actions{display:flex;gap:0.7rem;margin-top:1rem;}
     .btn-save{background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:var(--radius-sm);padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 3px 10px rgba(0,151,167,0.35);transition:all 0.2s;}
     .btn-save:hover{transform:translateY(-1px);}
@@ -306,22 +311,21 @@
           </div>
         </div>
         <div class="f-row">
-          <div class="f-group"><label class="f-label">Department <span>*</span></label>
-            <select id="of_dept" class="f-input">
-              <option value="">— Select Department —</option>
-              <option>Lake Protection Wing</option>
-              <option>Anti-Encroachment Wing</option>
-              <option>Illegal Construction Wing</option>
-              <option>Park &amp; Open Space Wing</option>
-              <option>Roads &amp; Infrastructure Wing</option>
-              <option>Drainage &amp; Flood Control Wing</option>
-              <option>Government Land Protection Wing</option>
-              <option>Advertisement Regulation Wing</option>
-              <option>Disaster Response Wing</option>
-              <option>Legal &amp; Enforcement Wing</option>
-              <option>Survey &amp; Mapping Wing</option>
-              <option>Administration</option>
-            </select>
+          <div class="f-group"><label class="f-label">Departments <span>*</span> <span style="font-weight:400;color:var(--text-3);font-size:0.68rem">(select one or more)</span></label>
+            <div class="dept-check-box" id="of_dept_box">
+              <label class="dept-check-item"><input type="checkbox" value="Lake Protection Wing"> Lake Protection Wing</label>
+              <label class="dept-check-item"><input type="checkbox" value="Anti-Encroachment Wing"> Anti-Encroachment Wing</label>
+              <label class="dept-check-item"><input type="checkbox" value="Illegal Construction Wing"> Illegal Construction Wing</label>
+              <label class="dept-check-item"><input type="checkbox" value="Park &amp; Open Space Wing"> Park &amp; Open Space Wing</label>
+              <label class="dept-check-item"><input type="checkbox" value="Roads &amp; Infrastructure Wing"> Roads &amp; Infrastructure Wing</label>
+              <label class="dept-check-item"><input type="checkbox" value="Drainage &amp; Flood Control Wing"> Drainage &amp; Flood Control Wing</label>
+              <label class="dept-check-item"><input type="checkbox" value="Government Land Protection Wing"> Government Land Protection Wing</label>
+              <label class="dept-check-item"><input type="checkbox" value="Advertisement Regulation Wing"> Advertisement Regulation Wing</label>
+              <label class="dept-check-item"><input type="checkbox" value="Disaster Response Wing"> Disaster Response Wing</label>
+              <label class="dept-check-item"><input type="checkbox" value="Legal &amp; Enforcement Wing"> Legal &amp; Enforcement Wing</label>
+              <label class="dept-check-item"><input type="checkbox" value="Survey &amp; Mapping Wing"> Survey &amp; Mapping Wing</label>
+              <label class="dept-check-item"><input type="checkbox" value="Administration"> Administration</label>
+            </div>
           </div>
           <div class="f-group"><label class="f-label">Email <span>*</span></label><input type="email" id="of_email" class="f-input" placeholder="official@hydraa.gov.in" autocomplete="off"/></div>
         </div>
@@ -418,7 +422,7 @@
                 </div>
               </td>
               <td><span class="dist-chip">${o.district_name||'—'}</span></td>
-              <td><span class="dept-tag">${o.department||'—'}</span></td>
+              <td>${(o.department||'').split(',').filter(Boolean).map(d=>`<span class="dept-tag" style="margin:1px 2px;display:inline-block">${d.trim()}</span>`).join('') || '—'}</td>
               <td style="font-size:0.78rem;color:var(--text-2)">${o.email}</td>
               <td style="font-size:0.78rem;color:var(--text-2)">${o.phone||'—'}</td>
               <td style="font-size:0.75rem;color:var(--text-3);white-space:nowrap">${formatDate(o.created_at)}</td>
@@ -438,11 +442,12 @@
     const name       = document.getElementById('of_name').value.trim();
     const email      = document.getElementById('of_email').value.trim();
     const password   = document.getElementById('of_password').value;
-    const dept       = document.getElementById('of_dept').value;
+    const checkedDepts = [...document.querySelectorAll('#of_dept_box input[type=checkbox]:checked')].map(cb => cb.value);
+    const dept       = checkedDepts.join(', ');
     const district_id = document.getElementById('of_district').value;
     const alert_el   = document.getElementById('addOfficialAlert');
     if (!name||!email||!password||!dept||!district_id) {
-      alert_el.textContent='Name, email, district, department and password are required.';
+      alert_el.textContent='Name, email, district, at least one department and password are required.';
       alert_el.className='add-alert err'; return;
     }
     try {
@@ -455,7 +460,8 @@
         alert_el.textContent='Official added successfully!'; alert_el.className='add-alert ok';
         setTimeout(()=>{
           toggleAddForm('officials');
-          ['of_name','of_dept','of_district','of_email','of_phone','of_password'].forEach(id=>document.getElementById(id).value='');
+          ['of_name','of_district','of_email','of_phone','of_password'].forEach(id=>document.getElementById(id).value='');
+          document.querySelectorAll('#of_dept_box input[type=checkbox]').forEach(cb=>cb.checked=false);
           alert_el.className='add-alert'; loadOfficials();
         },1200);
       } else { alert_el.textContent=res.message; alert_el.className='add-alert err'; }

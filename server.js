@@ -189,6 +189,13 @@ async function fixOfficialsTable() {
         console.warn('  Could not add district_id to officials:', e.message);
       }
     }
+    // Widen department column to support multiple departments (comma-separated)
+    try {
+      await db.query("ALTER TABLE officials MODIFY COLUMN department VARCHAR(500) NOT NULL DEFAULT ''");
+      console.log('✅ Officials table: department column widened to VARCHAR(500)');
+    } catch (e) {
+      console.warn('  Could not widen department column:', e.message);
+    }
   } catch (err) {
     console.warn('⚠️  Officials table check skipped:', err.message);
   }
