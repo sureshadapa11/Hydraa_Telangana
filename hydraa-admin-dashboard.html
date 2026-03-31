@@ -294,10 +294,20 @@
         <div class="stat-card"><div class="sc-icon ic-orange">⏳</div><div class="sc-info"><div class="sc-val" id="s-pending">—</div><div class="sc-lbl">Pending</div></div></div>
         <div class="stat-card"><div class="sc-icon ic-purple">🔄</div><div class="sc-info"><div class="sc-val" id="s-progress">—</div><div class="sc-lbl">In Progress</div></div></div>
         <div class="stat-card"><div class="sc-icon ic-green">✅</div><div class="sc-info"><div class="sc-val" id="s-resolved">—</div><div class="sc-lbl">Resolved</div></div></div>
+        <div class="stat-card"><div class="sc-icon ic-teal">📅</div><div class="sc-info"><div class="sc-val" id="s-today">—</div><div class="sc-lbl">Today's Complaints</div></div></div>
+        <div class="stat-card"><div class="sc-icon ic-green">📆</div><div class="sc-info"><div class="sc-val" id="s-week">—</div><div class="sc-lbl">Resolved This Week</div></div></div>
         <div class="stat-card"><div class="sc-icon ic-teal">👥</div><div class="sc-info"><div class="sc-val" id="s-users">—</div><div class="sc-lbl">Registered Citizens</div></div></div>
         <div class="stat-card"><div class="sc-icon ic-orange">👷</div><div class="sc-info"><div class="sc-val" id="s-officials">—</div><div class="sc-lbl">Field Officials</div></div></div>
         <div class="stat-card"><div class="sc-icon ic-red">⚠️</div><div class="sc-info"><div class="sc-val" id="s-overdue" style="color:#ef4444">—</div><div class="sc-lbl">Overdue</div></div></div>
         <div class="stat-card"><div class="sc-icon ic-green">⭐</div><div class="sc-info"><div class="sc-val" id="s-rating">—</div><div class="sc-lbl">Avg Rating</div></div></div>
+      </div>
+
+      <!-- District breakdown -->
+      <div class="table-card" style="margin-bottom:1.4rem">
+        <div class="tc-hdr">
+          <div class="tc-hdr-left"><div class="tc-title">📍 District-wise Breakdown</div><div class="tc-sub">Top districts by complaint volume</div></div>
+        </div>
+        <div id="districtTable"><div class="empty"><div class="empty-icon">⏳</div><p>Loading...</p></div></div>
       </div>
 
       <!-- Resolution progress -->
@@ -350,7 +360,9 @@
           <option value="medium">🟡 Medium</option>
           <option value="low">🟢 Low</option>
         </select>
-        <input type="text" id="filterSearch" placeholder="Search complaint no / title..." style="flex:1;min-width:180px" oninput="loadComplaints()"/>
+        <input type="text" id="filterSearch" placeholder="Search no / title / citizen..." style="flex:1;min-width:160px" oninput="loadComplaints()"/>
+        <input type="date" id="filterDateFrom" onchange="loadComplaints()" title="From date" style="padding:0.45rem 0.7rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:0.82rem;color:var(--text);background:var(--bg)"/>
+        <input type="date" id="filterDateTo" onchange="loadComplaints()" title="To date" style="padding:0.45rem 0.7rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:0.82rem;color:var(--text);background:var(--bg)"/>
         <button class="btn-filter" onclick="loadComplaints()">🔍 Search</button>
       </div>
 
@@ -421,6 +433,16 @@
         </select>
       </div>
       <div class="m-field">
+        <label class="m-label">Change Priority (optional)</label>
+        <select id="statusPrioritySel" class="m-select">
+          <option value="">— Keep Current Priority —</option>
+          <option value="low">🟢 Low</option>
+          <option value="medium">🟡 Medium</option>
+          <option value="high">🔴 High</option>
+          <option value="urgent">🚨 Urgent</option>
+        </select>
+      </div>
+      <div class="m-field">
         <label class="m-label">Remarks / Reason</label>
         <textarea id="statusRemarksText" class="m-textarea" placeholder="Reason for status change..."></textarea>
       </div>
@@ -472,16 +494,39 @@ async function loadDashboard() {
   try {
     const res = await http.get('/api/complaints/admin/dashboard');
     if (!res.success) return;
-    const { complaints: s, total_users, total_officials, recent } = res.data;
+    const { complaints: s, total_users, total_officials, recent, district_stats } = res.data;
 
-    document.getElementById('s-total').textContent = s.total||0;
-    document.getElementById('s-pending').textContent = s.pending||0;
+    document.getElementById('s-total').textContent    = s.total||0;
+    document.getElementById('s-pending').textContent  = s.pending||0;
     document.getElementById('s-progress').textContent = (s.assigned||0)+(s.in_progress||0);
     document.getElementById('s-resolved').textContent = s.resolved||0;
-    document.getElementById('s-users').textContent = total_users||0;
-    document.getElementById('s-officials').textContent = total_officials||0;
-    document.getElementById('s-overdue').textContent = s.overdue||0;
-    document.getElementById('s-rating').textContent = res.data.avg_rating ? res.data.avg_rating : '—';
+    document.getElementById('s-today').textContent    = s.today||0;
+    document.getElementById('s-week').textContent     = s.this_week||0;
+    document.getElementById('s-users').textContent    = total_users||0;
+    document.getElementById('s-officials').textContent= total_officials||0;
+    document.getElementById('s-overdue').textContent  = s.overdue||0;
+    document.getElementById('s-rating').textContent   = res.data.avg_rating ? res.data.avg_rating : '—';
+
+    // District breakdown table
+    if (district_stats && district_stats.length > 0) {
+      document.getElementById('districtTable').innerHTML = `
+        <table><thead><tr><th>District</th><th>Total</th><th>Pending</th><th>Resolved</th><th>Resolution %</th></tr></thead>
+        <tbody>${district_stats.map(d => {
+          const pct = d.total > 0 ? Math.round(d.resolved/d.total*100) : 0;
+          return `<tr>
+            <td><strong>📍 ${d.district||'Unknown'}</strong></td>
+            <td>${d.total}</td>
+            <td style="color:#f59e0b;font-weight:600">${d.pending||0}</td>
+            <td style="color:#10b981;font-weight:600">${d.resolved||0}</td>
+            <td><div style="display:flex;align-items:center;gap:8px">
+              <div style="flex:1;background:#e5e7eb;border-radius:4px;height:6px"><div style="width:${pct}%;background:#10b981;border-radius:4px;height:6px"></div></div>
+              <span style="font-size:0.75rem;font-weight:700;color:var(--text-2)">${pct}%</span>
+            </div></td>
+          </tr>`;
+        }).join('')}</tbody></table>`;
+    } else {
+      document.getElementById('districtTable').innerHTML = `<div class="empty"><div class="empty-icon">📍</div><p>No district data yet</p></div>`;
+    }
 
     // Resolution bar
     const total = s.total||1;
@@ -554,16 +599,22 @@ async function init() {
 }
 
 async function loadComplaints() {
-  const status   = document.getElementById('filterStatus').value;
-  const cat      = document.getElementById('filterCategory').value;
-  const district = document.getElementById('filterDistrict').value;
-  const prio     = document.getElementById('filterPriority').value;
-  const search   = document.getElementById('filterSearch').value.toLowerCase().trim();
+  const status    = document.getElementById('filterStatus').value;
+  const cat       = document.getElementById('filterCategory').value;
+  const district  = document.getElementById('filterDistrict').value;
+  const prio      = document.getElementById('filterPriority').value;
+  const search    = document.getElementById('filterSearch').value.trim();
+  const dateFrom  = document.getElementById('filterDateFrom').value;
+  const dateTo    = document.getElementById('filterDateTo').value;
 
-  let url = '/api/complaints/admin/all?limit=200';
-  if (status)   url += '&status='+status;
+  let url = '/api/complaints/admin/all?limit=500';
+  if (status)   url += '&status='+encodeURIComponent(status);
   if (cat)      url += '&category_id='+cat;
   if (district) url += '&district_id='+district;
+  if (prio)     url += '&priority='+prio;
+  if (search)   url += '&search='+encodeURIComponent(search);
+  if (dateFrom) url += '&date_from='+dateFrom;
+  if (dateTo)   url += '&date_to='+dateTo;
 
   document.getElementById('complaintsTable').innerHTML = `<div class="empty"><div class="empty-icon">⏳</div><p>Loading complaints...</p></div>`;
   try {
@@ -577,8 +628,6 @@ async function loadComplaints() {
     }
 
     let data = res.data;
-    if (prio) data = data.filter(c => c.priority===prio);
-    if (search) data = data.filter(c => c.complaint_no?.toLowerCase().includes(search)||c.title?.toLowerCase().includes(search));
 
     document.getElementById('cTotal').textContent = data.length;
     document.getElementById('cUnassigned').textContent = data.filter(c=>!c.official_name).length;
@@ -629,6 +678,7 @@ function openStatus(id, cur) {
   document.getElementById('statusId').value = id;
   document.getElementById('statusSel').value = cur;
   document.getElementById('statusRemarksText').value = '';
+  document.getElementById('statusPrioritySel').value = '';
   document.getElementById('statusMsg').className = 'm-msg';
   document.getElementById('statusModal').classList.add('open');
 }
@@ -653,12 +703,15 @@ async function doAssign() {
 }
 
 async function doStatus() {
-  const id = document.getElementById('statusId').value;
-  const status = document.getElementById('statusSel').value;
-  const remarks = document.getElementById('statusRemarksText').value;
+  const id       = document.getElementById('statusId').value;
+  const status   = document.getElementById('statusSel').value;
+  const remarks  = document.getElementById('statusRemarksText').value;
+  const priority = document.getElementById('statusPrioritySel').value;
   const msg = document.getElementById('statusMsg');
   try {
-    const res = await http.put('/api/complaints/admin/status/'+id, {status, remarks});
+    const body = {status, remarks};
+    if (priority) body.priority = priority;
+    const res = await http.put('/api/complaints/admin/status/'+id, body);
     if (res.success) {
       msg.textContent='Status updated successfully!'; msg.className='m-msg ok';
       setTimeout(()=>{ closeStatus(); loadComplaints(); loadDashboard(); }, 1400);

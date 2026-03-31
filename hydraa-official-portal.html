@@ -503,11 +503,27 @@
         <select id="updateStatus" class="m-select">
           <option value="in_progress">🔄 In Progress — Work started</option>
           <option value="resolved">✅ Resolved — Issue fixed</option>
+          <option value="rejected">❌ Rejected — Cannot be resolved</option>
+          <option value="closed">🔒 Closed</option>
+        </select>
+      </div>
+      <div class="m-field">
+        <label class="m-label">Change Priority (optional)</label>
+        <select id="updatePriority" class="m-select">
+          <option value="">— Keep Current Priority —</option>
+          <option value="low">🟢 Low</option>
+          <option value="medium">🟡 Medium</option>
+          <option value="high">🔴 High</option>
+          <option value="urgent">🚨 Urgent</option>
         </select>
       </div>
       <div class="m-field">
         <label class="m-label">Remarks / Action Taken <span>*</span></label>
         <textarea id="updateRemarks" class="m-textarea" placeholder="Describe what action was taken in the field, current situation, evidence collected..."></textarea>
+      </div>
+      <div class="m-field">
+        <label class="m-label">Add Internal Note (optional)</label>
+        <textarea id="updateNote" class="m-textarea" placeholder="Internal note — visible only to admin and officials, not to the citizen..." style="min-height:60px"></textarea>
       </div>
       <div id="updateMsg" class="m-msg"></div>
     </div>
@@ -699,7 +715,9 @@ function openUpdate(id) {
   if (!c) return;
   document.getElementById('updateId').value = id;
   document.getElementById('updateRemarks').value = c.official_remarks || '';
-  document.getElementById('updateStatus').value = c.status === 'assigned' ? 'in_progress' : 'resolved';
+  document.getElementById('updateStatus').value = c.status === 'assigned' ? 'in_progress' : (c.status === 'in_progress' ? 'resolved' : 'in_progress');
+  document.getElementById('updatePriority').value = '';
+  document.getElementById('updateNote').value = '';
   document.getElementById('updateMsg').className = 'm-msg';
   document.getElementById('modalInfo').innerHTML = `<strong>${c.complaint_no}</strong> — ${c.title}<br><span style="color:var(--text-3);font-size:0.75rem">Citizen: ${c.user_name}${c.user_phone?' · '+c.user_phone:''} · ${c.category_name||'N/A'}</span>`;
   document.getElementById('updateModal').classList.add('open');
@@ -708,14 +726,22 @@ function closeUpdate() { document.getElementById('updateModal').classList.remove
 document.getElementById('updateModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeUpdate(); });
 
 async function doUpdate() {
-  const id = document.getElementById('updateId').value;
-  const status = document.getElementById('updateStatus').value;
-  const remarks = document.getElementById('updateRemarks').value.trim();
+  const id       = document.getElementById('updateId').value;
+  const status   = document.getElementById('updateStatus').value;
+  const remarks  = document.getElementById('updateRemarks').value.trim();
+  const priority = document.getElementById('updatePriority').value;
+  const note     = document.getElementById('updateNote').value.trim();
   const msg = document.getElementById('updateMsg');
   if (!remarks) { msg.textContent='Please add remarks about the action taken.'; msg.className='m-msg err'; return; }
   try {
-    const res = await http.put('/api/complaints/official/resolve/'+id, {status, remarks});
+    const body = {status, remarks};
+    if (priority) body.priority = priority;
+    const res = await http.put('/api/complaints/official/resolve/'+id, body);
     if (res.success) {
+      // Post internal note as comment if provided
+      if (note) {
+        await http.post('/api/complaints/'+id+'/comments', {message: note, is_internal: 1}).catch(()=>{});
+      }
       msg.textContent='Complaint updated successfully!'; msg.className='m-msg ok';
       setTimeout(() => { closeUpdate(); loadComplaints(); }, 1400);
     } else { msg.textContent=res.message; msg.className='m-msg err'; }

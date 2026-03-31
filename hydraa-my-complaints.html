@@ -309,6 +309,18 @@
       <div><div class="mh-title">Complaint Details</div><div class="mh-sub" id="detail-no"></div></div>
     </div>
     <div class="modal-body" id="detailContent"></div>
+    <!-- Comments section -->
+    <div style="padding:0 1.5rem 1rem;border-top:1px solid var(--border);margin-top:0.5rem">
+      <div style="font-size:0.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.08em;margin:1rem 0 0.6rem">💬 Follow-up Messages</div>
+      <div id="commentsList" style="max-height:180px;overflow-y:auto;margin-bottom:0.8rem;display:flex;flex-direction:column;gap:0.5rem">
+        <div style="font-size:0.8rem;color:var(--text-3)">Loading...</div>
+      </div>
+      <div style="display:flex;gap:0.5rem">
+        <input type="text" id="commentInput" class="f-input" placeholder="Add a follow-up message..." style="flex:1;font-size:0.82rem;padding:0.5rem 0.8rem"/>
+        <button onclick="postComment()" style="background:var(--teal);color:#fff;border:none;border-radius:var(--radius-sm);padding:0.5rem 1rem;font-size:0.8rem;font-weight:700;cursor:pointer;white-space:nowrap">Send</button>
+      </div>
+      <div id="commentMsg" style="font-size:0.75rem;margin-top:4px;min-height:16px"></div>
+    </div>
     <div class="modal-ftr">
       <button class="mb-close" onclick="closeDetail()">Close</button>
     </div>
@@ -465,9 +477,11 @@
   }
 
   // ── DETAIL MODAL ──
+  var activeComplaintId = null;
   function viewDetails(id) {
     const c = allComplaints.find(x => x.id === id);
     if (!c) return;
+    activeComplaintId = id;
     document.getElementById('detail-no').textContent = c.complaint_no;
     document.getElementById('detailContent').innerHTML = `
       <div class="detail-row"><span class="detail-label">Complaint No</span><span class="detail-value"><strong style="color:var(--teal)">${c.complaint_no}</strong></span></div>
@@ -485,9 +499,52 @@
       ${c.attachment?`<div class="detail-row"><span class="detail-label">Attachment</span><span class="detail-value"><a href="/uploads/${c.attachment}" target="_blank" style="color:var(--teal);font-weight:600">📎 View File</a></span></div>`:''}
       ${c.user_rating?`<div class="detail-row"><span class="detail-label">Your Rating</span><span class="detail-value">${'★'.repeat(c.user_rating)}${'☆'.repeat(5-c.user_rating)} (${c.user_rating}/5)</span></div>`:''}
     `;
+    document.getElementById('commentInput').value = '';
+    document.getElementById('commentMsg').textContent = '';
     document.getElementById('detailModal').classList.add('open');
+    loadComments(id);
   }
-  function closeDetail() { document.getElementById('detailModal').classList.remove('open'); }
+  async function loadComments(id) {
+    const box = document.getElementById('commentsList');
+    try {
+      const res = await http.get('/api/complaints/'+id+'/comments');
+      if (!res.success || res.data.length === 0) {
+        box.innerHTML = '<div style="font-size:0.8rem;color:var(--text-3);text-align:center;padding:0.5rem">No messages yet. Add a follow-up below.</div>';
+        return;
+      }
+      box.innerHTML = res.data.map(cm => {
+        const isMine = cm.author_role === 'citizen';
+        return `<div style="display:flex;flex-direction:column;align-items:${isMine?'flex-end':'flex-start'}">
+          <div style="max-width:85%;background:${isMine?'rgba(0,151,167,0.1)':'rgba(0,0,0,0.05)'};border-radius:10px;padding:0.5rem 0.8rem;font-size:0.82rem;color:var(--text)">
+            ${cm.message}
+          </div>
+          <div style="font-size:0.65rem;color:var(--text-3);margin-top:2px">${cm.author_name} · ${formatDate(cm.created_at)}</div>
+        </div>`;
+      }).join('');
+      box.scrollTop = box.scrollHeight;
+    } catch(e) {
+      box.innerHTML = '<div style="font-size:0.8rem;color:var(--text-3)">Could not load messages.</div>';
+    }
+  }
+  async function postComment() {
+    const message = document.getElementById('commentInput').value.trim();
+    const msgEl   = document.getElementById('commentMsg');
+    if (!message) return;
+    if (!activeComplaintId) return;
+    try {
+      const res = await http.post('/api/complaints/'+activeComplaintId+'/comments', {message, is_internal: 0});
+      if (res.success) {
+        document.getElementById('commentInput').value = '';
+        msgEl.style.color = 'var(--green)'; msgEl.textContent = 'Message sent.';
+        setTimeout(()=>{ msgEl.textContent=''; }, 2000);
+        loadComments(activeComplaintId);
+      } else { msgEl.style.color='var(--red)'; msgEl.textContent = res.message; }
+    } catch(e) { msgEl.style.color='var(--red)'; msgEl.textContent = 'Server error.'; }
+  }
+  function closeDetail() {
+    document.getElementById('detailModal').classList.remove('open');
+    activeComplaintId = null;
+  }
   document.getElementById('detailModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeDetail(); });
 
   // ── RATING MODAL ──

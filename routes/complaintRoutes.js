@@ -16,6 +16,8 @@ const {
   updateComplaintStatus,
   getOfficialComplaints,
   resolveComplaint,
+  getComments,
+  addComment,
 } = require('../controllers/complaintController');
 const { verifyToken } = require('../middleware/auth');
 
@@ -34,5 +36,9 @@ router.put('/admin/status/:id', verifyToken, updateComplaintStatus);
 // ── Official Routes ──
 router.get('/official/assigned', verifyToken, getOfficialComplaints);
 router.put('/official/resolve/:id', verifyToken, resolveComplaint);
+
+// ── Comments / Notes (all roles) ──
+router.get('/:id/comments', verifyToken, getComments);
+router.post('/:id/comments', verifyToken, addComment);
 
 module.exports = router;

@@ -8,6 +8,8 @@ const { v4: uuidv4 } = require('uuid');
 const {
   sendComplaintNotification,
   sendComplaintStatusUpdate,
+  sendComplaintAssigned,
+  sendStatusUpdate,
   sendSafe,
 } = require('../utils/emailService');
 
@@ -225,12 +227,39 @@ const getAdminDashboard = async (req, res) => {
       `SELECT COUNT(*) as overdue FROM complaints WHERE status NOT IN ('resolved','closed','rejected') AND created_at < DATE_SUB(NOW(), INTERVAL 7 DAY)`
     );
 
+    // Today's complaints
+    const [[{ today }]] = await db.query(
+      `SELECT COUNT(*) as today FROM complaints WHERE DATE(created_at) = CURDATE()`
+    );
+
+    // Resolved this week
+    const [[{ this_week }]] = await db.query(
+      `SELECT COUNT(*) as this_week FROM complaints WHERE status = 'resolved' AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)`
+    );
+
     // Total users & officials
     const [[{ total_users }]] = await db.query(`SELECT COUNT(*) as total_users FROM users`);
     const [[{ total_officials }]] = await db.query(`SELECT COUNT(*) as total_officials FROM officials WHERE is_active = 1`);
 
     // Avg rating
     const [[{ avg_rating }]] = await db.query(`SELECT ROUND(AVG(rating),1) as avg_rating FROM complaint_ratings`);
+
+    // District breakdown (top 6)
+    const [district_stats] = await db.query(`
+      SELECT d.name AS district, COUNT(*) AS total,
+             SUM(CASE WHEN c.status = 'resolved' THEN 1 ELSE 0 END) AS resolved,
+             SUM(CASE WHEN c.status NOT IN ('resolved','closed','rejected') THEN 1 ELSE 0 END) AS pending
+      FROM complaints c
+      LEFT JOIN districts d ON c.district_id = d.id
+      WHERE d.name IS NOT NULL
+      GROUP BY c.district_id, d.name
+      ORDER BY total DESC LIMIT 6
+    `);
+
+    // Priority breakdown
+    const [priority_stats] = await db.query(
+      `SELECT priority, COUNT(*) as count FROM complaints GROUP BY priority`
+    );
 
     // Recent complaints
     const [recent] = await db.query(`
@@ -255,10 +284,14 @@ const getAdminDashboard = async (req, res) => {
           closed:      sc.closed      || 0,
           rejected:    sc.rejected    || 0,
           overdue:     Number(overdue) || 0,
+          today:       Number(today)   || 0,
+          this_week:   Number(this_week) || 0,
         },
         total_users:    Number(total_users)    || 0,
         total_officials: Number(total_officials) || 0,
         avg_rating:     avg_rating || 0,
+        district_stats,
+        priority_stats,
         recent,
       },
     });
@@ -300,6 +333,32 @@ const assignComplaint = async (req, res) => {
       [id, complaints[0].status, 'assigned', admin_id, 'admin', remarks || 'Assigned to official']
     );
 
+    // Send emails to citizen + official (non-blocking)
+    try {
+      const [[emailData]] = await db.query(
+        `SELECT c.complaint_no, c.title,
+                u.email AS citizen_email, u.full_name AS citizen_name,
+                o.email AS official_email, o.full_name AS official_name, o.department
+         FROM complaints c
+         JOIN users u ON c.user_id = u.id
+         JOIN officials o ON o.id = ?
+         WHERE c.id = ?`,
+        [official_id, id]
+      );
+      if (emailData) {
+        sendSafe(sendComplaintAssigned, {
+          citizenEmail: emailData.citizen_email,
+          citizenName:  emailData.citizen_name,
+          officialEmail: emailData.official_email,
+          officialName:  emailData.official_name,
+          complaint_no:  emailData.complaint_no,
+          title:         emailData.title,
+          remarks:       remarks,
+          department:    emailData.department,
+        });
+      }
+    } catch (e) { /* email non-critical */ }
+
     res.json({
       success: true,
       message: 'Complaint assigned successfully.',
@@ -315,7 +374,7 @@ const assignComplaint = async (req, res) => {
 // ────────────────────────────────────────────────────
 const updateComplaintStatus = async (req, res) => {
   const { id } = req.params;
-  const { status, remarks } = req.body;
+  const { status, remarks, priority } = req.body;
   const admin_id = req.user.id;
 
   if (!status) {
@@ -332,11 +391,18 @@ const updateComplaintStatus = async (req, res) => {
     const oldStatus = complaints[0].status;
     const resolved_at = (status === 'resolved') ? new Date() : null;
 
-    // Update complaint
-    await db.query(
-      'UPDATE complaints SET status = ?, admin_remarks = ?, resolved_at = ? WHERE id = ?',
-      [status, remarks || null, resolved_at, id]
-    );
+    // Update complaint (with optional priority change)
+    if (priority) {
+      await db.query(
+        'UPDATE complaints SET status = ?, admin_remarks = ?, resolved_at = ?, priority = ? WHERE id = ?',
+        [status, remarks || null, resolved_at, priority, id]
+      );
+    } else {
+      await db.query(
+        'UPDATE complaints SET status = ?, admin_remarks = ?, resolved_at = ? WHERE id = ?',
+        [status, remarks || null, resolved_at, id]
+      );
+    }
 
     // Log status change
     await db.query(
@@ -402,10 +468,11 @@ const getOfficialComplaints = async (req, res) => {
 // ────────────────────────────────────────────────────
 const resolveComplaint = async (req, res) => {
   const { id } = req.params;
-  const { status, remarks } = req.body;
+  const { status, remarks, priority } = req.body;
   const official_id = req.user.id;
 
-  if (!status || !['resolved', 'rejected'].includes(status)) {
+  const validStatuses = ['in_progress', 'resolved', 'rejected', 'closed'];
+  if (!status || !validStatuses.includes(status)) {
     return res.status(400).json({ success: false, message: 'Valid status required.' });
   }
 
@@ -419,11 +486,18 @@ const resolveComplaint = async (req, res) => {
     const oldStatus = complaints[0].status;
     const resolved_at = (status === 'resolved') ? new Date() : null;
 
-    // Update complaint
-    await db.query(
-      'UPDATE complaints SET status = ?, official_remarks = ?, resolved_at = ? WHERE id = ?',
-      [status, remarks || null, resolved_at, id]
-    );
+    // Update complaint (with optional priority change)
+    if (priority) {
+      await db.query(
+        'UPDATE complaints SET status = ?, official_remarks = ?, resolved_at = ?, priority = ? WHERE id = ?',
+        [status, remarks || null, resolved_at, priority, id]
+      );
+    } else {
+      await db.query(
+        'UPDATE complaints SET status = ?, official_remarks = ?, resolved_at = ? WHERE id = ?',
+        [status, remarks || null, resolved_at, id]
+      );
+    }
 
     // Log status change
     await db.query(
@@ -431,6 +505,24 @@ const resolveComplaint = async (req, res) => {
        VALUES (?, ?, ?, ?, ?, ?)`,
       [id, oldStatus, status, official_id, 'official', remarks]
     );
+
+    // Send email to citizen (non-blocking)
+    try {
+      const [[comp]] = await db.query(
+        `SELECT c.complaint_no, c.title, u.email, u.full_name, of.full_name AS official_name
+         FROM complaints c JOIN users u ON c.user_id = u.id
+         LEFT JOIN officials of ON of.id = ?
+         WHERE c.id = ?`, [official_id, id]
+      );
+      if (comp) {
+        sendSafe(sendStatusUpdate, {
+          to: comp.email, name: comp.full_name,
+          complaint_no: comp.complaint_no, title: comp.title,
+          oldStatus, newStatus: status, remarks,
+          officialName: comp.official_name,
+        });
+      }
+    } catch (e) { /* email non-critical */ }
 
     res.json({
       success: true,
@@ -446,7 +538,7 @@ const resolveComplaint = async (req, res) => {
 //  ADMIN: GET ALL COMPLAINTS
 // ────────────────────────────────────────────────────
 const getAllComplaints = async (req, res) => {
-  const { status, category_id, district_id, limit = 200 } = req.query;
+  const { status, category_id, district_id, priority, search, date_from, date_to, limit = 200 } = req.query;
 
   try {
     let where = '1=1';
@@ -454,6 +546,10 @@ const getAllComplaints = async (req, res) => {
     if (status)      { where += ' AND c.status = ?';      params.push(status); }
     if (category_id) { where += ' AND c.category_id = ?'; params.push(category_id); }
     if (district_id) { where += ' AND c.district_id = ?'; params.push(district_id); }
+    if (priority)    { where += ' AND c.priority = ?';    params.push(priority); }
+    if (search)      { where += ' AND (c.complaint_no LIKE ? OR c.title LIKE ? OR u.full_name LIKE ?)'; params.push(`%${search}%`, `%${search}%`, `%${search}%`); }
+    if (date_from)   { where += ' AND DATE(c.created_at) >= ?'; params.push(date_from); }
+    if (date_to)     { where += ' AND DATE(c.created_at) <= ?'; params.push(date_to); }
 
     const [complaints] = await db.query(
       `SELECT
@@ -485,6 +581,65 @@ const getAllComplaints = async (req, res) => {
   }
 };
 
+// ────────────────────────────────────────────────────
+//  GET COMMENTS FOR A COMPLAINT
+// ────────────────────────────────────────────────────
+const getComments = async (req, res) => {
+  const { id } = req.params;
+  const role = req.user?.role;
+  try {
+    // Citizens only see non-internal comments
+    const where = (role === 'user') ? 'complaint_id = ? AND is_internal = 0' : 'complaint_id = ?';
+    const [comments] = await db.query(
+      `SELECT id, author_role, author_name, message, is_internal, created_at
+       FROM complaint_comments WHERE ${where} ORDER BY created_at ASC`,
+      [id]
+    );
+    res.json({ success: true, data: comments });
+  } catch (err) {
+    console.error('Get comments error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+// ────────────────────────────────────────────────────
+//  ADD COMMENT / NOTE
+// ────────────────────────────────────────────────────
+const addComment = async (req, res) => {
+  const { id } = req.params;
+  const { message, is_internal = 0 } = req.body;
+  const author_id   = req.user.id;
+  const author_role = req.user.role;
+  const author_name = req.user.full_name || req.user.username || req.user.email || 'User';
+
+  if (!message || !message.trim()) {
+    return res.status(400).json({ success: false, message: 'Message is required.' });
+  }
+  // Citizens cannot post internal notes
+  if (author_role === 'user' && is_internal) {
+    return res.status(403).json({ success: false, message: 'Not allowed.' });
+  }
+
+  try {
+    // Verify complaint exists and requester has access
+    const [rows] = await db.query('SELECT id, user_id, official_id FROM complaints WHERE id = ?', [id]);
+    if (rows.length === 0) return res.status(404).json({ success: false, message: 'Complaint not found.' });
+    if (author_role === 'user' && rows[0].user_id !== author_id) {
+      return res.status(403).json({ success: false, message: 'Not authorized.' });
+    }
+
+    await db.query(
+      `INSERT INTO complaint_comments (complaint_id, author_id, author_role, author_name, message, is_internal, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+      [id, author_id, author_role, author_name, message.trim(), is_internal ? 1 : 0]
+    );
+    res.json({ success: true, message: 'Comment added.' });
+  } catch (err) {
+    console.error('Add comment error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
 module.exports = {
   lodgeComplaint,
   trackComplaint,
@@ -496,4 +651,6 @@ module.exports = {
   updateComplaintStatus,
   getOfficialComplaints,
   resolveComplaint,
+  getComments,
+  addComment,
 };

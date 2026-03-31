@@ -585,6 +585,30 @@ async function ensureDistrictsTables() {
   }
 }
 
+// ── Ensure Complaint Comments Table ──
+async function ensureCommentTable() {
+  try {
+    const db = require('./utils/db');
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS complaint_comments (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        complaint_id INT NOT NULL,
+        author_id INT NOT NULL,
+        author_role ENUM('citizen','official','admin') NOT NULL,
+        author_name VARCHAR(100) NOT NULL DEFAULT '',
+        message TEXT NOT NULL,
+        is_internal TINYINT(1) DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_complaint (complaint_id),
+        INDEX idx_created (created_at)
+      )
+    `);
+    console.log('✅ complaint_comments table OK');
+  } catch (err) {
+    console.warn('⚠️  complaint_comments table skipped:', err.message);
+  }
+}
+
 // ── Seed Correct Categories ──
 async function seedCategories() {
   try {
@@ -699,6 +723,7 @@ app.listen(PORT, async () => {
   await ensureDistrictsTables();
   await seedCategories();
   await seedDefaultAdmin();
+  await ensureCommentTable();
 });
 
 module.exports = app;

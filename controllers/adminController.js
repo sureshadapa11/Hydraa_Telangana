@@ -6,6 +6,7 @@
 const bcrypt = require('bcryptjs');
 const db = require('../utils/db');
 const { v4: uuidv4 } = require('uuid');
+const { sendOfficialWelcome, sendSafe } = require('../utils/emailService');
 
 // ────────────────────────────────────────────────────
 //  CATEGORIES: GET
@@ -194,6 +195,9 @@ const createOfficial = async (req, res) => {
        VALUES (?, ?, ?, ?, ?, 1, ?, NOW())`,
       [full_name, email, phone || null, department, hashedPassword, district_id || null]
     );
+
+    // Send welcome email with credentials (non-blocking)
+    sendSafe(sendOfficialWelcome, { to: email, name: full_name, email, password, department });
 
     res.status(201).json({
       success: true,
