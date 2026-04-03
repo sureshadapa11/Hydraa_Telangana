@@ -273,7 +273,7 @@
     <!-- Status filter tabs -->
     <div class="status-tabs" id="statusTabs">
       <div class="stab active" data-status="" onclick="setTab(this)">All <span class="stab-count" id="cnt-all">0</span></div>
-      <div class="stab" data-status="pending" onclick="setTab(this)">⏳ Pending <span class="stab-count" id="cnt-pending">0</span></div>
+      <div class="stab" data-status="open" onclick="setTab(this)">⏳ Pending <span class="stab-count" id="cnt-open">0</span></div>
       <div class="stab" data-status="assigned" onclick="setTab(this)">📌 Assigned <span class="stab-count" id="cnt-assigned">0</span></div>
       <div class="stab" data-status="in_progress" onclick="setTab(this)">🔄 In Progress <span class="stab-count" id="cnt-in_progress">0</span></div>
       <div class="stab" data-status="resolved" onclick="setTab(this)">✅ Resolved <span class="stab-count" id="cnt-resolved">0</span></div>
@@ -376,8 +376,8 @@
   var activeStatus = '';
 
   function sb(status) {
-    const m={pending:'b-pending',assigned:'b-assigned',in_progress:'b-in_progress',resolved:'b-resolved',closed:'b-closed',rejected:'b-rejected'};
-    const l={pending:'Pending',assigned:'Assigned',in_progress:'In Progress',resolved:'Resolved',closed:'Closed',rejected:'Rejected'};
+    const m={open:'b-pending',pending:'b-pending',assigned:'b-assigned',in_progress:'b-in_progress',resolved:'b-resolved',closed:'b-closed',rejected:'b-rejected'};
+    const l={open:'Pending',pending:'Pending',assigned:'Assigned',in_progress:'In Progress',resolved:'Resolved',closed:'Closed',rejected:'Rejected'};
     return `<span class="badge ${m[status]||''}">${l[status]||status}</span>`;
   }
   function pb(p){return `<span class="badge b-${p}">${p.toUpperCase()}</span>`;}
@@ -393,7 +393,7 @@
   }
 
   function updateCounts() {
-    const statuses = ['pending','assigned','in_progress','resolved','closed','rejected'];
+    const statuses = ['open','assigned','in_progress','resolved','closed','rejected'];
     document.getElementById('cnt-all').textContent = allComplaints.length;
     statuses.forEach(s => {
       const el = document.getElementById('cnt-'+s);

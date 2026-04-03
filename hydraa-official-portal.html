@@ -613,8 +613,8 @@ function switchView(v) {
 }
 
 function sb(status) {
-  const m = {pending:'b-pending',assigned:'b-assigned',in_progress:'b-in_progress',resolved:'b-resolved',closed:'b-closed'};
-  const l = {pending:'Pending',assigned:'Assigned',in_progress:'In Progress',resolved:'Resolved',closed:'Closed'};
+  const m = {open:'b-pending',pending:'b-pending',assigned:'b-assigned',in_progress:'b-in_progress',resolved:'b-resolved',closed:'b-closed'};
+  const l = {open:'Pending',pending:'Pending',assigned:'Assigned',in_progress:'In Progress',resolved:'Resolved',closed:'Closed'};
   return `<span class="badge ${m[status]||''}">${l[status]||status}</span>`;
 }
 function pb(p) { return `<span class="badge b-${p}">${p.toUpperCase()}</span>`; }

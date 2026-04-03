@@ -340,7 +340,7 @@
         <div class="fb-label">Filter:</div>
         <select id="filterStatus" onchange="loadComplaints()">
           <option value="">All Statuses</option>
-          <option value="pending">Pending</option>
+          <option value="open">Pending</option>
           <option value="assigned">Assigned</option>
           <option value="in_progress">In Progress</option>
           <option value="resolved">Resolved</option>
@@ -424,7 +424,7 @@
       <div class="m-field">
         <label class="m-label">New Status <span>*</span></label>
         <select id="statusSel" class="m-select">
-          <option value="pending">⏳ Pending</option>
+          <option value="open">⏳ Pending</option>
           <option value="assigned">📌 Assigned</option>
           <option value="in_progress">🔄 In Progress</option>
           <option value="resolved">✅ Resolved</option>
@@ -481,8 +481,8 @@ function switchView(v) {
 
 // Status badge helper
 function sb(status) {
-  const map = {pending:'b-pending',assigned:'b-assigned',in_progress:'b-in_progress',resolved:'b-resolved',closed:'b-closed',rejected:'b-rejected'};
-  const lbl = {pending:'Pending',assigned:'Assigned',in_progress:'In Progress',resolved:'Resolved',closed:'Closed',rejected:'Rejected'};
+  const map = {open:'b-pending',pending:'b-pending',assigned:'b-assigned',in_progress:'b-in_progress',resolved:'b-resolved',closed:'b-closed',rejected:'b-rejected'};
+  const lbl = {open:'Pending',pending:'Pending',assigned:'Assigned',in_progress:'In Progress',resolved:'Resolved',closed:'Closed',rejected:'Rejected'};
   return `<span class="badge ${map[status]||''}">${lbl[status]||status}</span>`;
 }
 function pb(p) {
@@ -535,7 +535,7 @@ async function loadDashboard() {
 
     // Status pills
     const statuses = [
-      {key:'pending',label:'Pending',color:'#f59e0b',bg:'rgba(245,158,11,0.08)'},
+      {key:'open',label:'Pending',color:'#f59e0b',bg:'rgba(245,158,11,0.08)'},
       {key:'assigned',label:'Assigned',color:'#3b82f6',bg:'rgba(59,130,246,0.08)'},
       {key:'in_progress',label:'In Progress',color:'#8b5cf6',bg:'rgba(139,92,246,0.08)'},
       {key:'resolved',label:'Resolved',color:'#10b981',bg:'rgba(16,185,129,0.08)'},
