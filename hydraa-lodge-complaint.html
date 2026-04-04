@@ -791,7 +791,6 @@
   // Reset
   function resetForm() {
     document.getElementById('complaintForm').reset();
-    document.getElementById('aiPreview').style.display = 'none';
     document.getElementById('fdPreview').style.display = 'none';
     document.querySelectorAll('.pp').forEach(p => p.classList.remove('selected'));
     document.querySelector('.pp[data-val="medium"]').classList.add('selected');
@@ -848,7 +847,6 @@
   // ═══════════════ SMART TITLE SUGGEST ═══════════════
   let suggestTimeout;
   function onTitleInput() {
-    triggerAIPreview();
     clearTimeout(suggestTimeout);
     suggestTimeout = setTimeout(showCategorySuggestions, 250);
   }
