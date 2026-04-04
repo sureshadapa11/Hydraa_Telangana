@@ -192,8 +192,8 @@
     <!-- STATE SUMMARY PILLS -->
     <div class="card">
       <div class="card-hdr">
-        <div class="card-title">📍 State Summary</div>
-        <div class="card-sub">Total complaints filed per state</div>
+        <div class="card-title">📍 Telangana Summary</div>
+        <div class="card-sub">Total complaints filed in Telangana</div>
       </div>
       <div class="state-grid" id="stateGrid"><div class="loading">Loading...</div></div>
     </div>
@@ -297,9 +297,10 @@
       }).addTo(map);
     });
 
-    // ── STATE PILLS ──
-    const maxPill = Math.max(...d.stateData.map(s => s.total), 1);
-    document.getElementById('stateGrid').innerHTML = d.stateData.map(s => `
+    // ── STATE PILLS (Telangana only) ──
+    const telanganaData = d.stateData.filter(s => s.state_name === 'Telangana');
+    const maxPill = Math.max(...telanganaData.map(s => s.total), 1);
+    document.getElementById('stateGrid').innerHTML = telanganaData.map(s => `
       <div class="state-pill">
         <div class="sp-name">${s.state_name}</div>
         <div class="sp-total">${s.total}</div>
