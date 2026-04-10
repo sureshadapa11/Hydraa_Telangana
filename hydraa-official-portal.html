@@ -593,13 +593,15 @@
         </div>
 
         <!-- Open portal button — always visible -->
-        <div style="padding:0.85rem 1rem;">
+        <div style="padding:0.85rem 1rem;display:flex;flex-direction:column;gap:0.5rem;">
+          <button onclick="openSideBySide()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:0.5rem;background:linear-gradient(135deg,#006978,#0097a7);color:#fff;font-size:0.85rem;font-weight:800;padding:0.75rem;border-radius:10px;border:none;cursor:pointer;box-shadow:0 4px 14px rgba(0,151,167,0.35);font-family:inherit;">
+            🏛️ Search Side-by-Side
+            <span style="font-size:0.72rem;opacity:0.85;background:rgba(255,255,255,0.18);padding:0.15rem 0.45rem;border-radius:4px;">opens Bhubharati alongside</span>
+          </button>
           <a href="https://bhubharati.telangana.gov.in/knowLandStatus" target="_blank"
-            style="display:flex;align-items:center;justify-content:center;gap:0.5rem;background:linear-gradient(135deg,#006978,#0097a7);color:#fff;font-size:0.85rem;font-weight:800;padding:0.75rem;border-radius:10px;text-decoration:none;box-shadow:0 4px 14px rgba(0,151,167,0.35);letter-spacing:0.01em;">
-            🏛️ Open Bhubharati Land Records Portal
-            <span style="font-size:0.75rem;opacity:0.85;background:rgba(255,255,255,0.15);padding:0.15rem 0.4rem;border-radius:4px;">↗ new tab</span>
+            style="display:block;text-align:center;color:#0097a7;font-size:0.72rem;font-weight:600;text-decoration:none;padding:0.2rem;">
+            or open in new tab ↗
           </a>
-          <div style="font-size:0.68rem;color:#7a9baf;text-align:center;margin-top:0.4rem;">Copy the values above · paste into the Bhubharati search form</div>
         </div>
       </div>
     </div>
@@ -870,6 +872,27 @@ function copyAllLandVals() {
       btn.style.borderColor = 'rgba(0,151,167,0.4)';
     }, 2000);
   });
+}
+function openSideBySide() {
+  const sw = window.screen.width;
+  const sh = window.screen.height;
+  const half = Math.floor(sw / 2);
+  // Snap this window to left half
+  try {
+    window.moveTo(0, 0);
+    window.resizeTo(half, sh);
+  } catch(e) {}
+  // Open Bhubharati in right half
+  const popup = window.open(
+    'https://bhubharati.telangana.gov.in/knowLandStatus',
+    'bhubharati_land',
+    `width=${half},height=${sh},left=${half},top=0,resizable=yes,scrollbars=yes`
+  );
+  if (!popup) {
+    // Popup blocked — fall back to new tab
+    window.open('https://bhubharati.telangana.gov.in/knowLandStatus', '_blank');
+    alert('Popup was blocked by your browser.\nPlease allow popups for this site for the side-by-side view.\n\nOpened Bhubharati in a new tab instead.');
+  }
 }
 document.getElementById('updateModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeUpdate(); });
 
