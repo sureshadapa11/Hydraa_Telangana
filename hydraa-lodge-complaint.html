@@ -570,16 +570,23 @@
             <!-- Land Record Details (auto-shown for land categories) -->
             <div id="landSection" style="display:none;margin-top:1rem;background:rgba(0,151,167,0.05);border:1.5px solid rgba(0,151,167,0.2);border-radius:10px;padding:1rem 1.2rem;">
               <div style="font-size:0.82rem;font-weight:700;color:#0097a7;margin-bottom:0.3rem;">🏛️ Land Record Details</div>
-              <div style="font-size:0.72rem;color:#3d5a72;margin-bottom:0.8rem;">These details help officials verify land records on the government portal. Enter if available.</div>
+              <div style="font-size:0.72rem;color:#3d5a72;margin-bottom:0.8rem;">These details help officials verify land records on the Bhubharati government portal.</div>
               <div class="f-row">
                 <div class="f-group">
-                  <label class="f-label">Land Survey Number</label>
-                  <input type="text" id="land_survey_no" class="f-input" placeholder="e.g. 123/A"/>
+                  <label class="f-label">Village Name <span class="req">*</span></label>
+                  <input type="text" id="land_village" class="f-input" placeholder="e.g. Madhapur"/>
                 </div>
                 <div class="f-group">
-                  <label class="f-label">Khata Number</label>
+                  <label class="f-label">Land Survey Number <span class="req">*</span></label>
+                  <input type="text" id="land_survey_no" class="f-input" placeholder="e.g. 123/A"/>
+                </div>
+              </div>
+              <div class="f-row">
+                <div class="f-group">
+                  <label class="f-label">Khata Number <span class="req">*</span></label>
                   <input type="text" id="khata_no" class="f-input" placeholder="e.g. 456"/>
                 </div>
+                <div class="f-group"></div>
               </div>
             </div>
           </div>
@@ -828,6 +835,7 @@
         mandal_id:      document.getElementById('mandal_id').value || null,
         address:        document.getElementById('address').value.trim(),
         priority:       document.getElementById('priority').value || 'medium',
+        land_village:   document.getElementById('land_village').value.trim() || null,
         land_survey_no: document.getElementById('land_survey_no').value.trim() || null,
         khata_no:       document.getElementById('khata_no').value.trim() || null,
       };

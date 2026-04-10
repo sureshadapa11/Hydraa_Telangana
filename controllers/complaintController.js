@@ -17,7 +17,7 @@ const {
 //  LODGE COMPLAINT
 // ────────────────────────────────────────────────────
 const lodgeComplaint = async (req, res) => {
-  const { title, description, category_id, subcategory_id, priority, address, district_id, mandal_id, land_survey_no, khata_no } = req.body;
+  const { title, description, category_id, subcategory_id, priority, address, district_id, mandal_id, land_village, land_survey_no, khata_no } = req.body;
   const user_id = req.user.id;
 
   const missing = [];
@@ -38,11 +38,11 @@ const lodgeComplaint = async (req, res) => {
     const [result] = await db.query(
       `INSERT INTO complaints (
         complaint_no, user_id, title, description, category_id, subcategory_id,
-        priority, address, district_id, mandal_id, status, land_survey_no, khata_no, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+        priority, address, district_id, mandal_id, status, land_village, land_survey_no, khata_no, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
       [complaint_no, user_id, title, description, category_id || null, subcategory_id || null,
        priority || 'medium', address, district_id || null, mandal_id || null, 'open',
-       land_survey_no || null, khata_no || null]
+       land_village || null, land_survey_no || null, khata_no || null]
     );
 
     const complaint_id = result.insertId;
@@ -152,7 +152,7 @@ const getMyComplaints = async (req, res) => {
         c.category_id, cat.name as category_name,
         c.created_at, c.resolved_at,
         c.official_id, o.full_name as official_name,
-        c.land_survey_no, c.khata_no
+        c.land_village, c.land_survey_no, c.khata_no
       FROM complaints c
       LEFT JOIN categories cat ON c.category_id = cat.id
       LEFT JOIN officials o ON c.official_id = o.id
@@ -447,10 +447,13 @@ const getOfficialComplaints = async (req, res) => {
         c.category_id, cat.name as category_name,
         c.created_at, c.address,
         u.full_name as user_name, u.email as user_email,
-        c.land_survey_no, c.khata_no
+        c.land_village, c.land_survey_no, c.khata_no,
+        d.name as district_name, m.name as mandal_name
       FROM complaints c
       JOIN users u ON c.user_id = u.id
       LEFT JOIN categories cat ON c.category_id = cat.id
+      LEFT JOIN districts d ON c.district_id = d.id
+      LEFT JOIN mandals m ON c.mandal_id = m.id
       WHERE c.official_id = ?
       ORDER BY c.status ASC, c.created_at DESC`,
       [official_id]
@@ -564,7 +567,7 @@ const getAllComplaints = async (req, res) => {
         c.admin_remarks, c.official_remarks,
         u.full_name AS user_name, u.email AS user_email,
         d.name AS district_name, m.name AS mandal_name,
-        c.land_survey_no, c.khata_no
+        c.land_village, c.land_survey_no, c.khata_no
       FROM complaints c
       JOIN users u ON c.user_id = u.id
       LEFT JOIN categories cat ON c.category_id = cat.id

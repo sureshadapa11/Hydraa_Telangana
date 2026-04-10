@@ -529,21 +529,35 @@
 
       <!-- Land Record Section (shown only for land complaints) -->
       <div id="landInfo" style="display:none;margin-top:1rem;background:rgba(0,151,167,0.05);border:1.5px solid rgba(0,151,167,0.2);border-radius:10px;padding:1rem 1.2rem;">
-        <div style="font-size:0.82rem;font-weight:700;color:#0097a7;margin-bottom:0.7rem;">🏛️ Land Record Details</div>
-        <div style="display:flex;gap:2rem;flex-wrap:wrap;margin-bottom:0.8rem;font-size:0.83rem;">
-          <div><span style="color:#7a9baf;font-weight:500;">Survey No:</span> <strong id="landSurveyDisp">—</strong></div>
-          <div><span style="color:#7a9baf;font-weight:500;">Khata No:</span> <strong id="landKhataDisp">—</strong></div>
+        <div style="font-size:0.82rem;font-weight:700;color:#0097a7;margin-bottom:0.7rem;">🏛️ Land Record — Bhubharati Reference</div>
+        <div style="font-size:0.72rem;color:#3d5a72;margin-bottom:0.9rem;">Use these values to fill the search form on Bhubharati portal. Click any value to copy it.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:1rem;">
+          <div onclick="copyLandVal('landDistDisp',this)" style="cursor:pointer;background:#fff;border:1px solid #d0e4ec;border-radius:8px;padding:0.55rem 0.8rem;transition:border-color .15s;" title="Click to copy">
+            <div style="font-size:0.62rem;color:#7a9baf;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">District</div>
+            <div style="font-size:0.84rem;font-weight:700;color:#0d1e2e;margin-top:2px;" id="landDistDisp">—</div>
+          </div>
+          <div onclick="copyLandVal('landMandalDisp',this)" style="cursor:pointer;background:#fff;border:1px solid #d0e4ec;border-radius:8px;padding:0.55rem 0.8rem;transition:border-color .15s;" title="Click to copy">
+            <div style="font-size:0.62rem;color:#7a9baf;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Mandal</div>
+            <div style="font-size:0.84rem;font-weight:700;color:#0d1e2e;margin-top:2px;" id="landMandalDisp">—</div>
+          </div>
+          <div onclick="copyLandVal('landVillageDisp',this)" style="cursor:pointer;background:#fff;border:1px solid #d0e4ec;border-radius:8px;padding:0.55rem 0.8rem;transition:border-color .15s;" title="Click to copy">
+            <div style="font-size:0.62rem;color:#7a9baf;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Village</div>
+            <div style="font-size:0.84rem;font-weight:700;color:#0d1e2e;margin-top:2px;" id="landVillageDisp">—</div>
+          </div>
+          <div onclick="copyLandVal('landSurveyDisp',this)" style="cursor:pointer;background:#fff;border:1px solid #d0e4ec;border-radius:8px;padding:0.55rem 0.8rem;transition:border-color .15s;" title="Click to copy">
+            <div style="font-size:0.62rem;color:#7a9baf;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Survey No.</div>
+            <div style="font-size:0.84rem;font-weight:700;color:#0d1e2e;margin-top:2px;" id="landSurveyDisp">—</div>
+          </div>
+          <div onclick="copyLandVal('landKhataDisp',this)" style="cursor:pointer;background:#fff;border:1px solid #d0e4ec;border-radius:8px;padding:0.55rem 0.8rem;transition:border-color .15s;" title="Click to copy">
+            <div style="font-size:0.62rem;color:#7a9baf;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Khata No.</div>
+            <div style="font-size:0.84rem;font-weight:700;color:#0d1e2e;margin-top:2px;" id="landKhataDisp">—</div>
+          </div>
         </div>
-        <div style="font-size:0.75rem;font-weight:600;color:#3d5a72;margin-bottom:0.4rem;display:flex;align-items:center;justify-content:space-between;">
-          <span>Bhubharati Land Records Portal</span>
-          <a href="https://bhubharati.telangana.gov.in/knowLandStatus" target="_blank" style="color:#0097a7;font-size:0.72rem;">Open in new tab ↗</a>
-        </div>
-        <iframe
-          src="https://bhubharati.telangana.gov.in/knowLandStatus"
-          style="width:100%;height:380px;border:1px solid #d0e4ec;border-radius:8px;background:#f8fafc;"
-          title="Bhubharati Land Records">
-        </iframe>
-        <div style="font-size:0.68rem;color:#7a9baf;margin-top:0.4rem;">If the portal doesn't load above, use "Open in new tab" to search manually using the survey and khata numbers.</div>
+        <a href="https://bhubharati.telangana.gov.in/knowLandStatus" target="_blank"
+          style="display:block;text-align:center;background:linear-gradient(135deg,#0097a7,#00bcd4);color:#fff;font-size:0.83rem;font-weight:700;padding:0.65rem;border-radius:8px;text-decoration:none;">
+          🏛️ Open Bhubharati Land Records Portal ↗
+        </a>
+        <div style="font-size:0.68rem;color:#7a9baf;margin-top:0.5rem;text-align:center;">Click each value above to copy, then paste into the Bhubharati search dropdowns</div>
       </div>
     </div>
     <div class="modal-ftr">
@@ -742,9 +756,12 @@ function openUpdate(id) {
 
   // Show land details if available
   const landInfo = document.getElementById('landInfo');
-  if (c.land_survey_no || c.khata_no) {
-    document.getElementById('landSurveyDisp').textContent = c.land_survey_no || '—';
-    document.getElementById('landKhataDisp').textContent  = c.khata_no       || '—';
+  if (c.land_survey_no || c.khata_no || c.land_village) {
+    document.getElementById('landDistDisp').textContent    = c.district_name  || '—';
+    document.getElementById('landMandalDisp').textContent  = c.mandal_name    || '—';
+    document.getElementById('landVillageDisp').textContent = c.land_village   || '—';
+    document.getElementById('landSurveyDisp').textContent  = c.land_survey_no || '—';
+    document.getElementById('landKhataDisp').textContent   = c.khata_no       || '—';
     landInfo.style.display = 'block';
   } else {
     landInfo.style.display = 'none';
@@ -753,6 +770,16 @@ function openUpdate(id) {
   document.getElementById('updateModal').classList.add('open');
 }
 function closeUpdate() { document.getElementById('updateModal').classList.remove('open'); }
+
+function copyLandVal(elId, card) {
+  const val = document.getElementById(elId).textContent;
+  if (!val || val === '—') return;
+  navigator.clipboard.writeText(val).then(() => {
+    const orig = card.style.borderColor;
+    card.style.borderColor = '#0097a7';
+    setTimeout(() => { card.style.borderColor = orig; }, 800);
+  });
+}
 document.getElementById('updateModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeUpdate(); });
 
 async function doUpdate() {
