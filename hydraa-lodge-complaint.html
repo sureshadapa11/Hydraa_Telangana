@@ -567,27 +567,6 @@
               </div>
             </div>
 
-            <!-- Land Record Details (auto-shown for land categories) -->
-            <div id="landSection" style="display:none;margin-top:1rem;background:rgba(0,151,167,0.05);border:1.5px solid rgba(0,151,167,0.2);border-radius:10px;padding:1rem 1.2rem;">
-              <div style="font-size:0.82rem;font-weight:700;color:#0097a7;margin-bottom:0.3rem;">🏛️ Land Record Details</div>
-              <div style="font-size:0.72rem;color:#3d5a72;margin-bottom:0.8rem;">These details help officials verify land records on the Bhubharati government portal.</div>
-              <div class="f-row">
-                <div class="f-group">
-                  <label class="f-label">Village Name <span class="req">*</span></label>
-                  <input type="text" id="land_village" class="f-input" placeholder="e.g. Madhapur"/>
-                </div>
-                <div class="f-group">
-                  <label class="f-label">Land Survey Number <span class="req">*</span></label>
-                  <input type="text" id="land_survey_no" class="f-input" placeholder="e.g. 123/A"/>
-                </div>
-              </div>
-              <div class="f-row">
-                <div class="f-group">
-                  <label class="f-label">Khata Number <span class="req">*</span></label>
-                  <input type="text" id="khata_no" class="f-input" placeholder="e.g. 456"/>
-                </div>
-                <div class="f-group"></div>
-              </div>
             </div>
           </div>
 
@@ -614,7 +593,43 @@
             </div>
           </div>
 
-          <!-- Section 3: Priority -->
+          <!-- Section 3: Land Record Details (auto-shown for land categories) -->
+          <div id="landSection" class="f-section" style="display:none;border:1.5px solid rgba(0,151,167,0.25);background:rgba(0,151,167,0.04);">
+            <div class="f-section-title" style="color:#0097a7;">🏛️ Land Record Details</div>
+            <div style="font-size:0.72rem;color:#3d5a72;margin-bottom:1rem;">Enter the land details exactly as registered. Officials will use these to verify records on the Bhubharati government portal.</div>
+            <div class="f-row">
+              <div class="f-group">
+                <label class="f-label">District</label>
+                <input type="text" id="land_district" class="f-input" placeholder="e.g. Hyderabad"/>
+              </div>
+              <div class="f-group">
+                <label class="f-label">Mandal</label>
+                <input type="text" id="land_mandal" class="f-input" placeholder="e.g. Serilingampally"/>
+              </div>
+            </div>
+            <div class="f-row">
+              <div class="f-group">
+                <label class="f-label">Village</label>
+                <input type="text" id="land_village" class="f-input" placeholder="e.g. Madhapur"/>
+              </div>
+              <div class="f-group">
+                <label class="f-label">Specific Address / Location</label>
+                <input type="text" id="land_address" class="f-input" placeholder="e.g. Plot No. 12, Near Water Tank"/>
+              </div>
+            </div>
+            <div class="f-row">
+              <div class="f-group">
+                <label class="f-label">Survey Number</label>
+                <input type="text" id="land_survey_no" class="f-input" placeholder="e.g. 123/A"/>
+              </div>
+              <div class="f-group">
+                <label class="f-label">Khata Number</label>
+                <input type="text" id="khata_no" class="f-input" placeholder="e.g. 456"/>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 5: Priority -->
           <div class="f-section">
             <div class="f-section-title">⚡ Priority Level</div>
             <div class="f-group">
@@ -835,7 +850,10 @@
         mandal_id:      document.getElementById('mandal_id').value || null,
         address:        document.getElementById('address').value.trim(),
         priority:       document.getElementById('priority').value || 'medium',
+        land_district:  document.getElementById('land_district').value.trim() || null,
+        land_mandal:    document.getElementById('land_mandal').value.trim() || null,
         land_village:   document.getElementById('land_village').value.trim() || null,
+        land_address:   document.getElementById('land_address').value.trim() || null,
         land_survey_no: document.getElementById('land_survey_no').value.trim() || null,
         khata_no:       document.getElementById('khata_no').value.trim() || null,
       };

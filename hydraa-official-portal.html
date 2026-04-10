@@ -552,6 +552,10 @@
             <div style="font-size:0.62rem;color:#7a9baf;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Khata No.</div>
             <div style="font-size:0.84rem;font-weight:700;color:#0d1e2e;margin-top:2px;" id="landKhataDisp">—</div>
           </div>
+          <div onclick="copyLandVal('landAddrDisp',this)" style="cursor:pointer;background:#fff;border:1px solid #d0e4ec;border-radius:8px;padding:0.55rem 0.8rem;grid-column:span 2;transition:border-color .15s;" title="Click to copy">
+            <div style="font-size:0.62rem;color:#7a9baf;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Specific Address / Location</div>
+            <div style="font-size:0.84rem;font-weight:700;color:#0d1e2e;margin-top:2px;" id="landAddrDisp">—</div>
+          </div>
         </div>
         <a href="https://bhubharati.telangana.gov.in/knowLandStatus" target="_blank"
           style="display:block;text-align:center;background:linear-gradient(135deg,#0097a7,#00bcd4);color:#fff;font-size:0.83rem;font-weight:700;padding:0.65rem;border-radius:8px;text-decoration:none;">
@@ -756,10 +760,11 @@ function openUpdate(id) {
 
   // Show land details if available
   const landInfo = document.getElementById('landInfo');
-  if (c.land_survey_no || c.khata_no || c.land_village) {
-    document.getElementById('landDistDisp').textContent    = c.district_name  || '—';
-    document.getElementById('landMandalDisp').textContent  = c.mandal_name    || '—';
+  if (c.land_survey_no || c.khata_no || c.land_village || c.land_district) {
+    document.getElementById('landDistDisp').textContent    = c.land_district  || '—';
+    document.getElementById('landMandalDisp').textContent  = c.land_mandal    || '—';
     document.getElementById('landVillageDisp').textContent = c.land_village   || '—';
+    document.getElementById('landAddrDisp').textContent    = c.land_address   || '—';
     document.getElementById('landSurveyDisp').textContent  = c.land_survey_no || '—';
     document.getElementById('landKhataDisp').textContent   = c.khata_no       || '—';
     landInfo.style.display = 'block';

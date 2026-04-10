@@ -414,7 +414,10 @@ async function fixComplaintsTable() {
       { name: 'resolved_at',       def: 'TIMESTAMP NULL' },
       { name: 'created_at',        def: 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP' },
       { name: 'updated_at',        def: 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP' },
+      { name: 'land_district',     def: 'VARCHAR(150) DEFAULT NULL' },
+      { name: 'land_mandal',       def: 'VARCHAR(150) DEFAULT NULL' },
       { name: 'land_village',      def: 'VARCHAR(150) DEFAULT NULL' },
+      { name: 'land_address',      def: 'VARCHAR(255) DEFAULT NULL' },
       { name: 'land_survey_no',    def: 'VARCHAR(100) DEFAULT NULL' },
       { name: 'khata_no',          def: 'VARCHAR(100) DEFAULT NULL' },
     ];
