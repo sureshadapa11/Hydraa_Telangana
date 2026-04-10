@@ -532,7 +532,7 @@
       <div style="margin-top:1rem;border:1.5px solid rgba(0,151,167,0.25);border-radius:12px;overflow:hidden;">
         <!-- Header -->
         <div style="background:linear-gradient(135deg,#006978,#0097a7);padding:0.75rem 1rem;display:flex;align-items:center;justify-content:space-between;">
-          <span style="font-size:0.82rem;font-weight:800;color:#fff;">🏛️ Land Records Search</span>
+          <span style="font-size:0.82rem;font-weight:800;color:#fff;">🏛️ Dharani Land Records</span>
           <span id="landApiBadge" style="font-size:0.65rem;background:rgba(255,255,255,0.18);color:#fff;padding:0.2rem 0.55rem;border-radius:20px;font-weight:700;">⏳ Demo Mode</span>
         </div>
 
@@ -816,13 +816,8 @@ async function searchLandRecords() {
     }
 
     const badge = document.getElementById('landApiBadge');
-    if (json.demo) {
-      badge.textContent = '⚠️ Demo Mode';
-      badge.style.background = 'rgba(255,165,0,0.25)';
-    } else {
-      badge.textContent = '✅ Live Data';
-      badge.style.background = 'rgba(16,185,129,0.25)';
-    }
+    badge.textContent = json.demo ? '⚠️ Demo Mode' : '✅ Live Data';
+    badge.style.background = json.demo ? 'rgba(255,165,0,0.3)' : 'rgba(16,185,129,0.3)';
 
     if (!json.data) {
       res.innerHTML = `<div style="padding:0.9rem 1rem;font-size:0.78rem;color:#64748b;">🔍 No land record found for the given details.</div>`;
@@ -831,29 +826,61 @@ async function searchLandRecords() {
     }
 
     const d = json.data;
+
+    // ── Build alert banners for issues ──
+    const alerts = [];
+    if (d.isProhibited)    alerts.push({ level:'red',    icon:'🚫', text:`Prohibited Property — ${d.prohibitionReason || 'Cannot be transferred or registered'}` });
+    if (d.courtAttachment) alerts.push({ level:'red',    icon:'⚖️', text:`Court Attachment Active${d.courtCaseNo ? ' · Case: '+d.courtCaseNo : ''} — Do not process` });
+    if (d.pendingMutation) alerts.push({ level:'orange', icon:'⏳', text:'Ownership Mutation Pending — Disputed transfer in progress' });
+    if (d.encumbrance)     alerts.push({ level:'orange', icon:'🏦', text:`Encumbrance Registered${d.encumbranceDetails ? ' · '+d.encumbranceDetails : ''} — Loan/mortgage exists` });
+
+    // Govt land check
+    const govtTypes = ['Poramboke','Assigned Land','Government','Endowment','Inam'];
+    const isGovt = govtTypes.some(t => (d.landClassification||'').includes(t));
+    if (isGovt) alerts.push({ level:'red', icon:'🏛️', text:`Government Land — Classification: ${d.landClassification}. Private claim is invalid.` });
+
+    const alertsHtml = alerts.map(a => {
+      const bg   = a.level==='red' ? '#fef2f2' : '#fff7ed';
+      const bdr  = a.level==='red' ? '#fca5a5' : '#fed7aa';
+      const clr  = a.level==='red' ? '#991b1b' : '#92400e';
+      return `<div style="background:${bg};border:1.5px solid ${bdr};border-radius:8px;padding:0.55rem 0.8rem;font-size:0.75rem;font-weight:700;color:${clr};display:flex;gap:0.4rem;align-items:flex-start;">
+        <span>${a.icon}</span><span>${a.text}</span>
+      </div>`;
+    }).join('');
+
+    const clearBadge = alerts.length === 0
+      ? `<div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:0.55rem 0.8rem;font-size:0.75rem;font-weight:700;color:#166534;display:flex;gap:0.4rem;">
+          <span>✅</span><span>No Issues Found — Private land, clear title, no court cases or encumbrances</span>
+        </div>` : '';
+
     res.innerHTML = `
-      <div style="padding:0.9rem 1rem;">
-        ${json.demo ? `<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:0.5rem 0.75rem;font-size:0.7rem;color:#92400e;margin-bottom:0.75rem;font-weight:600;">
-          ⚠️ Demo Mode — Add <code>BHUBHARATI_API_KEY</code> to .env for live land records
+      <div style="padding:0.9rem 1rem;display:flex;flex-direction:column;gap:0.65rem;">
+        ${json.demo ? `<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:0.5rem 0.75rem;font-size:0.7rem;color:#92400e;font-weight:600;">
+          ⚠️ Demo Mode — Add <code>DHARANI_API_KEY</code> to Railway env vars for live records
         </div>` : ''}
-        <div style="background:#fff;border:1.5px solid rgba(0,151,167,0.2);border-radius:10px;overflow:hidden;">
-          <div style="background:rgba(0,151,167,0.06);padding:0.55rem 0.85rem;font-size:0.72rem;font-weight:800;color:#006978;border-bottom:1px solid rgba(0,151,167,0.12);">
-            📄 Land Record Details
+
+        ${alertsHtml}
+        ${clearBadge}
+
+        <div style="background:#fff;border:1.5px solid rgba(0,151,167,0.18);border-radius:10px;overflow:hidden;">
+          <div style="background:rgba(0,151,167,0.06);padding:0.55rem 0.85rem;font-size:0.72rem;font-weight:800;color:#006978;border-bottom:1px solid rgba(0,151,167,0.1);">
+            📄 Dharani Land Record
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
-            ${landRow('Owner',        d.ownerName)}
-            ${landRow('Father/Husband', d.fatherName)}
-            ${landRow('District',     d.district)}
-            ${landRow('Mandal',       d.mandal)}
-            ${landRow('Village',      d.village)}
-            ${landRow('Survey No.',   d.surveyNo)}
-            ${landRow('Khata No.',    d.khataNo)}
-            ${landRow('Area',         d.area)}
-            ${landRow('Land Type',    d.landType)}
-            ${landRow('Classification', d.classification)}
-            ${landRow('Status',       d.status, d.status==='Clear Title'?'#059669':'')}
-            ${landRow('Last Mutation',d.lastMutation)}
-            ${landRow('Passbook No.', d.passbook)}
+          <div style="display:grid;grid-template-columns:1fr 1fr;">
+            ${landRow('Pattadar / Owner',  d.pattadarName)}
+            ${landRow('Father / Husband',  d.fatherName)}
+            ${landRow('Passbook No.',       d.passbook)}
+            ${landRow('Pattadar Phone',     d.pattadarPhone)}
+            ${landRow('District',           d.district)}
+            ${landRow('Mandal',             d.mandal)}
+            ${landRow('Village',            d.village)}
+            ${landRow('Survey No.',         d.surveyNo)}
+            ${landRow('Khata No.',          d.khataNo)}
+            ${landRow('Area',               d.area)}
+            ${landRow('Land Type',          d.landType)}
+            ${landRow('Classification',     d.landClassification, isGovt?'#dc2626':'')}
+            ${landRow('Mutation Status',    d.mutationStatus)}
+            ${landRow('Last Mutation',      d.lastMutation)}
           </div>
         </div>
       </div>`;
@@ -868,9 +895,9 @@ async function searchLandRecords() {
 }
 
 function landRow(label, val, color) {
-  if (!val || val === '—') return '';
+  if (!val || val === '—' || val === null || val === undefined) return '';
   return `<div style="padding:0.45rem 0.85rem;border-bottom:1px solid rgba(0,151,167,0.07);">
-    <div style="font-size:0.58rem;color:#7a9baf;font-weight:700;text-transform:uppercase;">${label}</div>
+    <div style="font-size:0.58rem;color:#7a9baf;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;">${label}</div>
     <div style="font-size:0.82rem;font-weight:700;color:${color||'#0d2137'};margin-top:1px;">${val}</div>
   </div>`;
 }
