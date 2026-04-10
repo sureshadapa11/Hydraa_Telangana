@@ -526,6 +526,25 @@
         <textarea id="updateNote" class="m-textarea" placeholder="Internal note — visible only to admin and officials, not to the citizen..." style="min-height:60px"></textarea>
       </div>
       <div id="updateMsg" class="m-msg"></div>
+
+      <!-- Land Record Section (shown only for land complaints) -->
+      <div id="landInfo" style="display:none;margin-top:1rem;background:rgba(0,151,167,0.05);border:1.5px solid rgba(0,151,167,0.2);border-radius:10px;padding:1rem 1.2rem;">
+        <div style="font-size:0.82rem;font-weight:700;color:#0097a7;margin-bottom:0.7rem;">🏛️ Land Record Details</div>
+        <div style="display:flex;gap:2rem;flex-wrap:wrap;margin-bottom:0.8rem;font-size:0.83rem;">
+          <div><span style="color:#7a9baf;font-weight:500;">Survey No:</span> <strong id="landSurveyDisp">—</strong></div>
+          <div><span style="color:#7a9baf;font-weight:500;">Khata No:</span> <strong id="landKhataDisp">—</strong></div>
+        </div>
+        <div style="font-size:0.75rem;font-weight:600;color:#3d5a72;margin-bottom:0.4rem;display:flex;align-items:center;justify-content:space-between;">
+          <span>Bhubharati Land Records Portal</span>
+          <a href="https://bhubharati.telangana.gov.in/knowLandStatus" target="_blank" style="color:#0097a7;font-size:0.72rem;">Open in new tab ↗</a>
+        </div>
+        <iframe
+          src="https://bhubharati.telangana.gov.in/knowLandStatus"
+          style="width:100%;height:380px;border:1px solid #d0e4ec;border-radius:8px;background:#f8fafc;"
+          title="Bhubharati Land Records">
+        </iframe>
+        <div style="font-size:0.68rem;color:#7a9baf;margin-top:0.4rem;">If the portal doesn't load above, use "Open in new tab" to search manually using the survey and khata numbers.</div>
+      </div>
     </div>
     <div class="modal-ftr">
       <button class="mb-ok" onclick="doUpdate()">✅ Save Update</button>
@@ -720,6 +739,17 @@ function openUpdate(id) {
   document.getElementById('updateNote').value = '';
   document.getElementById('updateMsg').className = 'm-msg';
   document.getElementById('modalInfo').innerHTML = `<strong>${c.complaint_no}</strong> — ${c.title}<br><span style="color:var(--text-3);font-size:0.75rem">Citizen: ${c.user_name}${c.user_phone?' · '+c.user_phone:''} · ${c.category_name||'N/A'}</span>`;
+
+  // Show land details if available
+  const landInfo = document.getElementById('landInfo');
+  if (c.land_survey_no || c.khata_no) {
+    document.getElementById('landSurveyDisp').textContent = c.land_survey_no || '—';
+    document.getElementById('landKhataDisp').textContent  = c.khata_no       || '—';
+    landInfo.style.display = 'block';
+  } else {
+    landInfo.style.display = 'none';
+  }
+
   document.getElementById('updateModal').classList.add('open');
 }
 function closeUpdate() { document.getElementById('updateModal').classList.remove('open'); }
