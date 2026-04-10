@@ -764,13 +764,15 @@ function openUpdate(id) {
   document.getElementById('updateMsg').className = 'm-msg';
   document.getElementById('modalInfo').innerHTML = `<strong>${c.complaint_no}</strong> — ${c.title}<br><span style="color:var(--text-3);font-size:0.75rem">Citizen: ${c.user_name}${c.user_phone?' · '+c.user_phone:''} · ${c.category_name||'N/A'}</span>`;
 
-  // Show land details if available
+  // Show land details if available — fall back to routing district/mandal names
   const landInfo = document.getElementById('landInfo');
-  if (c.land_survey_no || c.khata_no || c.land_village || c.land_district) {
-    document.getElementById('landDistDisp').textContent    = c.land_district  || '—';
-    document.getElementById('landMandalDisp').textContent  = c.land_mandal    || '—';
+  const distVal  = c.land_district  || c.district_name || '—';
+  const mandalVal= c.land_mandal    || c.mandal_name   || '—';
+  if (c.land_survey_no || c.khata_no || c.land_village || c.land_district || c.district_name) {
+    document.getElementById('landDistDisp').textContent    = distVal;
+    document.getElementById('landMandalDisp').textContent  = mandalVal;
     document.getElementById('landVillageDisp').textContent = c.land_village   || '—';
-    document.getElementById('landAddrDisp').textContent    = c.land_address   || '—';
+    document.getElementById('landAddrDisp').textContent    = c.land_address || c.address || '—';
     document.getElementById('landSurveyDisp').textContent  = c.land_survey_no || '—';
     document.getElementById('landKhataDisp').textContent   = c.khata_no       || '—';
     landInfo.style.display = 'block';
@@ -783,13 +785,25 @@ function openUpdate(id) {
 function closeUpdate() { document.getElementById('updateModal').classList.remove('open'); }
 
 function copyLandVal(elId, card) {
-  const val = document.getElementById(elId).textContent;
+  const val = document.getElementById(elId).textContent.trim();
   if (!val || val === '—') return;
-  navigator.clipboard.writeText(val).then(() => {
-    const orig = card.style.borderColor;
+  const flash = () => {
     card.style.borderColor = '#0097a7';
-    setTimeout(() => { card.style.borderColor = orig; }, 800);
-  });
+    card.style.background = 'rgba(0,151,167,0.08)';
+    setTimeout(() => { card.style.borderColor = ''; card.style.background = ''; }, 900);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(val).then(flash).catch(() => fallbackCopy(val, flash));
+  } else {
+    fallbackCopy(val, flash);
+  }
+}
+function fallbackCopy(val, cb) {
+  const ta = document.createElement('textarea');
+  ta.value = val; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try { document.execCommand('copy'); if(cb) cb(); } catch(e) {}
+  document.body.removeChild(ta);
 }
 document.getElementById('updateModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeUpdate(); });
 
