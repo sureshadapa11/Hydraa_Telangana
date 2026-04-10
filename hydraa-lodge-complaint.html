@@ -555,7 +555,7 @@
             <div class="f-row">
               <div class="f-group">
                 <label class="f-label">Category <span class="req">*</span></label>
-                <select id="category_id" class="f-select" required onchange="loadSubcategories(); highlightCatChip(); checkLandCategory()">
+                <select id="category_id" class="f-select" required onchange="loadSubcategories(); highlightCatChip()">
                   <option value="">— Select Category —</option>
                 </select>
               </div>
@@ -570,9 +570,9 @@
             </div>
           </div>
 
-          <!-- Section 2: Location -->
+          <!-- Section 2: Location & Land Details -->
           <div class="f-section">
-            <div class="f-section-title">📍 Location Details — Telangana</div>
+            <div class="f-section-title">📍 Location Details</div>
             <div class="f-row">
               <div class="f-group">
                 <label class="f-label">District <span class="req">*</span></label>
@@ -587,57 +587,29 @@
                 </select>
               </div>
             </div>
-            <div class="f-group">
-              <label class="f-label">Specific Address / Location <span class="req">*</span></label>
-              <input type="text" id="address" class="f-input" placeholder="Colony, Landmark, Street, Near landmark..."/>
-            </div>
-          </div>
-
-          <!-- Land toggle checkbox -->
-          <div style="margin:-0.8rem 0 1.2rem 0;">
-            <label style="display:inline-flex;align-items:center;gap:0.55rem;cursor:pointer;font-size:0.83rem;font-weight:600;color:#3d5a72;user-select:none;">
-              <input type="checkbox" id="landToggle" onchange="toggleLandSection(this)" style="width:16px;height:16px;accent-color:#0097a7;cursor:pointer;"/>
-              🏛️ This complaint involves a land record (Survey No / Khata No)
-            </label>
-          </div>
-
-          <!-- Section 3: Land Record Details -->
-          <div id="landSection" class="f-section" style="display:none;border:1.5px solid rgba(0,151,167,0.25);background:rgba(0,151,167,0.04);">
-            <div class="f-section-title" style="color:#0097a7;">🏛️ Land Record Details</div>
-            <div style="font-size:0.72rem;color:#3d5a72;margin-bottom:1rem;">Enter the land details exactly as registered. Officials will use these to verify records on the Bhubharati government portal.</div>
-            <div class="f-row">
-              <div class="f-group">
-                <label class="f-label">District</label>
-                <input type="text" id="land_district" class="f-input" placeholder="e.g. Hyderabad"/>
-              </div>
-              <div class="f-group">
-                <label class="f-label">Mandal</label>
-                <input type="text" id="land_mandal" class="f-input" placeholder="e.g. Serilingampally"/>
-              </div>
-            </div>
             <div class="f-row">
               <div class="f-group">
                 <label class="f-label">Village</label>
                 <input type="text" id="land_village" class="f-input" placeholder="e.g. Madhapur"/>
               </div>
               <div class="f-group">
-                <label class="f-label">Specific Address / Location</label>
-                <input type="text" id="land_address" class="f-input" placeholder="e.g. Plot No. 12, Near Water Tank"/>
+                <label class="f-label">Specific Address / Location <span class="req">*</span></label>
+                <input type="text" id="address" class="f-input" placeholder="Colony, Landmark, Street, Near landmark..."/>
               </div>
             </div>
             <div class="f-row">
               <div class="f-group">
-                <label class="f-label">Survey Number</label>
+                <label class="f-label">Survey Number <span style="font-size:0.68rem;color:var(--text-3);font-weight:400;">(if land related)</span></label>
                 <input type="text" id="land_survey_no" class="f-input" placeholder="e.g. 123/A"/>
               </div>
               <div class="f-group">
-                <label class="f-label">Khata Number</label>
+                <label class="f-label">Khata Number <span style="font-size:0.68rem;color:var(--text-3);font-weight:400;">(if land related)</span></label>
                 <input type="text" id="khata_no" class="f-input" placeholder="e.g. 456"/>
               </div>
             </div>
           </div>
 
-          <!-- Section 5: Priority -->
+          <!-- Section 3: Priority -->
           <div class="f-section">
             <div class="f-section-title">⚡ Priority Level</div>
             <div class="f-group">
@@ -858,10 +830,7 @@
         mandal_id:      document.getElementById('mandal_id').value || null,
         address:        document.getElementById('address').value.trim(),
         priority:       document.getElementById('priority').value || 'medium',
-        land_district:  document.getElementById('land_district').value.trim() || null,
-        land_mandal:    document.getElementById('land_mandal').value.trim() || null,
         land_village:   document.getElementById('land_village').value.trim() || null,
-        land_address:   document.getElementById('land_address').value.trim() || null,
         land_survey_no: document.getElementById('land_survey_no').value.trim() || null,
         khata_no:       document.getElementById('khata_no').value.trim() || null,
       };
@@ -896,19 +865,6 @@
   ];
 
 
-  // ═══════════════ LAND SECTION TOGGLE ═══════════════
-  function toggleLandSection(cb) {
-    document.getElementById('landSection').style.display = cb.checked ? 'block' : 'none';
-  }
-  function checkLandCategory() {
-    const sel = document.getElementById('category_id');
-    const txt = (sel.options[sel.selectedIndex]?.text || '').toLowerCase();
-    const isLand = /land|encroach|property|survey|revenue|poramboke|khata/i.test(txt);
-    if (isLand) {
-      document.getElementById('landToggle').checked = true;
-      document.getElementById('landSection').style.display = 'block';
-    }
-  }
 
   // ═══════════════ SMART TITLE SUGGEST ═══════════════
   let suggestTimeout;
@@ -975,7 +931,6 @@
     }
     loadSubcategories();
     highlightCatChip(id);
-    checkLandCategory();
   }
 
   function selectCategoryChip(el, id, name) {
@@ -986,7 +941,6 @@
       if (opt.value == id || opt.text.includes(name.split('/')[0].trim())) { opt.selected = true; break; }
     }
     loadSubcategories();
-    checkLandCategory();
   }
 
   function highlightCatChip(id) {
