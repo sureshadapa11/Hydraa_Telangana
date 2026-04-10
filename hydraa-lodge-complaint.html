@@ -935,6 +935,7 @@
     }
     loadSubcategories();
     highlightCatChip(id);
+    checkLandCategory();
   }
 
   function selectCategoryChip(el, id, name) {
@@ -945,6 +946,7 @@
       if (opt.value == id || opt.text.includes(name.split('/')[0].trim())) { opt.selected = true; break; }
     }
     loadSubcategories();
+    checkLandCategory();
   }
 
   function highlightCatChip(id) {
