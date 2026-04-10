@@ -224,17 +224,33 @@
     .fc-header-text .fht { font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 700; color: var(--navy); }
     .fc-header-text .fhs { font-size: 0.75rem; color: var(--text-3); }
 
-    .fc-body { padding: 1.8rem; }
+    .fc-body { padding: 1.4rem 1.6rem 1.6rem; }
 
     /* Form fields */
-    .f-section { margin-bottom: 1.8rem; }
+    .f-section {
+      margin-bottom: 1.2rem;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
     .f-section-title {
       font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
       letter-spacing: 0.1em; color: var(--teal-dark);
-      margin-bottom: 1rem;
-      padding-bottom: 0.5rem;
-      border-bottom: 1px solid var(--teal-light);
+      padding: 0.75rem 1.2rem;
+      background: linear-gradient(to right, rgba(0,151,167,0.06), rgba(0,151,167,0.02));
+      border-bottom: 1.5px solid var(--border);
       display: flex; align-items: center; gap: 0.5rem;
+      margin-bottom: 0;
+    }
+    .f-section > .f-row,
+    .f-section > .f-group,
+    .f-section > div:not(.f-section-title) {
+      padding: 1.2rem 1.2rem 0;
+    }
+    .f-section > .f-row:last-child,
+    .f-section > .f-group:last-child,
+    .f-section > div:last-child:not(.f-section-title) {
+      padding-bottom: 1.2rem;
     }
 
     .f-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
