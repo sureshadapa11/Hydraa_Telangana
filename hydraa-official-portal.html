@@ -234,15 +234,7 @@
     .mb-ok{flex:1;padding:0.75rem;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:var(--radius-sm);font-size:0.88rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 3px 12px rgba(0,151,167,0.35);transition:all 0.2s;}
     .mb-ok:hover{transform:translateY(-1px);}
     .mb-cancel{padding:0.75rem 1.2rem;background:none;color:var(--text-2);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:0.85rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
-    .lv-card{cursor:pointer;background:#fff;border:1.5px solid #cde8ee;border-radius:10px;padding:0.6rem 0.8rem;transition:all .15s;position:relative;overflow:hidden;}
-    .lv-card:hover{border-color:#0097a7;background:#f0fbfc;transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,151,167,0.15);}
-    .lv-card.lv-highlight{border-color:#00acc1;background:linear-gradient(135deg,#f0fbfc,#e8f7fa);}
-    .lv-card.lv-highlight:hover{background:linear-gradient(135deg,#e0f7fa,#d0f0f5);}
-    .lv-label{font-size:0.62rem;color:#00838f;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;}
-    .lv-val{font-size:0.95rem;font-weight:800;color:#0d2137;line-height:1.2;word-break:break-word;}
-    .lv-copy-hint{font-size:0.58rem;color:#90b8c0;margin-top:3px;font-weight:500;}
-    .lv-card.copied{border-color:#0097a7!important;background:rgba(0,151,167,0.08)!important;}
-    .lv-card.copied .lv-copy-hint::before{content:'✓ copied! ';}
+
   
     .ham-btn{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:var(--bg,#f2f6f9);border:1px solid var(--border,#d0e4ec);border-radius:8px;cursor:pointer;font-size:1.1rem;flex-shrink:0;margin-right:0.7rem;}
 
@@ -536,73 +528,46 @@
       </div>
       <div id="updateMsg" class="m-msg"></div>
 
-      <!-- Land Record Section — always visible -->
-      <div style="margin-top:1rem;border:1.5px solid rgba(0,151,167,0.25);border-radius:12px;overflow:hidden;background:#f0fafa;">
+      <!-- Land Records Native Search — always visible -->
+      <div style="margin-top:1rem;border:1.5px solid rgba(0,151,167,0.25);border-radius:12px;overflow:hidden;">
         <!-- Header -->
-        <div style="background:linear-gradient(135deg,rgba(0,151,167,0.12),rgba(0,188,212,0.08));padding:0.75rem 1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(0,151,167,0.18);">
-          <span style="font-size:0.82rem;font-weight:800;color:#006978;letter-spacing:0.01em;">🏛️ Bhubharati Land Records</span>
-          <span style="font-size:0.68rem;color:#0097a7;background:rgba(0,151,167,0.1);padding:0.2rem 0.55rem;border-radius:20px;font-weight:600;">Use to verify land ownership</span>
+        <div style="background:linear-gradient(135deg,#006978,#0097a7);padding:0.75rem 1rem;display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:0.82rem;font-weight:800;color:#fff;">🏛️ Land Records Search</span>
+          <span id="landApiBadge" style="font-size:0.65rem;background:rgba(255,255,255,0.18);color:#fff;padding:0.2rem 0.55rem;border-radius:20px;font-weight:700;">⏳ Demo Mode</span>
         </div>
 
-        <!-- Value cards — shown only when complaint has land data -->
-        <div id="landInfo" style="display:none;padding:0.9rem 1rem 0.5rem;">
-          <div style="font-size:0.7rem;color:#00838f;margin-bottom:0.65rem;font-weight:600;">📋 Tap any field to copy · then paste into Bhubharati search</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.55rem;margin-bottom:0.75rem;">
-
-            <div onclick="copyLandVal('landDistDisp',this)" class="lv-card" title="Click to copy District">
-              <div class="lv-label">📍 District</div>
-              <div class="lv-val" id="landDistDisp">—</div>
-              <div class="lv-copy-hint">tap to copy</div>
+        <!-- Search form -->
+        <div style="padding:0.9rem 1rem;background:#f8fcfd;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
+            <div>
+              <div style="font-size:0.62rem;color:#00838f;font-weight:700;margin-bottom:3px;">DISTRICT</div>
+              <input id="lsDistrict" class="m-select" style="width:100%;font-size:0.82rem;" placeholder="District name"/>
             </div>
-
-            <div onclick="copyLandVal('landMandalDisp',this)" class="lv-card" title="Click to copy Mandal">
-              <div class="lv-label">🏘️ Mandal</div>
-              <div class="lv-val" id="landMandalDisp">—</div>
-              <div class="lv-copy-hint">tap to copy</div>
+            <div>
+              <div style="font-size:0.62rem;color:#00838f;font-weight:700;margin-bottom:3px;">MANDAL</div>
+              <input id="lsMandal" class="m-select" style="width:100%;font-size:0.82rem;" placeholder="Mandal name"/>
             </div>
-
-            <div onclick="copyLandVal('landVillageDisp',this)" class="lv-card" title="Click to copy Village">
-              <div class="lv-label">🏡 Village</div>
-              <div class="lv-val" id="landVillageDisp">—</div>
-              <div class="lv-copy-hint">tap to copy</div>
+            <div>
+              <div style="font-size:0.62rem;color:#00838f;font-weight:700;margin-bottom:3px;">VILLAGE</div>
+              <input id="lsVillage" class="m-select" style="width:100%;font-size:0.82rem;" placeholder="Village name"/>
             </div>
-
-            <div onclick="copyLandVal('landSurveyDisp',this)" class="lv-card lv-highlight" title="Click to copy Survey No">
-              <div class="lv-label">📐 Survey No.</div>
-              <div class="lv-val" id="landSurveyDisp">—</div>
-              <div class="lv-copy-hint">tap to copy</div>
+            <div>
+              <div style="font-size:0.62rem;color:#00838f;font-weight:700;margin-bottom:3px;">SURVEY NO.</div>
+              <input id="lsSurvey" class="m-select" style="width:100%;font-size:0.82rem;" placeholder="e.g. 234/A"/>
             </div>
-
-            <div onclick="copyLandVal('landKhataDisp',this)" class="lv-card lv-highlight" title="Click to copy Khata No">
-              <div class="lv-label">📄 Khata No.</div>
-              <div class="lv-val" id="landKhataDisp">—</div>
-              <div class="lv-copy-hint">tap to copy</div>
+            <div style="grid-column:1/-1;">
+              <div style="font-size:0.62rem;color:#00838f;font-weight:700;margin-bottom:3px;">KHATA NO.</div>
+              <input id="lsKhata" class="m-select" style="width:100%;font-size:0.82rem;" placeholder="e.g. 345"/>
             </div>
-
-            <div onclick="copyLandVal('landAddrDisp',this)" class="lv-card" title="Click to copy Address">
-              <div class="lv-label">🗺️ Address</div>
-              <div class="lv-val" id="landAddrDisp">—</div>
-              <div class="lv-copy-hint">tap to copy</div>
-            </div>
-
           </div>
-          <!-- Copy All button -->
-          <button onclick="copyAllLandVals()" style="width:100%;padding:0.55rem;background:rgba(0,151,167,0.1);border:1.5px dashed rgba(0,151,167,0.4);border-radius:8px;color:#006978;font-size:0.78rem;font-weight:700;cursor:pointer;margin-bottom:0.75rem;font-family:inherit;transition:all .15s;" onmouseover="this.style.background='rgba(0,151,167,0.18)'" onmouseout="this.style.background='rgba(0,151,167,0.1)'" id="copyAllBtn">
-            📋 Copy All Values at Once
+          <button onclick="searchLandRecords()" id="lsSearchBtn"
+            style="width:100%;padding:0.65rem;background:linear-gradient(135deg,#006978,#0097a7);color:#fff;border:none;border-radius:8px;font-size:0.85rem;font-weight:800;cursor:pointer;font-family:inherit;margin-top:0.25rem;">
+            🔍 Search Land Records
           </button>
         </div>
 
-        <!-- Open portal button — always visible -->
-        <div style="padding:0.85rem 1rem;display:flex;flex-direction:column;gap:0.5rem;">
-          <button onclick="openSideBySide()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:0.5rem;background:linear-gradient(135deg,#006978,#0097a7);color:#fff;font-size:0.85rem;font-weight:800;padding:0.75rem;border-radius:10px;border:none;cursor:pointer;box-shadow:0 4px 14px rgba(0,151,167,0.35);font-family:inherit;">
-            🏛️ Search Side-by-Side
-            <span style="font-size:0.72rem;opacity:0.85;background:rgba(255,255,255,0.18);padding:0.15rem 0.45rem;border-radius:4px;">opens Bhubharati alongside</span>
-          </button>
-          <a href="https://bhubharati.telangana.gov.in/knowLandStatus" target="_blank"
-            style="display:block;text-align:center;color:#0097a7;font-size:0.72rem;font-weight:600;text-decoration:none;padding:0.2rem;">
-            or open in new tab ↗
-          </a>
-        </div>
+        <!-- Results area -->
+        <div id="lsResult" style="display:none;border-top:1px solid rgba(0,151,167,0.15);"></div>
       </div>
     </div>
     <div class="modal-ftr">
@@ -799,100 +764,115 @@ function openUpdate(id) {
   document.getElementById('updateMsg').className = 'm-msg';
   document.getElementById('modalInfo').innerHTML = `<strong>${c.complaint_no}</strong> — ${c.title}<br><span style="color:var(--text-3);font-size:0.75rem">Citizen: ${c.user_name}${c.user_phone?' · '+c.user_phone:''} · ${c.category_name||'N/A'}</span>`;
 
-  // Show land details if available — fall back to routing district/mandal names
-  const landInfo = document.getElementById('landInfo');
-  const distVal  = c.land_district  || c.district_name || '—';
-  const mandalVal= c.land_mandal    || c.mandal_name   || '—';
-  if (c.land_survey_no || c.khata_no || c.land_village || c.land_district || c.district_name) {
-    document.getElementById('landDistDisp').textContent    = distVal;
-    document.getElementById('landMandalDisp').textContent  = mandalVal;
-    document.getElementById('landVillageDisp').textContent = c.land_village   || '—';
-    document.getElementById('landAddrDisp').textContent    = c.land_address || c.address || '—';
-    document.getElementById('landSurveyDisp').textContent  = c.land_survey_no || '—';
-    document.getElementById('landKhataDisp').textContent   = c.khata_no       || '—';
-    landInfo.style.display = 'block';
-  } else {
-    landInfo.style.display = 'none';
-  }
+  // Pre-fill land search form from complaint data
+  populateLandSearch(c);
 
   document.getElementById('updateModal').classList.add('open');
 }
 function closeUpdate() { document.getElementById('updateModal').classList.remove('open'); }
 
-function doCopy(text, cb) {
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(cb).catch(() => {
-      const ta = document.createElement('textarea');
-      ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
-      document.body.appendChild(ta); ta.focus(); ta.select();
-      try { document.execCommand('copy'); if(cb) cb(); } catch(e){}
-      document.body.removeChild(ta);
-    });
-  } else {
-    const ta = document.createElement('textarea');
-    ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
-    document.body.appendChild(ta); ta.focus(); ta.select();
-    try { document.execCommand('copy'); if(cb) cb(); } catch(e){}
-    document.body.removeChild(ta);
+// ── Land Records Native Search ──────────────────────
+function populateLandSearch(c) {
+  document.getElementById('lsDistrict').value = c.land_district  || c.district_name || '';
+  document.getElementById('lsMandal').value   = c.land_mandal    || c.mandal_name   || '';
+  document.getElementById('lsVillage').value  = c.land_village   || '';
+  document.getElementById('lsSurvey').value   = c.land_survey_no || '';
+  document.getElementById('lsKhata').value    = c.khata_no       || '';
+  document.getElementById('lsResult').style.display = 'none';
+  document.getElementById('lsResult').innerHTML = '';
+}
+
+async function searchLandRecords() {
+  const btn = document.getElementById('lsSearchBtn');
+  const res = document.getElementById('lsResult');
+  const district = document.getElementById('lsDistrict').value.trim();
+  const mandal   = document.getElementById('lsMandal').value.trim();
+  const village  = document.getElementById('lsVillage').value.trim();
+  const survey   = document.getElementById('lsSurvey').value.trim();
+  const khata    = document.getElementById('lsKhata').value.trim();
+
+  if (!district && !survey && !khata) {
+    res.style.display = 'block';
+    res.innerHTML = `<div style="padding:0.9rem 1rem;font-size:0.78rem;color:#b91c1c;">⚠️ Please enter at least District and Survey No. or Khata No.</div>`;
+    return;
   }
-}
-function copyLandVal(elId, card) {
-  const val = document.getElementById(elId).textContent.trim();
-  if (!val || val === '—') return;
-  doCopy(val, () => {
-    card.classList.add('copied');
-    setTimeout(() => card.classList.remove('copied'), 1200);
-  });
-}
-function copyAllLandVals() {
-  const fields = [
-    ['District',   'landDistDisp'],
-    ['Mandal',     'landMandalDisp'],
-    ['Village',    'landVillageDisp'],
-    ['Survey No',  'landSurveyDisp'],
-    ['Khata No',   'landKhataDisp'],
-    ['Address',    'landAddrDisp'],
-  ];
-  const text = fields
-    .map(([label, id]) => {
-      const v = document.getElementById(id)?.textContent?.trim();
-      return (v && v !== '—') ? `${label}: ${v}` : null;
-    })
-    .filter(Boolean)
-    .join('\n');
-  if (!text) return;
-  const btn = document.getElementById('copyAllBtn');
-  doCopy(text, () => {
-    btn.textContent = '✅ All Values Copied!';
-    btn.style.background = 'rgba(0,151,167,0.2)';
-    btn.style.borderColor = '#0097a7';
-    setTimeout(() => {
-      btn.textContent = '📋 Copy All Values at Once';
-      btn.style.background = 'rgba(0,151,167,0.1)';
-      btn.style.borderColor = 'rgba(0,151,167,0.4)';
-    }, 2000);
-  });
-}
-function openSideBySide() {
-  const sw = window.screen.width;
-  const sh = window.screen.height;
-  const half = Math.floor(sw / 2);
-  // Snap this window to left half
+
+  btn.textContent = '⏳ Searching...';
+  btn.disabled = true;
+  res.style.display = 'none';
+
   try {
-    window.moveTo(0, 0);
-    window.resizeTo(half, sh);
-  } catch(e) {}
-  // Open Bhubharati in right half
-  const popup = window.open(
-    'https://bhubharati.telangana.gov.in/knowLandStatus',
-    'bhubharati_land',
-    `width=${half},height=${sh},left=${half},top=0,resizable=yes,scrollbars=yes`
-  );
-  if (!popup) {
-    // Popup blocked — fall back to new tab
-    window.open('https://bhubharati.telangana.gov.in/knowLandStatus', '_blank');
-    alert('Popup was blocked by your browser.\nPlease allow popups for this site for the side-by-side view.\n\nOpened Bhubharati in a new tab instead.');
+    const params = new URLSearchParams({ district, mandal, village, survey_no: survey, khata_no: khata });
+    const token = localStorage.getItem('token');
+    const resp = await fetch(`/api/land/search?${params}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const json = await resp.json();
+
+    if (!json.success) {
+      res.innerHTML = `<div style="padding:0.9rem 1rem;font-size:0.78rem;color:#b91c1c;">❌ ${json.message || 'Search failed.'}</div>`;
+      res.style.display = 'block';
+      return;
+    }
+
+    const badge = document.getElementById('landApiBadge');
+    if (json.demo) {
+      badge.textContent = '⚠️ Demo Mode';
+      badge.style.background = 'rgba(255,165,0,0.25)';
+    } else {
+      badge.textContent = '✅ Live Data';
+      badge.style.background = 'rgba(16,185,129,0.25)';
+    }
+
+    if (!json.data) {
+      res.innerHTML = `<div style="padding:0.9rem 1rem;font-size:0.78rem;color:#64748b;">🔍 No land record found for the given details.</div>`;
+      res.style.display = 'block';
+      return;
+    }
+
+    const d = json.data;
+    res.innerHTML = `
+      <div style="padding:0.9rem 1rem;">
+        ${json.demo ? `<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:0.5rem 0.75rem;font-size:0.7rem;color:#92400e;margin-bottom:0.75rem;font-weight:600;">
+          ⚠️ Demo Mode — Add <code>BHUBHARATI_API_KEY</code> to .env for live land records
+        </div>` : ''}
+        <div style="background:#fff;border:1.5px solid rgba(0,151,167,0.2);border-radius:10px;overflow:hidden;">
+          <div style="background:rgba(0,151,167,0.06);padding:0.55rem 0.85rem;font-size:0.72rem;font-weight:800;color:#006978;border-bottom:1px solid rgba(0,151,167,0.12);">
+            📄 Land Record Details
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
+            ${landRow('Owner',        d.ownerName)}
+            ${landRow('Father/Husband', d.fatherName)}
+            ${landRow('District',     d.district)}
+            ${landRow('Mandal',       d.mandal)}
+            ${landRow('Village',      d.village)}
+            ${landRow('Survey No.',   d.surveyNo)}
+            ${landRow('Khata No.',    d.khataNo)}
+            ${landRow('Area',         d.area)}
+            ${landRow('Land Type',    d.landType)}
+            ${landRow('Classification', d.classification)}
+            ${landRow('Status',       d.status, d.status==='Clear Title'?'#059669':'')}
+            ${landRow('Last Mutation',d.lastMutation)}
+            ${landRow('Passbook No.', d.passbook)}
+          </div>
+        </div>
+      </div>`;
+    res.style.display = 'block';
+  } catch(e) {
+    res.innerHTML = `<div style="padding:0.9rem 1rem;font-size:0.78rem;color:#b91c1c;">❌ Network error. Please try again.</div>`;
+    res.style.display = 'block';
+  } finally {
+    btn.textContent = '🔍 Search Land Records';
+    btn.disabled = false;
   }
+}
+
+function landRow(label, val, color) {
+  if (!val || val === '—') return '';
+  return `<div style="padding:0.45rem 0.85rem;border-bottom:1px solid rgba(0,151,167,0.07);">
+    <div style="font-size:0.58rem;color:#7a9baf;font-weight:700;text-transform:uppercase;">${label}</div>
+    <div style="font-size:0.82rem;font-weight:700;color:${color||'#0d2137'};margin-top:1px;">${val}</div>
+  </div>`;
 }
 document.getElementById('updateModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeUpdate(); });
 
