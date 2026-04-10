@@ -593,7 +593,15 @@
             </div>
           </div>
 
-          <!-- Section 3: Land Record Details (auto-shown for land categories) -->
+          <!-- Land toggle checkbox -->
+          <div style="margin:-0.8rem 0 1.2rem 0;">
+            <label style="display:inline-flex;align-items:center;gap:0.55rem;cursor:pointer;font-size:0.83rem;font-weight:600;color:#3d5a72;user-select:none;">
+              <input type="checkbox" id="landToggle" onchange="toggleLandSection(this)" style="width:16px;height:16px;accent-color:#0097a7;cursor:pointer;"/>
+              🏛️ This complaint involves a land record (Survey No / Khata No)
+            </label>
+          </div>
+
+          <!-- Section 3: Land Record Details -->
           <div id="landSection" class="f-section" style="display:none;border:1.5px solid rgba(0,151,167,0.25);background:rgba(0,151,167,0.04);">
             <div class="f-section-title" style="color:#0097a7;">🏛️ Land Record Details</div>
             <div style="font-size:0.72rem;color:#3d5a72;margin-bottom:1rem;">Enter the land details exactly as registered. Officials will use these to verify records on the Bhubharati government portal.</div>
@@ -888,12 +896,18 @@
   ];
 
 
-  // ═══════════════ LAND CATEGORY DETECTION ═══════════════
+  // ═══════════════ LAND SECTION TOGGLE ═══════════════
+  function toggleLandSection(cb) {
+    document.getElementById('landSection').style.display = cb.checked ? 'block' : 'none';
+  }
   function checkLandCategory() {
     const sel = document.getElementById('category_id');
     const txt = (sel.options[sel.selectedIndex]?.text || '').toLowerCase();
     const isLand = /land|encroach|property|survey|revenue|poramboke|khata/i.test(txt);
-    document.getElementById('landSection').style.display = isLand ? 'block' : 'none';
+    if (isLand) {
+      document.getElementById('landToggle').checked = true;
+      document.getElementById('landSection').style.display = 'block';
+    }
   }
 
   // ═══════════════ SMART TITLE SUGGEST ═══════════════
