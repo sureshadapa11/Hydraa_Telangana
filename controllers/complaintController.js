@@ -6,13 +6,11 @@
 const db = require('../utils/db');
 const { v4: uuidv4 } = require('uuid');
 const {
-  sendComplaintNotification,
-  sendComplaintStatusUpdate,
+  sendComplaintConfirmation,
   sendComplaintAssigned,
   sendStatusUpdate,
   sendSafe,
 } = require('../utils/emailService');
-const { notifyStatusChange, notifyComplaintLodged } = require('../utils/whatsapp');
 
 // ────────────────────────────────────────────────────
 //  LODGE COMPLAINT
@@ -76,18 +74,20 @@ const lodgeComplaint = async (req, res) => {
       );
     } catch (e) { console.warn('complaint_history insert skipped:', e.message); }
 
-    // Send confirmation email + WhatsApp (non-blocking, non-fatal)
+    // Send confirmation email (non-blocking, non-fatal)
     try {
-      const [users] = await db.query('SELECT full_name, email, phone FROM users WHERE id = ?', [user_id]);
+      const [users] = await db.query('SELECT full_name, email FROM users WHERE id = ?', [user_id]);
+      const [[cat]] = await db.query('SELECT name FROM categories WHERE id = ?', [category_id]);
       if (users[0]) {
-        sendSafe(sendComplaintNotification, {
-          to: users[0].email,
-          name: users[0].full_name,
-          complaintNo: complaint_no,
+        sendSafe(sendComplaintConfirmation, {
+          to:          users[0].email,
+          name:        users[0].full_name,
+          complaint_no,
           title,
-          priority,
+          category:    cat?.name || 'General',
+          priority:    priority || 'medium',
+          address,
         });
-        notifyComplaintLodged({ phone: users[0].phone, complaintNo: complaint_no, title });
       }
     } catch (e) { /* email non-critical */ }
 
@@ -434,18 +434,25 @@ const updateComplaintStatus = async (req, res) => {
       [id, oldStatus, status, admin_id, 'admin', remarks]
     );
 
-    // Send email + WhatsApp to user (non-blocking)
-    const [users] = await db.query('SELECT email, full_name, phone FROM users WHERE id = ?', [complaints[0].user_id]);
-    if (users.length > 0) {
-      sendSafe(sendComplaintStatusUpdate, {
-        to: users[0].email,
-        name: users[0].full_name,
-        status,
-        remarks,
-      });
-      const [[comp]] = await db.query('SELECT complaint_no FROM complaints WHERE id = ?', [id]);
-      notifyStatusChange({ phone: users[0].phone, complaintNo: comp?.complaint_no, oldStatus, newStatus: status, remarks });
-    }
+    // Send email to citizen (non-blocking)
+    try {
+      const [[comp]] = await db.query(
+        `SELECT c.complaint_no, c.title, u.email, u.full_name
+         FROM complaints c JOIN users u ON c.user_id = u.id WHERE c.id = ?`, [id]
+      );
+      if (comp) {
+        sendSafe(sendStatusUpdate, {
+          to:           comp.email,
+          name:         comp.full_name,
+          complaint_no: comp.complaint_no,
+          title:        comp.title,
+          oldStatus,
+          newStatus:    status,
+          remarks,
+          officialName: 'HYDRAA Admin',
+        });
+      }
+    } catch (e) { /* email non-critical */ }
 
     res.json({
       success: true,
