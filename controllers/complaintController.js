@@ -552,6 +552,11 @@ const resolveComplaint = async (req, res) => {
       );
       console.log('[EMAIL] resolveComplaint — to:', comp?.email, 'status:', status);
       if (comp && comp.email) {
+        // Fetch photos uploaded for this complaint (latest 3 for email size)
+        const [photos] = await db.query(
+          `SELECT photo_data, caption FROM complaint_photos WHERE complaint_id = ? ORDER BY created_at DESC LIMIT 3`,
+          [id]
+        );
         await sendSafe(sendStatusUpdate, {
           to:           comp.email,
           name:         comp.full_name,
@@ -561,6 +566,7 @@ const resolveComplaint = async (req, res) => {
           newStatus:    status,
           remarks,
           officialName: comp.official_name,
+          photos,
         });
       } else {
         console.warn('[EMAIL] resolveComplaint — no citizen email found for complaint id:', id);

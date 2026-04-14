@@ -1085,6 +1085,11 @@ async function doUpdate() {
   const msg = document.getElementById('updateMsg');
   if (!remarks) { msg.textContent='Please add remarks about the action taken.'; msg.className='m-msg err'; return; }
   try {
+    // Upload photos FIRST so they are in DB when the status update email is sent
+    if (_pendingPhotos.length > 0) {
+      msg.textContent='Uploading photos...'; msg.className='m-msg';
+      await uploadPendingPhotos(id);
+    }
     const body = {status, remarks};
     if (priority) body.priority = priority;
     const res = await http.put('/api/complaints/official/resolve/'+id, body);
@@ -1092,10 +1097,6 @@ async function doUpdate() {
       // Post internal note as comment if provided
       if (note) {
         await http.post('/api/complaints/'+id+'/comments', {message: note, is_internal: 1}).catch(()=>{});
-      }
-      if (_pendingPhotos.length > 0) {
-        msg.textContent='Uploading photos...';
-        await uploadPendingPhotos(id);
       }
       msg.textContent='Complaint updated successfully!'; msg.className='m-msg ok';
       setTimeout(() => { closeUpdate(); loadComplaints(); }, 1400);

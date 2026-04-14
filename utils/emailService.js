@@ -37,26 +37,22 @@ const httpPost = (url, headers, body) => new Promise((resolve, reject) => {
 });
 
 // ── Send via Brevo HTTP API ───────────────────────────
-const sendViaBrevo = async ({ to, subject, html }) => {
-  await httpPost(
-    'https://api.brevo.com/v3/smtp/email',
-    { 'api-key': BREVO_API_KEY },
-    {
-      sender:      { name: FROM_NAME, email: FROM_ADDRESS },
-      to:          [{ email: to }],
-      subject,
-      htmlContent: html,
-    }
-  );
+const sendViaBrevo = async ({ to, subject, html, attachments = [] }) => {
+  const body = {
+    sender:      { name: FROM_NAME, email: FROM_ADDRESS },
+    to:          [{ email: to }],
+    subject,
+    htmlContent: html,
+  };
+  if (attachments.length > 0) body.attachment = attachments;
+  await httpPost('https://api.brevo.com/v3/smtp/email', { 'api-key': BREVO_API_KEY }, body);
 };
 
 // ── Send via Resend HTTP API ──────────────────────────
-const sendViaResend = async ({ to, subject, html }) => {
-  await httpPost(
-    'https://api.resend.com/emails',
-    { 'Authorization': `Bearer ${RESEND_API_KEY}` },
-    { from: `${FROM_NAME} <${FROM_ADDRESS}>`, to, subject, html }
-  );
+const sendViaResend = async ({ to, subject, html, attachments = [] }) => {
+  const body = { from: `${FROM_NAME} <${FROM_ADDRESS}>`, to, subject, html };
+  if (attachments.length > 0) body.attachments = attachments.map(a => ({ filename: a.name, content: a.content }));
+  await httpPost('https://api.resend.com/emails', { 'Authorization': `Bearer ${RESEND_API_KEY}` }, body);
 };
 
 // ── Choose provider ───────────────────────────────────
@@ -261,7 +257,7 @@ const sendComplaintAssigned = async ({ citizenEmail, citizenName, officialEmail,
 // ─────────────────────────────────────────────────────
 //  4. COMPLAINT STATUS UPDATED (official update)
 // ─────────────────────────────────────────────────────
-const sendStatusUpdate = async ({ to, name, complaint_no, title, oldStatus, newStatus, remarks, officialName }) => {
+const sendStatusUpdate = async ({ to, name, complaint_no, title, oldStatus, newStatus, remarks, officialName, photos = [] }) => {
   const isResolved = newStatus === 'resolved';
   const statusColors = {
     in_progress:{ color:'#6d28d9', bg:'rgba(139,92,246,0.1)', label:'IN PROGRESS' },
@@ -270,6 +266,31 @@ const sendStatusUpdate = async ({ to, name, complaint_no, title, oldStatus, newS
     rejected:   { color:'#b91c1c', bg:'rgba(239,68,68,0.1)',  label:'REJECTED' },
   };
   const sc = statusColors[newStatus] || { color:'#0097a7', bg:'rgba(0,151,167,0.1)', label:newStatus.toUpperCase() };
+
+  // Build photo section HTML and Brevo attachments
+  let photoHtml = '';
+  const attachments = [];
+  if (photos && photos.length > 0) {
+    photos.forEach((p, i) => {
+      // photo_data is stored as a data URL: "data:image/jpeg;base64,..."
+      const dataUrl = p.photo_data || '';
+      const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+      if (match) {
+        const contentType = match[1];
+        const b64 = match[2];
+        const ext = contentType.split('/')[1] || 'jpg';
+        attachments.push({ content: b64, name: `field_photo_${i + 1}.${ext}` });
+      }
+    });
+    photoHtml = `
+    <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:16px 20px;margin-top:20px">
+      <p style="font-size:13px;font-weight:700;color:#0369a1;margin:0 0 6px">📷 Field Evidence Photos</p>
+      <p style="font-size:13px;color:#3d5a72;margin:0">
+        ${attachments.length} photo${attachments.length > 1 ? 's' : ''} attached by the field official as evidence of action taken.
+        Please check the attachment${attachments.length > 1 ? 's' : ''} in this email.
+      </p>
+    </div>`;
+  }
 
   const html = wrap(`
     <h2 style="font-size:22px;color:#0b1f3a;margin:0 0 4px">
@@ -303,6 +324,8 @@ const sendStatusUpdate = async ({ to, name, complaint_no, title, oldStatus, newS
       <p style="font-size:13px;color:#0d1e2e;margin:0;font-style:italic">"${remarks}"</p>
     </div>` : ''}
 
+    ${photoHtml}
+
     ${isResolved ? `
     <div style="background:#f0fdf4;border-left:4px solid #10b981;border-radius:0 8px 8px 0;padding:14px 18px;margin-top:16px">
       <p style="font-size:13px;color:#065f46;margin:0">✅ Your issue has been resolved. You can rate your experience by visiting the HYDRAA Citizen Portal under "My Complaints".</p>
@@ -314,6 +337,7 @@ const sendStatusUpdate = async ({ to, name, complaint_no, title, oldStatus, newS
       ? `🎉 Complaint ${complaint_no} Resolved — HYDRAA Telangana`
       : `🔄 Complaint ${complaint_no} Status Updated — HYDRAA`,
     html,
+    attachments,
   });
 };
 
