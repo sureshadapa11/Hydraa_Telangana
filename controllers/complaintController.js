@@ -545,9 +545,9 @@ const resolveComplaint = async (req, res) => {
     // Send email to citizen (non-blocking)
     try {
       const [[comp]] = await db.query(
-        `SELECT c.complaint_no, c.title, u.email, u.full_name, of.full_name AS official_name
+        `SELECT c.complaint_no, c.title, u.email, u.full_name, ofc.full_name AS official_name
          FROM complaints c JOIN users u ON c.user_id = u.id
-         LEFT JOIN officials of ON of.id = ?
+         LEFT JOIN officials ofc ON ofc.id = ?
          WHERE c.id = ?`, [official_id, id]
       );
       console.log('[EMAIL] resolveComplaint — to:', comp?.email, 'status:', status);
