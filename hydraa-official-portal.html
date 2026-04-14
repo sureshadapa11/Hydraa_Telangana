@@ -803,7 +803,7 @@ async function searchLandRecords() {
 
   try {
     const params = new URLSearchParams({ district, mandal, village, survey_no: survey, khata_no: khata });
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('hydraa_token');
     const resp = await fetch(`/api/land/search?${params}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
