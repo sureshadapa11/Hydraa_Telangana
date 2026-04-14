@@ -79,7 +79,7 @@ const lodgeComplaint = async (req, res) => {
       const [users] = await db.query('SELECT full_name, email FROM users WHERE id = ?', [user_id]);
       const [[cat]] = await db.query('SELECT name FROM categories WHERE id = ?', [category_id]);
       if (users[0]) {
-        sendSafe(sendComplaintConfirmation, {
+        await sendSafe(sendComplaintConfirmation, {
           to:          users[0].email,
           name:        users[0].full_name,
           complaint_no,
@@ -89,7 +89,7 @@ const lodgeComplaint = async (req, res) => {
           address,
         });
       }
-    } catch (e) { /* email non-critical */ }
+    } catch (e) { console.error('Lodge complaint email error:', e.message); }
 
     res.status(201).json({
       success: true,
@@ -369,18 +369,18 @@ const assignComplaint = async (req, res) => {
         [official_id, id]
       );
       if (emailData) {
-        sendSafe(sendComplaintAssigned, {
-          citizenEmail: emailData.citizen_email,
-          citizenName:  emailData.citizen_name,
+        await sendSafe(sendComplaintAssigned, {
+          citizenEmail:  emailData.citizen_email,
+          citizenName:   emailData.citizen_name,
           officialEmail: emailData.official_email,
           officialName:  emailData.official_name,
           complaint_no:  emailData.complaint_no,
           title:         emailData.title,
-          remarks:       remarks,
+          remarks,
           department:    emailData.department,
         });
       }
-    } catch (e) { /* email non-critical */ }
+    } catch (e) { console.error('Assign complaint email error:', e.message); }
 
     res.json({
       success: true,
@@ -441,7 +441,7 @@ const updateComplaintStatus = async (req, res) => {
          FROM complaints c JOIN users u ON c.user_id = u.id WHERE c.id = ?`, [id]
       );
       if (comp) {
-        sendSafe(sendStatusUpdate, {
+        await sendSafe(sendStatusUpdate, {
           to:           comp.email,
           name:         comp.full_name,
           complaint_no: comp.complaint_no,
@@ -452,7 +452,7 @@ const updateComplaintStatus = async (req, res) => {
           officialName: 'HYDRAA Admin',
         });
       }
-    } catch (e) { /* email non-critical */ }
+    } catch (e) { console.error('Admin status update email error:', e.message); }
 
     res.json({
       success: true,
@@ -550,15 +550,22 @@ const resolveComplaint = async (req, res) => {
          LEFT JOIN officials of ON of.id = ?
          WHERE c.id = ?`, [official_id, id]
       );
-      if (comp) {
-        sendSafe(sendStatusUpdate, {
-          to: comp.email, name: comp.full_name,
-          complaint_no: comp.complaint_no, title: comp.title,
-          oldStatus, newStatus: status, remarks,
+      console.log('[EMAIL] resolveComplaint — to:', comp?.email, 'status:', status);
+      if (comp && comp.email) {
+        await sendSafe(sendStatusUpdate, {
+          to:           comp.email,
+          name:         comp.full_name,
+          complaint_no: comp.complaint_no,
+          title:        comp.title,
+          oldStatus,
+          newStatus:    status,
+          remarks,
           officialName: comp.official_name,
         });
+      } else {
+        console.warn('[EMAIL] resolveComplaint — no citizen email found for complaint id:', id);
       }
-    } catch (e) { /* email non-critical */ }
+    } catch (e) { console.error('Official resolve email error:', e.message); }
 
     res.json({
       success: true,
