@@ -540,6 +540,19 @@
     <!-- Alert -->
     <div id="alertBox" class="alert"></div>
 
+    <!-- Duplicate Warning -->
+    <div id="dupWarning" style="display:none;background:#fff7ed;border:2px solid #f97316;border-radius:12px;padding:1rem 1.2rem;margin-bottom:1rem;">
+      <div style="font-size:0.88rem;font-weight:800;color:#c2410c;margin-bottom:0.4rem;">⚠️ Similar Complaint Already Open</div>
+      <div style="font-size:0.82rem;color:#7c2d12;margin-bottom:0.75rem;">
+        You already have an open complaint in this category and district:<br/>
+        <strong id="dupComplaintNo"></strong> — <span id="dupTitle"></span>
+      </div>
+      <div style="display:flex;gap:0.6rem;flex-wrap:wrap;">
+        <button onclick="window.location.href='/hydraa-my-complaints.html'" style="padding:0.5rem 1rem;background:#f97316;color:#fff;border:none;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;">View Existing Complaint</button>
+        <button onclick="forceSubmitAnyway()" style="padding:0.5rem 1rem;background:none;border:2px solid #f97316;color:#c2410c;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;">Submit Anyway</button>
+      </div>
+    </div>
+
     <!-- Form card -->
     <div class="form-card">
       <div class="fc-header">
@@ -832,6 +845,8 @@
   }
 
   // Submit
+  let _forceSubmit = false;
+
   async function submitComplaint() {
     const btn = document.getElementById('submitBtn');
     setLoading(btn, true);
@@ -849,11 +864,25 @@
         land_village:   document.getElementById('land_village').value.trim() || null,
         land_survey_no: document.getElementById('land_survey_no').value.trim() || null,
         khata_no:       document.getElementById('khata_no').value.trim() || null,
+        force_submit:   _forceSubmit,
       };
       const res = await http.post('/api/complaints/lodge', payload);
 
-      console.log('Server response:', res);
+      if (res.duplicate) {
+        // Show duplicate warning — let user decide
+        setLoading(btn, false);
+        const existing = res.existing;
+        const dupBox = document.getElementById('dupWarning');
+        document.getElementById('dupComplaintNo').textContent = existing.complaint_no;
+        document.getElementById('dupTitle').textContent = existing.title;
+        dupBox.style.display = 'block';
+        dupBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
       if (res.success) {
+        _forceSubmit = false;
+        document.getElementById('dupWarning').style.display = 'none';
         const complaintNo = (res.data && res.data.complaint_no) || res.complaint_no || '';
         showAlert('alertBox', 'success', `✅ Complaint submitted successfully! Complaint No: ${complaintNo}`);
         document.getElementById('complaintForm').reset();
@@ -866,6 +895,12 @@
     } finally {
       setLoading(btn, false);
     }
+  }
+
+  function forceSubmitAnyway() {
+    _forceSubmit = true;
+    document.getElementById('dupWarning').style.display = 'none';
+    submitComplaint();
   }
 
   // ═══════════════ HYDRAA CATEGORY DATA ═══════════════

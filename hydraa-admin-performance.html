@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Official Performance — HYDRAA Telangana</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --teal:#0097a7; --teal-dark:#006978; --teal-light:#e0f7fa;
+      --navy:#0b1f3a; --navy-mid:#122944; --gold:#f4a820;
+      --green:#10b981; --red:#ef4444; --orange:#f59e0b;
+      --purple:#8b5cf6; --blue:#3b82f6;
+      --white:#fff; --bg:#f2f6f9; --text:#0d1e2e;
+      --text-2:#3d5a72; --text-3:#7a9baf; --border:#d0e4ec;
+      --shadow:0 2px 16px rgba(0,30,60,0.08);
+      --radius:12px; --radius-sm:8px; --sidebar-w:256px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;}
+    .sidebar{width:var(--sidebar-w);background:var(--navy);position:fixed;height:100vh;top:0;left:0;display:flex;flex-direction:column;overflow-y:auto;z-index:100;box-shadow:2px 0 20px rgba(0,0,0,0.2);}
+    .sb-hdr{padding:1.4rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.15);}
+    .sb-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .sb-logo{width:38px;height:38px;border-radius:9px;background:linear-gradient(145deg,var(--teal),#00bcd4);display:flex;align-items:center;justify-content:center;font-size:1.2rem;}
+    .sb-bt .t1{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;color:#fff;letter-spacing:0.08em;line-height:1;}
+    .sb-bt .t2{font-size:0.58rem;color:rgba(0,188,212,0.85);letter-spacing:0.12em;text-transform:uppercase;}
+    .sb-badge{margin:0.8rem 1.2rem 0;background:rgba(244,168,32,0.15);border:1px solid rgba(244,168,32,0.25);border-radius:6px;padding:0.4rem 0.8rem;display:flex;align-items:center;gap:6px;font-size:0.7rem;color:var(--gold);font-weight:700;letter-spacing:0.08em;text-transform:uppercase;}
+    .sb-user{margin:0.8rem 1.2rem 0;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-sm);padding:0.7rem;display:flex;align-items:center;gap:0.7rem;}
+    .sb-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.82rem;color:#fff;flex-shrink:0;}
+    .sb-ui .un{font-size:0.8rem;font-weight:600;color:#fff;}
+    .sb-ui .ur{font-size:0.62rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.08em;}
+    .sb-nav{padding:0.8rem 0;flex:1;}
+    .sb-sec{font-size:0.6rem;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:0.14em;font-weight:700;padding:0.6rem 1.2rem;margin-top:0.4rem;}
+    .sb-a{display:flex;align-items:center;gap:0.7rem;padding:0.65rem 1.2rem;color:rgba(255,255,255,0.58);text-decoration:none;font-size:0.83rem;font-weight:500;transition:all 0.18s;border-right:3px solid transparent;}
+    .sb-a:hover{color:#fff;background:rgba(255,255,255,0.06);}
+    .sb-a.active{color:#fff;background:rgba(0,151,167,0.18);border-right-color:var(--teal);}
+    .sb-a .si{font-size:0.95rem;width:18px;text-align:center;}
+    .sb-ft{padding:1rem 1.2rem;border-top:1px solid rgba(255,255,255,0.08);}
+    .btn-logout{width:100%;padding:0.55rem;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:rgba(239,68,68,0.8);border-radius:var(--radius-sm);font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .btn-logout:hover{background:rgba(239,68,68,0.2);color:#ef4444;}
+    .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+    .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 10px rgba(0,30,60,0.06);}
+    .tb-title{font-family:'Rajdhani',sans-serif;font-size:1.15rem;font-weight:700;color:var(--navy);}
+    .tb-sub{font-size:0.7rem;color:var(--text-3);margin-top:1px;}
+    .tb-pill{display:flex;align-items:center;gap:0.5rem;background:var(--bg);border:1px solid var(--border);border-radius:100px;padding:0.28rem 0.9rem 0.28rem 0.3rem;}
+    .tp-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;font-weight:700;font-size:0.72rem;display:flex;align-items:center;justify-content:center;}
+    .tp-nm{font-size:0.78rem;font-weight:600;color:var(--text);}
+    .content{padding:1.8rem 2rem;flex:1;}
+
+    /* STATS */
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
+    .stat-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:1.3rem 1.4rem;box-shadow:var(--shadow);display:flex;align-items:center;gap:1rem;}
+    .sc-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+    .ic-teal{background:rgba(0,151,167,0.1);}
+    .ic-green{background:rgba(16,185,129,0.1);}
+    .ic-orange{background:rgba(245,158,11,0.1);}
+    .ic-purple{background:rgba(139,92,246,0.1);}
+    .ic-gold{background:rgba(244,168,32,0.1);}
+    .sc-val{font-family:'Rajdhani',sans-serif;font-size:2rem;font-weight:700;color:var(--text);line-height:1;}
+    .sc-lbl{font-size:0.73rem;color:var(--text-2);margin-top:2px;font-weight:500;}
+
+    /* TABLE */
+    .table-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;margin-bottom:1.5rem;}
+    .tc-hdr{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);}
+    .tc-title{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);}
+    .tc-sub{font-size:0.72rem;color:var(--text-3);margin-top:2px;}
+    table{width:100%;border-collapse:collapse;}
+    th{background:var(--bg);padding:0.7rem 1rem;text-align:left;font-size:0.72rem;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid var(--border);}
+    td{padding:0.8rem 1rem;font-size:0.83rem;border-bottom:1px solid var(--border);color:var(--text);}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:var(--bg);}
+    .perf-bar{height:6px;border-radius:100px;background:var(--border);overflow:hidden;margin-top:4px;}
+    .perf-fill{height:100%;border-radius:100px;}
+    .badge{display:inline-block;padding:0.18rem 0.55rem;border-radius:100px;font-size:0.68rem;font-weight:700;}
+    .badge-green{background:#dcfce7;color:#166534;}
+    .badge-orange{background:#fff7ed;color:#9a3412;}
+    .badge-red{background:#fee2e2;color:#991b1b;}
+    .badge-gray{background:#f1f5f9;color:#475569;}
+    .rank-circle{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;flex-shrink:0;}
+    .rank-1{background:linear-gradient(135deg,#f4a820,#f59e0b);color:#fff;}
+    .rank-2{background:linear-gradient(135deg,#9ca3af,#6b7280);color:#fff;}
+    .rank-3{background:linear-gradient(135deg,#cd7c39,#b45309);color:#fff;}
+    .rank-n{background:var(--bg);color:var(--text-2);border:1px solid var(--border);}
+    .loading{text-align:center;padding:3rem;color:var(--text-3);}
+    .ham-btn{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:1.1rem;flex-shrink:0;margin-right:0.7rem;}
+    @media(max-width:768px){
+      :root{--sidebar-w:0px;}
+      .sidebar{transform:translateX(-260px);transition:transform 0.28s ease;width:260px!important;}
+      .sidebar.sb-open{transform:translateX(0);box-shadow:4px 0 32px rgba(0,0,0,0.35);}
+      .sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:99;backdrop-filter:blur(2px);}
+      .sb-overlay.open{display:block;}
+      .main{margin-left:0!important;width:100vw!important;}
+      .ham-btn{display:flex!important;}
+      .topbar{padding:0 1rem!important;}
+      .content{padding:1rem!important;}
+      .stats-grid{grid-template-columns:1fr 1fr!important;}
+    }
+    @media(max-width:900px){.stats-grid{grid-template-columns:repeat(2,1fr);}}
+  </style>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0097a7">
+</head>
+<body>
+
+<div class="sb-overlay" id="sbOverlay" onclick="closeSidebar()"></div>
+<aside class="sidebar" id="mainSidebar">
+  <div class="sb-hdr">
+    <a href="/hydraa-index.html" class="sb-brand">
+      <div class="sb-logo">💧</div>
+      <div class="sb-bt"><div class="t1">HYDRAA</div><div class="t2">Government of Telangana</div></div>
+    </a>
+  </div>
+  <div class="sb-badge">🛡️ &nbsp;Admin Panel</div>
+  <div class="sb-user">
+    <div class="sb-av" id="sb-av">A</div>
+    <div class="sb-ui"><div class="un" id="sb-un">Administrator</div><div class="ur">System Admin</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Overview</div>
+    <a href="/hydraa-admin-dashboard.html" class="sb-a"><span class="si">📊</span> Dashboard</a>
+    <a href="/hydraa-admin-dashboard.html" class="sb-a"><span class="si">📋</span> All Complaints</a>
+    <a href="/hydraa-admin-analytics.html" class="sb-a"><span class="si">📈</span> Analytics</a>
+    <a href="/hydraa-admin-heatmap.html" class="sb-a"><span class="si">🗺️</span> Heatmap</a>
+    <a href="/hydraa-admin-performance.html" class="sb-a active"><span class="si">🏆</span> Performance</a>
+    <a href="/hydraa-admin-report.html" class="sb-a"><span class="si">📄</span> Monthly Report</a>
+    <div class="sb-sec">Management</div>
+    <a href="/hydraa-admin-management.html" class="sb-a"><span class="si">👷</span> Manage Officials</a>
+    <a href="/hydraa-admin-users.html" class="sb-a"><span class="si">👥</span> Manage Users</a>
+    <a href="/hydraa-admin-categories.html" class="sb-a"><span class="si">🗂️</span> Categories</a>
+    <a href="/hydraa-admin-districts.html" class="sb-a"><span class="si">🗺️</span> Districts & Mandals</a>
+    <div class="sb-sec">Account</div>
+    <a href="/hydraa-change-password.html" class="sb-a"><span class="si">🔒</span> Change Password</a>
+  </nav>
+  <div class="sb-ft">
+    <button class="btn-logout" onclick="logout()">⬅ Logout</button>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center">
+      <button class="ham-btn" onclick="openSidebar()" aria-label="Open Menu">☰</button>
+      <div>
+        <div class="tb-title">Official Performance Dashboard</div>
+        <div class="tb-sub">Resolution rates, response times & workload per official</div>
+      </div>
+    </div>
+    <div class="tb-pill">
+      <div class="tp-av" id="tp-av">A</div>
+      <span class="tp-nm" id="tp-nm">Admin</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- SUMMARY STATS -->
+    <div class="stats-grid" id="summaryStats">
+      <div class="stat-card"><div class="sc-icon ic-teal">👷</div><div><div class="sc-val" id="st-officials">—</div><div class="sc-lbl">Active Officials</div></div></div>
+      <div class="stat-card"><div class="sc-icon ic-green">✅</div><div><div class="sc-val" id="st-resolved">—</div><div class="sc-lbl">Total Resolved</div></div></div>
+      <div class="stat-card"><div class="sc-icon ic-orange">⚡</div><div><div class="sc-val" id="st-avgtime">—</div><div class="sc-lbl">Avg Resolution (hrs)</div></div></div>
+      <div class="stat-card"><div class="sc-icon ic-gold">🏆</div><div><div class="sc-val" id="st-topofficial">—</div><div class="sc-lbl">Top Performer</div></div></div>
+    </div>
+
+    <!-- LEADERBOARD TABLE -->
+    <div class="table-card">
+      <div class="tc-hdr">
+        <div>
+          <div class="tc-title">🏆 Official Leaderboard</div>
+          <div class="tc-sub">Ranked by resolution rate — all-time performance</div>
+        </div>
+        <button onclick="loadPerformance()" style="padding:0.4rem 0.9rem;background:var(--teal);color:#fff;border:none;border-radius:6px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;">↻ Refresh</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:50px">Rank</th>
+              <th>Official</th>
+              <th>Department</th>
+              <th>Assigned</th>
+              <th>Resolved</th>
+              <th>Pending</th>
+              <th>Resolution Rate</th>
+              <th>Avg Time (hrs)</th>
+              <th>Rating</th>
+            </tr>
+          </thead>
+          <tbody id="perfTableBody">
+            <tr><td colspan="9" class="loading">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PERFORMANCE CARDS (visual overview) -->
+    <div id="perfCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-bottom:1.5rem"></div>
+
+  </div>
+</div>
+
+<script src="http-client.js"></script>
+<script src="app.js"></script>
+<script>
+  const user = Auth.getUser();
+  if (!user || user.role !== 'admin') window.location.href = '/hydraa-admin-login.html';
+
+  if (user) {
+    const init = (user.full_name || user.username || 'A')[0].toUpperCase();
+    document.getElementById('sb-av').textContent  = init;
+    document.getElementById('sb-un').textContent  = user.full_name || user.username || 'Admin';
+    document.getElementById('tp-av').textContent  = init;
+    document.getElementById('tp-nm').textContent  = user.full_name || user.username || 'Admin';
+  }
+
+  function rateColor(rate) {
+    if (rate >= 80) return { badge: 'badge-green', bar: '#10b981', label: 'Excellent' };
+    if (rate >= 60) return { badge: 'badge-orange', bar: '#f59e0b', label: 'Good' };
+    if (rate >= 40) return { badge: 'badge-orange', bar: '#f97316', label: 'Average' };
+    return { badge: 'badge-red', bar: '#ef4444', label: 'Needs Improvement' };
+  }
+
+  function rankClass(i) {
+    if (i === 0) return 'rank-1';
+    if (i === 1) return 'rank-2';
+    if (i === 2) return 'rank-3';
+    return 'rank-n';
+  }
+
+  async function loadPerformance() {
+    document.getElementById('perfTableBody').innerHTML = '<tr><td colspan="9" class="loading">Loading...</td></tr>';
+    document.getElementById('perfCards').innerHTML = '';
+    try {
+      const res = await http.get('/api/admin/official-performance');
+      if (!res.success || !res.data) throw new Error('No data');
+      const data = res.data;
+
+      // Summary stats
+      document.getElementById('st-officials').textContent = data.length;
+      const totalResolved = data.reduce((s, o) => s + (o.resolved || 0), 0);
+      document.getElementById('st-resolved').textContent = totalResolved;
+      const withTime = data.filter(o => o.avg_resolution_hours > 0);
+      const avgTime = withTime.length ? Math.round(withTime.reduce((s, o) => s + o.avg_resolution_hours, 0) / withTime.length) : '—';
+      document.getElementById('st-avgtime').textContent = avgTime;
+      const top = data[0];
+      document.getElementById('st-topofficial').textContent = top ? (top.full_name || top.username || '—').split(' ')[0] : '—';
+
+      // Table
+      if (!data.length) {
+        document.getElementById('perfTableBody').innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--text-3)">No officials with assignments yet.</td></tr>';
+        return;
+      }
+
+      document.getElementById('perfTableBody').innerHTML = data.map((o, i) => {
+        const rate = o.resolution_rate || 0;
+        const { badge, bar, label } = rateColor(rate);
+        const avgHrs = o.avg_resolution_hours > 0 ? Math.round(o.avg_resolution_hours) + 'h' : '—';
+        const rating = o.avg_rating > 0 ? ('★'.repeat(Math.round(o.avg_rating)) + '☆'.repeat(5 - Math.round(o.avg_rating)) + ` (${Number(o.avg_rating).toFixed(1)})`) : '—';
+        return `<tr>
+          <td><div class="rank-circle ${rankClass(i)}">${i + 1}</div></td>
+          <td>
+            <div style="font-weight:600">${o.full_name || o.username}</div>
+            <div style="font-size:0.72rem;color:var(--text-3)">${o.email || ''}</div>
+          </td>
+          <td style="color:var(--text-2);font-size:0.8rem">${o.department || '—'}</td>
+          <td style="font-weight:600;color:var(--teal)">${o.total_assigned || 0}</td>
+          <td style="font-weight:600;color:var(--green)">${o.resolved || 0}</td>
+          <td style="color:var(--orange)">${o.pending || 0}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:0.5rem">
+              <span class="badge ${badge}">${label}</span>
+              <span style="font-size:0.75rem;color:var(--text-2)">${Math.round(rate)}%</span>
+            </div>
+            <div class="perf-bar"><div class="perf-fill" style="width:${rate}%;background:${bar}"></div></div>
+          </td>
+          <td style="font-size:0.82rem;color:var(--text-2)">${avgHrs}</td>
+          <td style="font-size:0.78rem;color:var(--gold)">${rating}</td>
+        </tr>`;
+      }).join('');
+
+      // Cards
+      document.getElementById('perfCards').innerHTML = data.slice(0, 9).map((o, i) => {
+        const rate = o.resolution_rate || 0;
+        const { badge, bar, label } = rateColor(rate);
+        const initial = (o.full_name || o.username || '?')[0].toUpperCase();
+        return `<div style="background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:1.2rem;box-shadow:var(--shadow)">
+          <div style="display:flex;align-items:center;gap:0.8rem;margin-bottom:1rem">
+            <div class="rank-circle ${rankClass(i)}" style="width:40px;height:40px;font-size:1rem">${i < 3 ? ['🥇','🥈','🥉'][i] : initial}</div>
+            <div>
+              <div style="font-weight:700;font-size:0.9rem">${o.full_name || o.username}</div>
+              <div style="font-size:0.72rem;color:var(--text-3)">${o.department || 'No Department'}</div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;margin-bottom:0.8rem;text-align:center">
+            <div style="background:var(--bg);border-radius:8px;padding:0.5rem">
+              <div style="font-family:'Rajdhani',sans-serif;font-size:1.4rem;font-weight:700;color:var(--teal)">${o.total_assigned || 0}</div>
+              <div style="font-size:0.62rem;color:var(--text-3)">Assigned</div>
+            </div>
+            <div style="background:var(--bg);border-radius:8px;padding:0.5rem">
+              <div style="font-family:'Rajdhani',sans-serif;font-size:1.4rem;font-weight:700;color:var(--green)">${o.resolved || 0}</div>
+              <div style="font-size:0.62rem;color:var(--text-3)">Resolved</div>
+            </div>
+            <div style="background:var(--bg);border-radius:8px;padding:0.5rem">
+              <div style="font-family:'Rajdhani',sans-serif;font-size:1.4rem;font-weight:700;color:var(--orange)">${o.pending || 0}</div>
+              <div style="font-size:0.62rem;color:var(--text-3)">Pending</div>
+            </div>
+          </div>
+          <div style="margin-bottom:0.4rem;display:flex;justify-content:space-between;align-items:center">
+            <span class="badge ${badge}">${label}</span>
+            <span style="font-size:0.78rem;font-weight:700;color:var(--text-2)">${Math.round(rate)}%</span>
+          </div>
+          <div class="perf-bar"><div class="perf-fill" style="width:${rate}%;background:${bar}"></div></div>
+          ${o.avg_resolution_hours > 0 ? `<div style="margin-top:0.6rem;font-size:0.72rem;color:var(--text-3)">⏱ Avg resolution: ${Math.round(o.avg_resolution_hours)}h</div>` : ''}
+          ${o.avg_rating > 0 ? `<div style="font-size:0.72rem;color:var(--gold);margin-top:2px">★ Rating: ${Number(o.avg_rating).toFixed(1)}/5</div>` : ''}
+        </div>`;
+      }).join('');
+
+    } catch(e) {
+      document.getElementById('perfTableBody').innerHTML = `<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--red)">Failed to load performance data.</td></tr>`;
+    }
+  }
+
+  loadPerformance();
+
+  function logout() { Auth.logout(); }
+</script>
+<script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js").catch(function(){});}</script>
+<script>
+function openSidebar(){
+  document.getElementById('mainSidebar').classList.add('sb-open');
+  document.getElementById('sbOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeSidebar(){
+  document.getElementById('mainSidebar').classList.remove('sb-open');
+  document.getElementById('sbOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+document.addEventListener('DOMContentLoaded',function(){
+  document.querySelectorAll('.sb-a').forEach(function(a){
+    a.addEventListener('click',function(){ if(window.innerWidth<=768) closeSidebar(); });
+  });
+});
+</script>
+</body>
+</html>

@@ -168,6 +168,20 @@
     .m-msg.err{background:rgba(239,68,68,0.08);color:#b91c1c;border-left:3px solid #ef4444;display:block;}
     .m-msg.ok{background:rgba(16,185,129,0.08);color:#065f46;border-left:3px solid #10b981;display:block;}
     .modal-ftr{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;gap:0.7rem;background:rgba(0,151,167,0.02);}
+    .tl-wrap{position:relative;padding-left:1.8rem;}
+    .tl-wrap::before{content:'';position:absolute;left:0.55rem;top:0;bottom:0;width:2px;background:var(--border);}
+    .tl-item{position:relative;margin-bottom:1.2rem;}
+    .tl-dot{position:absolute;left:-1.55rem;top:0.2rem;width:12px;height:12px;border-radius:50%;border:2px solid #fff;}
+    .tl-dot.lodged{background:#0097a7;box-shadow:0 0 0 2px #0097a7;}
+    .tl-dot.resolved{background:#10b981;box-shadow:0 0 0 2px #10b981;}
+    .tl-dot.rejected{background:#ef4444;box-shadow:0 0 0 2px #ef4444;}
+    .tl-dot.comment{background:#8b5cf6;box-shadow:0 0 0 2px #8b5cf6;}
+    .tl-dot.status{background:#f59e0b;box-shadow:0 0 0 2px #f59e0b;}
+    .tl-time{font-size:0.65rem;color:var(--text-3);margin-bottom:2px;}
+    .tl-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.8rem;}
+    .tl-actor{font-size:0.7rem;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;}
+    .tl-msg{font-size:0.82rem;color:var(--text);margin-top:2px;}
+    .tl-badge{display:inline-block;padding:0.15rem 0.45rem;border-radius:4px;font-size:0.65rem;font-weight:700;margin-right:4px;color:#fff;}
     .mb-ok{flex:1;padding:0.75rem;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:var(--radius-sm);font-size:0.88rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 3px 12px rgba(0,151,167,0.35);transition:all 0.2s;}
     .mb-ok:hover{transform:translateY(-1px);}
     .mb-cancel{padding:0.75rem 1.2rem;background:none;color:var(--text-2);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:0.85rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.18s;}
@@ -251,6 +265,8 @@
     <a href="#" class="sb-a" onclick="switchView('complaints');return false;"><span class="si">📋</span> All Complaints</a>
     <a href="/hydraa-admin-analytics.html" class="sb-a"><span class="si">📈</span> Analytics</a>
     <a href="/hydraa-admin-heatmap.html" class="sb-a"><span class="si">🗺️</span> Heatmap</a>
+    <a href="/hydraa-admin-performance.html" class="sb-a"><span class="si">🏆</span> Performance</a>
+    <a href="/hydraa-admin-report.html" class="sb-a"><span class="si">📄</span> Monthly Report</a>
     <div class="sb-sec">Management</div>
     <a href="/hydraa-admin-management.html" class="sb-a"><span class="si">👷</span> Manage Officials</a>
     <a href="/hydraa-admin-users.html" class="sb-a"><span class="si">👥</span> Manage Users</a>
@@ -386,6 +402,22 @@
   </div><!-- /content -->
 </div><!-- /main -->
 
+<!-- TIMELINE MODAL -->
+<div id="timelineModal" class="modal">
+  <div class="modal-box" style="max-width:520px">
+    <div class="modal-hdr">
+      <div class="modal-hdr-icon">📋</div>
+      <div class="modal-hdr-text"><div class="mht">Complaint Timeline</div><div class="mhs" id="tlComplaintNo">—</div></div>
+    </div>
+    <div class="modal-body" style="max-height:70vh;overflow-y:auto;padding:1.2rem 1.5rem" id="timelineBody">
+      <div style="text-align:center;padding:2rem;color:var(--text-3)">Loading...</div>
+    </div>
+    <div class="modal-ftr">
+      <button class="mb-cancel" onclick="document.getElementById('timelineModal').classList.remove('open')">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- ASSIGN MODAL -->
 <div id="assignModal" class="modal">
   <div class="modal-box">
@@ -408,6 +440,36 @@
     <div class="modal-ftr">
       <button class="mb-ok" onclick="doAssign()">✅ Assign Now</button>
       <button class="mb-cancel" onclick="closeAssign()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- BULK ASSIGN MODAL -->
+<div id="bulkModal" class="modal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div class="modal-hdr-icon">👥</div>
+      <div class="modal-hdr-text"><div class="mht">Bulk Assign Complaints</div><div class="mhs">Assign multiple complaints to one official</div></div>
+    </div>
+    <div class="modal-body">
+      <div class="m-field">
+        <label class="m-label">Selected: <strong id="bulkCount">0</strong> complaint(s)</label>
+      </div>
+      <div class="m-field">
+        <label class="m-label">Assign To Official <span>*</span></label>
+        <select id="bulkOfficialSel" class="m-select">
+          <option value="">— Choose Official —</option>
+        </select>
+      </div>
+      <div class="m-field">
+        <label class="m-label">Remarks (optional)</label>
+        <textarea id="bulkRemarks" class="m-textarea" placeholder="Reason for bulk assignment..." style="min-height:60px"></textarea>
+      </div>
+      <div id="bulkMsg" class="m-msg"></div>
+    </div>
+    <div class="modal-ftr">
+      <button class="mb-ok" onclick="doBulkAssign()">✅ Assign All</button>
+      <button class="mb-cancel" onclick="closeBulkModal()">Cancel</button>
     </div>
   </div>
 </div>
@@ -571,6 +633,7 @@ async function loadDashboard() {
             <td><div class="act-wrap">
               <button class="act-btn ab-assign" onclick="openAssign(${c.id})">👷 Assign</button>
               <button class="act-btn ab-status" onclick="openStatus(${c.id},'${c.status}')">🔄 Status</button>
+              <button class="act-btn" style="background:rgba(139,92,246,0.08);color:#8b5cf6;border-color:rgba(139,92,246,0.2)" onclick="openTimeline('${c.complaint_no}')">📋</button>
             </div></td>
           </tr>`).join('')}
         </tbody>
@@ -634,10 +697,19 @@ async function loadComplaints() {
     document.getElementById('cUrgent').textContent = data.filter(c=>c.priority==='urgent').length;
 
     document.getElementById('complaintsTable').innerHTML = `
+      <div style="padding:0.5rem 0 0.75rem;display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
+        <label style="font-size:0.78rem;font-weight:700;color:var(--text-2);display:flex;align-items:center;gap:0.4rem;cursor:pointer;">
+          <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)"/> Select All
+        </label>
+        <button id="bulkAssignBtn" onclick="openBulkAssign()" style="display:none;padding:0.4rem 0.9rem;background:var(--teal);color:#fff;border:none;border-radius:6px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;">
+          👷 Bulk Assign Selected (<span id="selectedCount">0</span>)
+        </button>
+      </div>
       <table style="min-width:950px;width:100%">
-        <thead><tr><th>No.</th><th>Title</th><th>Citizen</th><th>Category</th><th>District</th><th>Priority</th><th>Status</th><th>Assigned To</th><th>Date</th><th>Actions</th></tr></thead>
+        <thead><tr><th style="width:36px"></th><th>No.</th><th>Title</th><th>Citizen</th><th>Category</th><th>District</th><th>Priority</th><th>Status</th><th>Assigned To</th><th>Date</th><th>Actions</th></tr></thead>
         <tbody>${data.map(c=>`
           <tr>
+            <td><input type="checkbox" class="row-check" value="${c.id}" onchange="updateBulkBtn()"/></td>
             <td><span class="cno">${c.complaint_no}</span></td>
             <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.title}"><strong>${c.title}</strong></td>
             <td>${c.user_name}</td>
@@ -653,6 +725,7 @@ async function loadComplaints() {
             <td><div class="act-wrap">
               <button class="act-btn ab-assign" onclick="openAssign(${c.id})">👷 Assign</button>
               <button class="act-btn ab-status" onclick="openStatus(${c.id},'${c.status}')">🔄 Status</button>
+              <button class="act-btn" style="background:rgba(139,92,246,0.08);color:#8b5cf6;border-color:rgba(139,92,246,0.2)" onclick="openTimeline('${c.complaint_no}')">📋</button>
             </div></td>
           </tr>`).join('')}
         </tbody>
@@ -717,6 +790,120 @@ async function doStatus() {
       setTimeout(()=>{ closeStatus(); loadComplaints(); loadDashboard(); }, 1400);
     } else { msg.textContent=res.message; msg.className='m-msg err'; }
   } catch(e) { msg.textContent='Server error.'; msg.className='m-msg err'; }
+}
+
+// ── Timeline ──
+async function openTimeline(complaint_no) {
+  document.getElementById('tlComplaintNo').textContent = complaint_no;
+  document.getElementById('timelineBody').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3)">Loading...</div>';
+  document.getElementById('timelineModal').classList.add('open');
+
+  try {
+    const trackRes = await fetch(`/api/complaints/track/${complaint_no}`).then(r => r.json());
+    const complaint = trackRes.data?.complaint || {};
+    const history   = trackRes.data?.history   || [];
+
+    const token = localStorage.getItem('hydraa_token');
+    let comments = [];
+    if (complaint.id) {
+      try {
+        const cRes = await fetch(`/api/complaints/${complaint.id}/comments`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).then(r => r.json());
+        comments = cRes.data || [];
+      } catch(e) {}
+    }
+
+    const events = [];
+    events.push({ type:'lodged', time: complaint.created_at, actor:'Citizen', msg: complaint.title });
+    history.forEach(h => events.push({ type: h.new_status==='resolved' ? 'resolved' : h.new_status==='rejected' ? 'rejected' : 'status', time: h.changed_at, actor: h.changed_by_role, from: h.old_status, to: h.new_status, msg: h.remarks }));
+    comments.forEach(c => events.push({ type:'comment', time: c.created_at, actor: c.author_name+' ('+c.author_role+')', msg: c.message, internal: c.is_internal }));
+    events.sort((a, b) => new Date(a.time) - new Date(b.time));
+
+    const statusColors = { open:'#0097a7', assigned:'#3b82f6', in_progress:'#f59e0b', resolved:'#10b981', rejected:'#ef4444', closed:'#64748b' };
+
+    document.getElementById('timelineBody').innerHTML = `
+      <div style="margin-bottom:1rem;padding:0.6rem 0.8rem;background:var(--bg);border-radius:8px;font-size:0.82rem">
+        <strong>${complaint.complaint_no||''}</strong> — ${complaint.title||'—'}<br>
+        <span style="color:var(--text-3);font-size:0.72rem">Status: ${complaint.status||'—'} · Priority: ${complaint.priority||'—'}</span>
+      </div>
+      <div class="tl-wrap">
+        ${events.map(ev => {
+          const dotCls = ev.type;
+          const timeStr = ev.time ? new Date(ev.time).toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+          let content = '';
+          if (ev.type==='lodged') {
+            content = `<div class="tl-actor">Complaint Filed</div><div class="tl-msg">${ev.msg||'—'}</div>`;
+          } else if (ev.type==='comment') {
+            content = `<div class="tl-actor">${ev.actor}${ev.internal?' 🔒':''}</div><div class="tl-msg">${ev.msg}</div>`;
+          } else {
+            content = `<div class="tl-actor">${ev.actor||'System'}</div>
+              <div style="font-size:0.75rem;margin:2px 0">
+                <span class="tl-badge" style="background:${statusColors[ev.from]||'#94a3b8'}">${ev.from||'—'}</span>→
+                <span class="tl-badge" style="background:${statusColors[ev.to]||'#94a3b8'}">${ev.to||'—'}</span>
+              </div>
+              ${ev.msg?`<div class="tl-msg">${ev.msg}</div>`:''}`;
+          }
+          return `<div class="tl-item"><div class="tl-dot ${dotCls}"></div><div class="tl-time">${timeStr}</div><div class="tl-card">${content}</div></div>`;
+        }).join('')}
+        ${!events.length ? '<div style="color:var(--text-3);padding:1rem 0">No history yet.</div>' : ''}
+      </div>`;
+  } catch(e) {
+    document.getElementById('timelineBody').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--red)">Failed to load timeline.</div>';
+  }
+}
+document.getElementById('timelineModal').addEventListener('click', e => { if(e.target===e.currentTarget) e.target.classList.remove('open'); });
+
+// ── Bulk Assignment ──
+function toggleSelectAll(cb) {
+  document.querySelectorAll('.row-check').forEach(c => c.checked = cb.checked);
+  updateBulkBtn();
+}
+function updateBulkBtn() {
+  const checked = document.querySelectorAll('.row-check:checked');
+  const btn = document.getElementById('bulkAssignBtn');
+  const cnt = document.getElementById('selectedCount');
+  if (checked.length > 0) {
+    btn.style.display = 'inline-block';
+    cnt.textContent = checked.length;
+  } else {
+    btn.style.display = 'none';
+  }
+}
+function openBulkAssign() {
+  const checked = document.querySelectorAll('.row-check:checked');
+  if (!checked.length) return;
+  const sel = document.getElementById('bulkOfficialSel');
+  sel.innerHTML = '<option value="">— Choose Official —</option>';
+  officials.forEach(o => sel.innerHTML += `<option value="${o.id}">${o.full_name} (${o.department||'N/A'})</option>`);
+  document.getElementById('bulkCount').textContent = checked.length;
+  document.getElementById('bulkRemarks').value = '';
+  document.getElementById('bulkMsg').className = 'm-msg';
+  document.getElementById('bulkMsg').textContent = '';
+  document.getElementById('bulkModal').classList.add('open');
+}
+function closeBulkModal() { document.getElementById('bulkModal').classList.remove('open'); }
+document.getElementById('bulkModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeBulkModal(); });
+
+async function doBulkAssign() {
+  const official_id = document.getElementById('bulkOfficialSel').value;
+  const msg = document.getElementById('bulkMsg');
+  if (!official_id) { msg.textContent='Please select an official.'; msg.className='m-msg err'; return; }
+  const complaint_ids = [...document.querySelectorAll('.row-check:checked')].map(c => parseInt(c.value));
+  const remarks = document.getElementById('bulkRemarks').value.trim();
+  try {
+    const res = await http.post('/api/admin/bulk-assign', { official_id: parseInt(official_id), complaint_ids, remarks });
+    if (res.success) {
+      msg.textContent = res.message || `Assigned ${complaint_ids.length} complaints!`;
+      msg.className = 'm-msg ok';
+      // uncheck all
+      document.querySelectorAll('.row-check').forEach(c => c.checked = false);
+      const sAll = document.getElementById('selectAll');
+      if (sAll) sAll.checked = false;
+      updateBulkBtn();
+      setTimeout(() => { closeBulkModal(); loadComplaints(); loadDashboard(); }, 1400);
+    } else { msg.textContent = res.message || 'Failed.'; msg.className = 'm-msg err'; }
+  } catch(e) { msg.textContent = 'Server error.'; msg.className = 'm-msg err'; }
 }
 
 init();

@@ -151,6 +151,8 @@
     <a href="/hydraa-admin-dashboard.html" class="sb-a"><span class="si">📋</span> All Complaints</a>
     <a href="/hydraa-admin-analytics.html" class="sb-a"><span class="si">📈</span> Analytics</a>
     <a href="/hydraa-admin-heatmap.html" class="sb-a active"><span class="si">🗺️</span> Heatmap</a>
+    <a href="/hydraa-admin-performance.html" class="sb-a"><span class="si">🏆</span> Performance</a>
+    <a href="/hydraa-admin-report.html" class="sb-a"><span class="si">📄</span> Monthly Report</a>
     <div class="sb-sec">Management</div>
     <a href="/hydraa-admin-management.html" class="sb-a"><span class="si">👷</span> Manage Officials</a>
     <a href="/hydraa-admin-users.html" class="sb-a"><span class="si">👥</span> Manage Users</a>
@@ -214,6 +216,19 @@
         <div class="card-sub">Complaint volume per category and priority level</div>
       </div>
       <div class="matrix-wrap" id="catMatrix"><div class="loading">Loading...</div></div>
+    </div>
+
+    <!-- CATEGORY × DISTRICT HEATMAP -->
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title">🏙️ Category × District Heatmap</div>
+        <div class="card-sub">Which complaint types dominate each district</div>
+      </div>
+      <div class="matrix-wrap" id="catDistrictMatrix"><div class="loading">Loading...</div></div>
+      <div style="margin-top:1rem">
+        <div class="card-title" style="font-size:0.9rem;margin-bottom:0.5rem">📍 Top Issues by District</div>
+        <div id="topByDistrict"><div class="loading">Loading...</div></div>
+      </div>
     </div>
 
   </div>
@@ -371,6 +386,65 @@
   }
 
   loadHeatmap();
+
+  async function loadCategoryHeatmap() {
+    try {
+      const res = await http.get('/api/admin/category-heatmap');
+      if (!res.success) return;
+      const { districtCategory, topByDistrict, categoryTotals } = res.data;
+
+      // Build category × district matrix
+      const cats = [...new Set(districtCategory.map(r => r.category_name))].slice(0, 10);
+      const dists = [...new Set(districtCategory.map(r => r.district_name))].slice(0, 15);
+      const grid = {};
+      let maxV = 0;
+      districtCategory.forEach(r => {
+        grid[`${r.district_name}_${r.category_name}`] = r.count;
+        if (r.count > maxV) maxV = r.count;
+      });
+
+      if (!cats.length) {
+        document.getElementById('catDistrictMatrix').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3)">No data yet.</div>';
+      } else {
+        let mHtml = '<div style="overflow-x:auto"><table class="matrix"><thead><tr><th>District</th>';
+        cats.forEach(c => { mHtml += `<th style="white-space:nowrap;font-size:0.7rem">${c}</th>`; });
+        mHtml += '</tr></thead><tbody>';
+        dists.forEach(dist => {
+          mHtml += `<tr><td class="row-label" style="white-space:nowrap">${dist}</td>`;
+          cats.forEach(cat => {
+            const v = grid[`${dist}_${cat}`] || 0;
+            const { bg, color } = cellColor(v, maxV);
+            mHtml += `<td style="background:${bg};color:${color};text-align:center">${v || '—'}</td>`;
+          });
+          mHtml += '</tr>';
+        });
+        mHtml += '</tbody></table></div>';
+        document.getElementById('catDistrictMatrix').innerHTML = mHtml;
+      }
+
+      // Top issues by district
+      const byDist = {};
+      topByDistrict.forEach(r => {
+        if (!byDist[r.district_name]) byDist[r.district_name] = [];
+        byDist[r.district_name].push(r);
+      });
+      let tbdHtml = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.75rem">';
+      Object.entries(byDist).slice(0, 12).forEach(([dist, rows]) => {
+        tbdHtml += `<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem">
+          <div style="font-weight:700;font-size:0.82rem;color:var(--navy);margin-bottom:0.5rem">📍 ${dist}</div>`;
+        rows.slice(0, 3).forEach((r, i) => {
+          const badges = ['🥇','🥈','🥉'];
+          tbdHtml += `<div style="font-size:0.75rem;color:var(--text-2);margin-bottom:0.2rem">${badges[i]||'•'} ${r.category_name} <span style="color:var(--teal);font-weight:700">(${r.count})</span></div>`;
+        });
+        tbdHtml += '</div>';
+      });
+      tbdHtml += '</div>';
+      document.getElementById('topByDistrict').innerHTML = byDist && Object.keys(byDist).length ? tbdHtml : '<div style="color:var(--text-3);font-size:0.85rem">No data yet.</div>';
+    } catch(e) {
+      document.getElementById('catDistrictMatrix').innerHTML = '<div style="color:var(--red);font-size:0.85rem">Failed to load.</div>';
+    }
+  }
+  loadCategoryHeatmap();
 </script>
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js").catch(function(){});}</script>
 

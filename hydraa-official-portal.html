@@ -231,6 +231,22 @@
     .m-msg.err{background:rgba(239,68,68,0.08);color:#b91c1c;border-left:3px solid #ef4444;display:block;}
     .m-msg.ok{background:rgba(16,185,129,0.08);color:#065f46;border-left:3px solid #10b981;display:block;}
     .modal-ftr{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;gap:0.7rem;background:rgba(0,151,167,0.02);}
+    /* TIMELINE */
+    .tl-wrap{position:relative;padding-left:1.8rem;}
+    .tl-wrap::before{content:'';position:absolute;left:0.55rem;top:0;bottom:0;width:2px;background:var(--border);}
+    .tl-item{position:relative;margin-bottom:1.2rem;}
+    .tl-dot{position:absolute;left:-1.55rem;top:0.2rem;width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 2px var(--border);}
+    .tl-dot.lodged{background:#0097a7;box-shadow:0 0 0 2px #0097a7;}
+    .tl-dot.resolved{background:#10b981;box-shadow:0 0 0 2px #10b981;}
+    .tl-dot.rejected{background:#ef4444;box-shadow:0 0 0 2px #ef4444;}
+    .tl-dot.comment{background:#8b5cf6;box-shadow:0 0 0 2px #8b5cf6;}
+    .tl-dot.status{background:#f59e0b;box-shadow:0 0 0 2px #f59e0b;}
+    .tl-time{font-size:0.65rem;color:var(--text-3);margin-bottom:2px;}
+    .tl-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.8rem;}
+    .tl-actor{font-size:0.7rem;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;}
+    .tl-msg{font-size:0.82rem;color:var(--text);margin-top:2px;}
+    .tl-badge{display:inline-block;padding:0.15rem 0.45rem;border-radius:4px;font-size:0.65rem;font-weight:700;margin-right:4px;}
+    .tl-arrow{color:var(--text-3);margin:0 4px;font-size:0.7rem;}
     .mb-ok{flex:1;padding:0.75rem;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:var(--radius-sm);font-size:0.88rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 3px 12px rgba(0,151,167,0.35);transition:all 0.2s;}
     .mb-ok:hover{transform:translateY(-1px);}
     .mb-cancel{padding:0.75rem 1.2rem;background:none;color:var(--text-2);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:0.85rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
@@ -490,6 +506,22 @@
 </div>
 
 <!-- UPDATE MODAL -->
+<!-- TIMELINE MODAL -->
+<div id="timelineModal" class="modal">
+  <div class="modal-box" style="max-width:520px">
+    <div class="modal-hdr">
+      <div class="mh-icon">📋</div>
+      <div><div class="mh-title">Complaint Timeline</div><div class="mh-sub" id="tlComplaintNo">Loading...</div></div>
+    </div>
+    <div class="modal-body" style="max-height:70vh;overflow-y:auto" id="timelineBody">
+      <div style="text-align:center;padding:2rem;color:#7a9baf">Loading timeline...</div>
+    </div>
+    <div class="modal-ftr">
+      <button class="mb-cancel" onclick="document.getElementById('timelineModal').classList.remove('open')">Close</button>
+    </div>
+  </div>
+</div>
+
 <div id="updateModal" class="modal">
   <div class="modal-box">
     <div class="modal-hdr">
@@ -526,6 +558,20 @@
         <label class="m-label">Add Internal Note (optional)</label>
         <textarea id="updateNote" class="m-textarea" placeholder="Internal note — visible only to admin and officials, not to the citizen..." style="min-height:60px"></textarea>
       </div>
+
+      <!-- Photo Upload -->
+      <div class="m-field">
+        <label class="m-label">📷 Field Evidence Photos (optional, max 5)</label>
+        <div style="border:2px dashed var(--border);border-radius:var(--radius-sm);padding:0.75rem;background:var(--bg);">
+          <input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handlePhotoSelect(event)"/>
+          <button type="button" onclick="document.getElementById('photoInput').click()" style="width:100%;padding:0.5rem;background:none;border:none;color:var(--teal);font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;">
+            📁 Select Photos
+          </button>
+          <div id="photoPreview" style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.5rem;"></div>
+          <div id="photoMsg" style="font-size:0.72rem;color:#64748b;margin-top:0.3rem;"></div>
+        </div>
+      </div>
+
       <div id="updateMsg" class="m-msg"></div>
 
       <!-- Land Records Native Search — always visible -->
@@ -712,7 +758,7 @@ function updateDashboard() {
          <td>${pb(x.priority)}</td>
          <td>${sb(x.status)}</td>
          <td style="white-space:nowrap">${formatDate(x.created_at)}</td>
-         <td style="white-space:nowrap">${(x.status!=='resolved'&&x.status!=='closed') ? `<button class="upd-btn" onclick="openUpdate(${x.id})">✏️ Update</button>` : '<span class="done-tag">✅ Done</span>'}</td>
+         <td style="white-space:nowrap;display:flex;gap:0.3rem;align-items:center">${(x.status!=='resolved'&&x.status!=='closed') ? `<button class="upd-btn" onclick="openUpdate(${x.id})">✏️ Update</button>` : '<span class="done-tag">✅ Done</span>'}<button class="upd-btn" style="background:rgba(139,92,246,0.1);color:#8b5cf6;border-color:rgba(139,92,246,0.2)" onclick="openTimeline('${x.complaint_no}')">📋</button></td>
        </tr>`).join('')}
        </tbody></table></div>`;
 }
@@ -747,7 +793,7 @@ function filterComplaints() {
          <td>${pb(c.priority)}</td>
          <td>${sb(c.status)}</td>
          <td style="white-space:nowrap">${formatDate(c.created_at)}</td>
-         <td style="white-space:nowrap">${(c.status!=='resolved'&&c.status!=='closed') ? `<button class="upd-btn" onclick="openUpdate(${c.id})">✏️ Update</button>` : '<span class="done-tag">✅ Done</span>'}</td>
+         <td style="white-space:nowrap;display:flex;gap:0.3rem;align-items:center">${(c.status!=='resolved'&&c.status!=='closed') ? `<button class="upd-btn" onclick="openUpdate(${c.id})">✏️ Update</button>` : '<span class="done-tag">✅ Done</span>'}<button class="upd-btn" style="background:rgba(139,92,246,0.1);color:#8b5cf6;border-color:rgba(139,92,246,0.2)" onclick="openTimeline('${c.complaint_no}')">📋</button></td>
        </tr>`).join('')}
        </tbody></table></div>`;
 }
@@ -766,10 +812,137 @@ function openUpdate(id) {
 
   // Pre-fill land search form from complaint data
   populateLandSearch(c);
+  _currentComplaintId = c.id;
+  _pendingPhotos = [];
+  document.getElementById('photoPreview').innerHTML = '';
+  document.getElementById('photoMsg').textContent = '';
 
   document.getElementById('updateModal').classList.add('open');
 }
-function closeUpdate() { document.getElementById('updateModal').classList.remove('open'); }
+function closeUpdate() {
+  document.getElementById('updateModal').classList.remove('open');
+  document.getElementById('photoPreview').innerHTML = '';
+  document.getElementById('photoMsg').textContent = '';
+  document.getElementById('photoInput').value = '';
+  _pendingPhotos = [];
+}
+
+// ── Timeline ─────────────────────────────────────────
+async function openTimeline(complaint_no) {
+  document.getElementById('tlComplaintNo').textContent = complaint_no;
+  document.getElementById('timelineBody').innerHTML = '<div style="text-align:center;padding:2rem;color:#7a9baf">Loading...</div>';
+  document.getElementById('timelineModal').classList.add('open');
+
+  try {
+    // Use public track endpoint for history (no auth needed)
+    const trackRes = await fetch(`/api/complaints/track/${complaint_no}`).then(r => r.json());
+    const complaint = trackRes.data?.complaint || {};
+    const history   = trackRes.data?.history   || [];
+
+    // Also fetch comments with auth
+    const token = localStorage.getItem('hydraa_token');
+    let comments = [];
+    try {
+      const cRes = await fetch(`/api/complaints/${complaint.id}/comments`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }).then(r => r.json());
+      comments = cRes.data || [];
+    } catch(e) {}
+
+    // Merge and sort by date
+    const events = [];
+    events.push({ type: 'lodged', time: complaint.created_at, actor: `Citizen`, msg: complaint.title });
+    history.forEach(h => events.push({ type: h.new_status === 'resolved' ? 'resolved' : h.new_status === 'rejected' ? 'rejected' : 'status', time: h.changed_at, actor: h.changed_by_role, from: h.old_status, to: h.new_status, msg: h.remarks }));
+    comments.forEach(c => events.push({ type: 'comment', time: c.created_at, actor: c.author_name + ' (' + c.author_role + ')', msg: c.message, internal: c.is_internal }));
+    events.sort((a, b) => new Date(a.time) - new Date(b.time));
+
+    const statusColors = { open:'#0097a7', assigned:'#3b82f6', in_progress:'#f59e0b', resolved:'#10b981', rejected:'#ef4444', closed:'#64748b' };
+
+    document.getElementById('timelineBody').innerHTML = `
+      <div style="padding:0.5rem 0 0.5rem">
+        <div style="margin-bottom:1rem;padding:0.6rem 0.8rem;background:#e0f7fa;border-radius:8px;font-size:0.82rem">
+          <strong>${complaint.complaint_no}</strong> — ${complaint.title}<br>
+          <span style="color:#7a9baf;font-size:0.72rem">Status: ${complaint.status||'—'} · Priority: ${complaint.priority||'—'} · District: ${complaint.district_name||'—'}</span>
+        </div>
+        <div class="tl-wrap">
+          ${events.map(ev => {
+            const dotCls = ev.type;
+            const timeStr = ev.time ? new Date(ev.time).toLocaleString('en-IN', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+            let content = '';
+            if (ev.type === 'lodged') {
+              content = `<div class="tl-actor">Complaint Filed</div><div class="tl-msg">${ev.msg || '—'}</div>`;
+            } else if (ev.type === 'comment') {
+              content = `<div class="tl-actor">${ev.actor}${ev.internal ? ' 🔒 Internal Note' : ''}</div><div class="tl-msg">${ev.msg}</div>`;
+            } else {
+              content = `<div class="tl-actor">${ev.actor||'System'}</div>
+                <div style="font-size:0.75rem;margin:2px 0">
+                  <span class="tl-badge" style="background:${statusColors[ev.from]||'#e2e8f0'};color:#fff">${ev.from||'—'}</span>
+                  <span class="tl-arrow">→</span>
+                  <span class="tl-badge" style="background:${statusColors[ev.to]||'#e2e8f0'};color:#fff">${ev.to||'—'}</span>
+                </div>
+                ${ev.msg ? `<div class="tl-msg">${ev.msg}</div>` : ''}`;
+            }
+            return `<div class="tl-item">
+              <div class="tl-dot ${dotCls}"></div>
+              <div class="tl-time">${timeStr}</div>
+              <div class="tl-card">${content}</div>
+            </div>`;
+          }).join('')}
+          ${events.length === 0 ? '<div style="color:#7a9baf;font-size:0.85rem;padding:1rem 0">No history recorded yet.</div>' : ''}
+        </div>
+      </div>`;
+  } catch(e) {
+    document.getElementById('timelineBody').innerHTML = '<div style="text-align:center;padding:2rem;color:#ef4444">Failed to load timeline.</div>';
+  }
+}
+document.getElementById('timelineModal').addEventListener('click', e => { if(e.target===e.currentTarget) e.target.classList.remove('open'); });
+
+// ── Photo Upload ─────────────────────────────────────
+let _pendingPhotos = [];
+let _currentComplaintId = null;
+
+function handlePhotoSelect(event) {
+  const files = Array.from(event.target.files);
+  const remaining = 5 - _pendingPhotos.length;
+  const toAdd = files.slice(0, remaining);
+  const preview = document.getElementById('photoPreview');
+  const msg = document.getElementById('photoMsg');
+
+  toAdd.forEach(file => {
+    if (file.size > 3 * 1024 * 1024) { msg.textContent = `${file.name} is too large (max 3MB).`; return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      _pendingPhotos.push({ data: e.target.result, name: file.name });
+      const thumb = document.createElement('div');
+      thumb.style.cssText = 'position:relative;width:60px;height:60px;';
+      thumb.innerHTML = `<img src="${e.target.result}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border);"/>
+        <span onclick="removePhoto(${_pendingPhotos.length-1},this.parentNode)" style="position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;border-radius:50%;width:16px;height:16px;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:700;">×</span>`;
+      preview.appendChild(thumb);
+      msg.textContent = `${_pendingPhotos.length} photo(s) selected`;
+    };
+    reader.readAsDataURL(file);
+  });
+  if (files.length > remaining) msg.textContent = `Only ${remaining} more photo(s) allowed (max 5 total).`;
+}
+
+function removePhoto(idx, el) {
+  _pendingPhotos.splice(idx, 1);
+  el.remove();
+  document.getElementById('photoMsg').textContent = `${_pendingPhotos.length} photo(s) selected`;
+}
+
+async function uploadPendingPhotos(complaintId) {
+  const token = localStorage.getItem('hydraa_token');
+  for (const photo of _pendingPhotos) {
+    try {
+      await fetch(`/api/complaints/${complaintId}/photos`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ photo_data: photo.data, caption: photo.name }),
+      });
+    } catch(e) { console.warn('Photo upload failed:', e); }
+  }
+}
 
 // ── Land Records Native Search ──────────────────────
 function populateLandSearch(c) {
@@ -919,6 +1092,10 @@ async function doUpdate() {
       // Post internal note as comment if provided
       if (note) {
         await http.post('/api/complaints/'+id+'/comments', {message: note, is_internal: 1}).catch(()=>{});
+      }
+      if (_pendingPhotos.length > 0) {
+        msg.textContent='Uploading photos...';
+        await uploadPendingPhotos(id);
       }
       msg.textContent='Complaint updated successfully!'; msg.className='m-msg ok';
       setTimeout(() => { closeUpdate(); loadComplaints(); }, 1400);

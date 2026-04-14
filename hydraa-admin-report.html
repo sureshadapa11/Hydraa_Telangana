@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Monthly Report — HYDRAA Telangana</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --teal:#0097a7; --teal-dark:#006978; --teal-light:#e0f7fa;
+      --navy:#0b1f3a; --navy-mid:#122944; --gold:#f4a820;
+      --green:#10b981; --red:#ef4444; --orange:#f59e0b;
+      --purple:#8b5cf6; --blue:#3b82f6;
+      --white:#fff; --bg:#f2f6f9; --text:#0d1e2e;
+      --text-2:#3d5a72; --text-3:#7a9baf; --border:#d0e4ec;
+      --shadow:0 2px 16px rgba(0,30,60,0.08);
+      --radius:12px; --radius-sm:8px; --sidebar-w:256px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;}
+    .sidebar{width:var(--sidebar-w);background:var(--navy);position:fixed;height:100vh;top:0;left:0;display:flex;flex-direction:column;overflow-y:auto;z-index:100;box-shadow:2px 0 20px rgba(0,0,0,0.2);}
+    .sb-hdr{padding:1.4rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.15);}
+    .sb-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .sb-logo{width:38px;height:38px;border-radius:9px;background:linear-gradient(145deg,var(--teal),#00bcd4);display:flex;align-items:center;justify-content:center;font-size:1.2rem;}
+    .sb-bt .t1{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;color:#fff;letter-spacing:0.08em;line-height:1;}
+    .sb-bt .t2{font-size:0.58rem;color:rgba(0,188,212,0.85);letter-spacing:0.12em;text-transform:uppercase;}
+    .sb-badge{margin:0.8rem 1.2rem 0;background:rgba(244,168,32,0.15);border:1px solid rgba(244,168,32,0.25);border-radius:6px;padding:0.4rem 0.8rem;display:flex;align-items:center;gap:6px;font-size:0.7rem;color:var(--gold);font-weight:700;letter-spacing:0.08em;text-transform:uppercase;}
+    .sb-user{margin:0.8rem 1.2rem 0;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-sm);padding:0.7rem;display:flex;align-items:center;gap:0.7rem;}
+    .sb-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.82rem;color:#fff;flex-shrink:0;}
+    .sb-ui .un{font-size:0.8rem;font-weight:600;color:#fff;}
+    .sb-ui .ur{font-size:0.62rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.08em;}
+    .sb-nav{padding:0.8rem 0;flex:1;}
+    .sb-sec{font-size:0.6rem;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:0.14em;font-weight:700;padding:0.6rem 1.2rem;margin-top:0.4rem;}
+    .sb-a{display:flex;align-items:center;gap:0.7rem;padding:0.65rem 1.2rem;color:rgba(255,255,255,0.58);text-decoration:none;font-size:0.83rem;font-weight:500;transition:all 0.18s;border-right:3px solid transparent;}
+    .sb-a:hover{color:#fff;background:rgba(255,255,255,0.06);}
+    .sb-a.active{color:#fff;background:rgba(0,151,167,0.18);border-right-color:var(--teal);}
+    .sb-a .si{font-size:0.95rem;width:18px;text-align:center;}
+    .sb-ft{padding:1rem 1.2rem;border-top:1px solid rgba(255,255,255,0.08);}
+    .btn-logout{width:100%;padding:0.55rem;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:rgba(239,68,68,0.8);border-radius:var(--radius-sm);font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .btn-logout:hover{background:rgba(239,68,68,0.2);color:#ef4444;}
+    .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+    .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 10px rgba(0,30,60,0.06);}
+    .tb-title{font-family:'Rajdhani',sans-serif;font-size:1.15rem;font-weight:700;color:var(--navy);}
+    .tb-sub{font-size:0.7rem;color:var(--text-3);margin-top:1px;}
+    .tb-pill{display:flex;align-items:center;gap:0.5rem;background:var(--bg);border:1px solid var(--border);border-radius:100px;padding:0.28rem 0.9rem 0.28rem 0.3rem;}
+    .tp-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;font-weight:700;font-size:0.72rem;display:flex;align-items:center;justify-content:center;}
+    .tp-nm{font-size:0.78rem;font-weight:600;color:var(--text);}
+    .content{padding:1.8rem 2rem;flex:1;}
+
+    /* CONTROLS */
+    .controls-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:1.2rem 1.5rem;box-shadow:var(--shadow);margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+    .ctrl-label{font-size:0.8rem;font-weight:600;color:var(--text-2);}
+    .ctrl-select{padding:0.45rem 0.8rem;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.83rem;color:var(--text);background:var(--bg);cursor:pointer;}
+    .btn-primary{padding:0.5rem 1.2rem;background:var(--teal);color:#fff;border:none;border-radius:8px;font-size:0.83rem;font-weight:700;cursor:pointer;font-family:inherit;transition:background 0.2s;}
+    .btn-primary:hover{background:var(--teal-dark);}
+    .btn-print{padding:0.5rem 1.2rem;background:#f1f5f9;color:var(--text-2);border:1px solid var(--border);border-radius:8px;font-size:0.83rem;font-weight:600;cursor:pointer;font-family:inherit;}
+
+    /* STATS */
+    .stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:1.5rem;}
+    .stat-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:1.2rem;box-shadow:var(--shadow);text-align:center;}
+    .sc-val{font-family:'Rajdhani',sans-serif;font-size:2.2rem;font-weight:700;color:var(--teal);}
+    .sc-lbl{font-size:0.73rem;color:var(--text-2);margin-top:2px;font-weight:500;}
+    .sc-sub{font-size:0.68rem;color:var(--green);font-weight:600;margin-top:2px;}
+
+    /* SECTIONS */
+    .report-section{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;margin-bottom:1.5rem;}
+    .rs-hdr{padding:1rem 1.4rem;border-bottom:1px solid var(--border);background:var(--bg);}
+    .rs-title{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);}
+    .rs-body{padding:1.2rem 1.4rem;}
+    table{width:100%;border-collapse:collapse;}
+    th{background:var(--bg);padding:0.6rem 1rem;text-align:left;font-size:0.72rem;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid var(--border);}
+    td{padding:0.7rem 1rem;font-size:0.82rem;border-bottom:1px solid var(--border);color:var(--text);}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:var(--bg);}
+
+    /* DAILY TREND */
+    .trend-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:4px;align-items:end;}
+    .trend-bar-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;}
+    .trend-bar{width:100%;border-radius:4px 4px 0 0;background:var(--teal);min-height:4px;transition:height 0.3s;}
+    .trend-day{font-size:0.55rem;color:var(--text-3);}
+    .trend-val{font-size:0.6rem;color:var(--text-2);font-weight:600;}
+
+    .loading{text-align:center;padding:3rem;color:var(--text-3);}
+    .empty-report{text-align:center;padding:4rem 2rem;color:var(--text-3);}
+    .ham-btn{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:1.1rem;flex-shrink:0;margin-right:0.7rem;}
+
+    @media print{
+      .sidebar,.topbar,.controls-card,.ham-btn{display:none!important;}
+      .main{margin-left:0!important;}
+      .content{padding:0!important;}
+      body{background:#fff;}
+    }
+    @media(max-width:768px){
+      :root{--sidebar-w:0px;}
+      .sidebar{transform:translateX(-260px);transition:transform 0.28s ease;width:260px!important;}
+      .sidebar.sb-open{transform:translateX(0);box-shadow:4px 0 32px rgba(0,0,0,0.35);}
+      .sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:99;backdrop-filter:blur(2px);}
+      .sb-overlay.open{display:block;}
+      .main{margin-left:0!important;width:100vw!important;}
+      .ham-btn{display:flex!important;}
+      .topbar{padding:0 1rem!important;}
+      .content{padding:1rem!important;}
+      .stats-grid{grid-template-columns:repeat(2,1fr)!important;}
+    }
+    @media(max-width:900px){.stats-grid{grid-template-columns:repeat(3,1fr);}}
+  </style>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0097a7">
+</head>
+<body>
+
+<div class="sb-overlay" id="sbOverlay" onclick="closeSidebar()"></div>
+<aside class="sidebar" id="mainSidebar">
+  <div class="sb-hdr">
+    <a href="/hydraa-index.html" class="sb-brand">
+      <div class="sb-logo">💧</div>
+      <div class="sb-bt"><div class="t1">HYDRAA</div><div class="t2">Government of Telangana</div></div>
+    </a>
+  </div>
+  <div class="sb-badge">🛡️ &nbsp;Admin Panel</div>
+  <div class="sb-user">
+    <div class="sb-av" id="sb-av">A</div>
+    <div class="sb-ui"><div class="un" id="sb-un">Administrator</div><div class="ur">System Admin</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Overview</div>
+    <a href="/hydraa-admin-dashboard.html" class="sb-a"><span class="si">📊</span> Dashboard</a>
+    <a href="/hydraa-admin-dashboard.html" class="sb-a"><span class="si">📋</span> All Complaints</a>
+    <a href="/hydraa-admin-analytics.html" class="sb-a"><span class="si">📈</span> Analytics</a>
+    <a href="/hydraa-admin-heatmap.html" class="sb-a"><span class="si">🗺️</span> Heatmap</a>
+    <a href="/hydraa-admin-performance.html" class="sb-a"><span class="si">🏆</span> Performance</a>
+    <a href="/hydraa-admin-report.html" class="sb-a active"><span class="si">📄</span> Monthly Report</a>
+    <div class="sb-sec">Management</div>
+    <a href="/hydraa-admin-management.html" class="sb-a"><span class="si">👷</span> Manage Officials</a>
+    <a href="/hydraa-admin-users.html" class="sb-a"><span class="si">👥</span> Manage Users</a>
+    <a href="/hydraa-admin-categories.html" class="sb-a"><span class="si">🗂️</span> Categories</a>
+    <a href="/hydraa-admin-districts.html" class="sb-a"><span class="si">🗺️</span> Districts & Mandals</a>
+    <div class="sb-sec">Account</div>
+    <a href="/hydraa-change-password.html" class="sb-a"><span class="si">🔒</span> Change Password</a>
+  </nav>
+  <div class="sb-ft">
+    <button class="btn-logout" onclick="logout()">⬅ Logout</button>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center">
+      <button class="ham-btn" onclick="openSidebar()" aria-label="Open Menu">☰</button>
+      <div>
+        <div class="tb-title">Monthly Report Generator</div>
+        <div class="tb-sub">Printable summary of complaints, resolution & performance</div>
+      </div>
+    </div>
+    <div class="tb-pill">
+      <div class="tp-av" id="tp-av">A</div>
+      <span class="tp-nm" id="tp-nm">Admin</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- CONTROLS -->
+    <div class="controls-card">
+      <div class="ctrl-label">Month:</div>
+      <select id="selMonth" class="ctrl-select">
+        <option value="1">January</option><option value="2">February</option>
+        <option value="3">March</option><option value="4">April</option>
+        <option value="5">May</option><option value="6">June</option>
+        <option value="7">July</option><option value="8">August</option>
+        <option value="9">September</option><option value="10">October</option>
+        <option value="11">November</option><option value="12">December</option>
+      </select>
+      <div class="ctrl-label">Year:</div>
+      <select id="selYear" class="ctrl-select"></select>
+      <button class="btn-primary" onclick="generateReport()">📊 Generate Report</button>
+      <button class="btn-print" onclick="window.print()">🖨️ Print</button>
+    </div>
+
+    <!-- REPORT OUTPUT -->
+    <div id="reportOutput">
+      <div class="empty-report">
+        <div style="font-size:2rem;margin-bottom:0.5rem">📄</div>
+        <div style="font-size:1rem;font-weight:600;color:var(--text-2)">Select a month and click Generate Report</div>
+        <div style="font-size:0.8rem;margin-top:0.3rem">The report will appear here and can be printed</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="http-client.js"></script>
+<script src="app.js"></script>
+<script>
+  const user = Auth.getUser();
+  if (!user || user.role !== 'admin') window.location.href = '/hydraa-admin-login.html';
+
+  if (user) {
+    const init = (user.full_name || user.username || 'A')[0].toUpperCase();
+    document.getElementById('sb-av').textContent  = init;
+    document.getElementById('sb-un').textContent  = user.full_name || user.username || 'Admin';
+    document.getElementById('tp-av').textContent  = init;
+    document.getElementById('tp-nm').textContent  = user.full_name || user.username || 'Admin';
+  }
+
+  // Populate year selector (current year - 2 to current year)
+  const now = new Date();
+  const yearSel = document.getElementById('selYear');
+  for (let y = now.getFullYear(); y >= now.getFullYear() - 3; y--) {
+    yearSel.innerHTML += `<option value="${y}">${y}</option>`;
+  }
+  document.getElementById('selMonth').value = now.getMonth() + 1;
+
+  const MONTH_NAMES = ['','January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  async function generateReport() {
+    const month = document.getElementById('selMonth').value;
+    const year  = document.getElementById('selYear').value;
+    document.getElementById('reportOutput').innerHTML = '<div class="loading">Generating report...</div>';
+
+    try {
+      const res = await http.get(`/api/admin/monthly-report?month=${month}&year=${year}`);
+      if (!res.success || !res.data) throw new Error('No data');
+      renderReport(res.data, parseInt(month), parseInt(year));
+    } catch(e) {
+      document.getElementById('reportOutput').innerHTML = `<div style="text-align:center;padding:3rem;color:var(--red)">Failed to load report. Please try again.</div>`;
+    }
+  }
+
+  function renderReport(d, month, year) {
+    const s = d.summary || {};
+    const resRate = s.total ? Math.round((s.resolved / s.total) * 100) : 0;
+
+    let html = `
+      <!-- REPORT HEADER -->
+      <div style="background:var(--navy);border-radius:var(--radius);padding:1.5rem 2rem;margin-bottom:1.5rem;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+        <div>
+          <div style="font-family:'Rajdhani',sans-serif;font-size:1.6rem;font-weight:700;letter-spacing:0.05em">HYDRAA Telangana</div>
+          <div style="font-size:0.9rem;color:rgba(255,255,255,0.7)">Hyderabad Disaster Response & Assets Authority</div>
+          <div style="font-size:1rem;font-weight:600;color:var(--gold);margin-top:0.3rem">Monthly Report — ${MONTH_NAMES[month]} ${year}</div>
+        </div>
+        <div style="text-align:right;font-size:0.75rem;color:rgba(255,255,255,0.5)">
+          Generated: ${new Date().toLocaleDateString('en-IN', {day:'numeric',month:'long',year:'numeric'})}<br>
+          Generated by: ${user.full_name || user.username || 'Admin'}
+        </div>
+      </div>
+
+      <!-- SUMMARY STATS -->
+      <div class="stats-grid">
+        <div class="stat-card"><div class="sc-val" style="color:var(--teal)">${s.total || 0}</div><div class="sc-lbl">Total Complaints</div></div>
+        <div class="stat-card"><div class="sc-val" style="color:var(--green)">${s.resolved || 0}</div><div class="sc-lbl">Resolved</div></div>
+        <div class="stat-card"><div class="sc-val" style="color:var(--orange)">${s.pending || 0}</div><div class="sc-lbl">Pending</div></div>
+        <div class="stat-card"><div class="sc-val" style="color:var(--red)">${s.rejected || 0}</div><div class="sc-lbl">Rejected</div></div>
+        <div class="stat-card"><div class="sc-val" style="color:var(--purple)">${resRate}%</div><div class="sc-lbl">Resolution Rate</div></div>
+      </div>`;
+
+    // District breakdown
+    if (d.byDistrict && d.byDistrict.length) {
+      html += `
+      <div class="report-section">
+        <div class="rs-hdr"><div class="rs-title">📍 Complaints by District</div></div>
+        <div style="overflow-x:auto">
+        <table><thead><tr><th>#</th><th>District</th><th>Total</th><th>Resolved</th><th>Pending</th><th>Resolution %</th></tr></thead><tbody>
+        ${d.byDistrict.map((r, i) => {
+          const rate = r.total ? Math.round((r.resolved / r.total) * 100) : 0;
+          return `<tr>
+            <td style="color:var(--text-3);font-size:0.75rem">${i + 1}</td>
+            <td style="font-weight:600">${r.district_name || 'Unknown'}</td>
+            <td style="color:var(--teal);font-weight:700">${r.total}</td>
+            <td style="color:var(--green)">${r.resolved || 0}</td>
+            <td style="color:var(--orange)">${r.pending || 0}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:0.5rem">
+                <div style="flex:1;height:6px;border-radius:100px;background:var(--border);overflow:hidden">
+                  <div style="width:${rate}%;height:100%;border-radius:100px;background:${rate >= 70 ? 'var(--green)' : rate >= 40 ? 'var(--orange)' : 'var(--red)'}"></div>
+                </div>
+                <span style="font-size:0.78rem;font-weight:700">${rate}%</span>
+              </div>
+            </td>
+          </tr>`;
+        }).join('')}
+        </tbody></table>
+        </div>
+      </div>`;
+    }
+
+    // Category breakdown
+    if (d.byCategory && d.byCategory.length) {
+      html += `
+      <div class="report-section">
+        <div class="rs-hdr"><div class="rs-title">🗂️ Complaints by Category</div></div>
+        <div style="overflow-x:auto">
+        <table><thead><tr><th>#</th><th>Category</th><th>Total</th><th>Resolved</th><th>Pending</th></tr></thead><tbody>
+        ${d.byCategory.map((r, i) => `<tr>
+          <td style="color:var(--text-3);font-size:0.75rem">${i + 1}</td>
+          <td style="font-weight:600">${r.category_name || 'Uncategorised'}</td>
+          <td style="color:var(--teal);font-weight:700">${r.total}</td>
+          <td style="color:var(--green)">${r.resolved || 0}</td>
+          <td style="color:var(--orange)">${r.pending || 0}</td>
+        </tr>`).join('')}
+        </tbody></table>
+        </div>
+      </div>`;
+    }
+
+    // Official breakdown
+    if (d.byOfficial && d.byOfficial.length) {
+      html += `
+      <div class="report-section">
+        <div class="rs-hdr"><div class="rs-title">👷 Performance by Official</div></div>
+        <div style="overflow-x:auto">
+        <table><thead><tr><th>#</th><th>Official</th><th>Department</th><th>Assigned</th><th>Resolved</th><th>Avg Time (hrs)</th></tr></thead><tbody>
+        ${d.byOfficial.map((r, i) => `<tr>
+          <td style="color:var(--text-3);font-size:0.75rem">${i + 1}</td>
+          <td style="font-weight:600">${r.full_name || r.username || '—'}</td>
+          <td style="color:var(--text-2);font-size:0.8rem">${r.department || '—'}</td>
+          <td style="color:var(--teal);font-weight:700">${r.assigned || 0}</td>
+          <td style="color:var(--green)">${r.resolved || 0}</td>
+          <td style="color:var(--text-2)">${r.avg_hours > 0 ? Math.round(r.avg_hours) + 'h' : '—'}</td>
+        </tr>`).join('')}
+        </tbody></table>
+        </div>
+      </div>`;
+    }
+
+    // Daily trend chart (visual bars)
+    if (d.dailyTrend && d.dailyTrend.length) {
+      const maxDay = Math.max(...d.dailyTrend.map(r => r.count), 1);
+      const BAR_MAX_H = 80;
+      html += `
+      <div class="report-section">
+        <div class="rs-hdr"><div class="rs-title">📅 Daily Filing Trend — ${MONTH_NAMES[month]} ${year}</div></div>
+        <div class="rs-body">
+          <div class="trend-grid">
+            ${d.dailyTrend.map(r => {
+              const h = Math.max(4, Math.round((r.count / maxDay) * BAR_MAX_H));
+              const day = new Date(r.date).getDate();
+              return `<div class="trend-bar-wrap">
+                <div class="trend-val">${r.count || ''}</div>
+                <div class="trend-bar" style="height:${h}px"></div>
+                <div class="trend-day">${day}</div>
+              </div>`;
+            }).join('')}
+          </div>
+          <div style="margin-top:0.5rem;font-size:0.72rem;color:var(--text-3);text-align:center">Day of month</div>
+        </div>
+      </div>`;
+    }
+
+    if (!s.total) {
+      html += `<div style="text-align:center;padding:2rem;color:var(--text-3);font-size:0.9rem">No complaints recorded for ${MONTH_NAMES[month]} ${year}.</div>`;
+    }
+
+    document.getElementById('reportOutput').innerHTML = html;
+  }
+
+  function logout() { Auth.logout(); }
+</script>
+<script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js").catch(function(){});}</script>
+<script>
+function openSidebar(){
+  document.getElementById('mainSidebar').classList.add('sb-open');
+  document.getElementById('sbOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeSidebar(){
+  document.getElementById('mainSidebar').classList.remove('sb-open');
+  document.getElementById('sbOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+document.addEventListener('DOMContentLoaded',function(){
+  document.querySelectorAll('.sb-a').forEach(function(a){
+    a.addEventListener('click',function(){ if(window.innerWidth<=768) closeSidebar(); });
+  });
+});
+</script>
+</body>
+</html>
