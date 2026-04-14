@@ -746,6 +746,182 @@ const seedMandals = async (req, res) => {
   }
 };
 
+// ────────────────────────────────────────────────────
+//  BULK ASSIGN
+// ────────────────────────────────────────────────────
+const bulkAssign = async (req, res) => {
+  const { complaint_ids, official_id, remarks } = req.body;
+  const admin_id = req.user.id;
+  if (!complaint_ids?.length || !official_id) {
+    return res.status(400).json({ success: false, message: 'complaint_ids and official_id required.' });
+  }
+  try {
+    const [[official]] = await db.query('SELECT full_name FROM officials WHERE id = ?', [official_id]);
+    if (!official) return res.status(404).json({ success: false, message: 'Official not found.' });
+
+    let assigned = 0;
+    for (const cid of complaint_ids) {
+      const [[comp]] = await db.query('SELECT status FROM complaints WHERE id = ?', [cid]);
+      if (!comp || ['resolved','closed','rejected'].includes(comp.status)) continue;
+      const oldStatus = comp.status;
+      await db.query(
+        `UPDATE complaints SET official_id = ?, status = 'assigned', admin_remarks = ? WHERE id = ?`,
+        [official_id, remarks || null, cid]
+      );
+      await db.query(
+        `INSERT INTO complaint_history (complaint_id, old_status, new_status, changed_by_id, changed_by_role, remarks)
+         VALUES (?, ?, 'assigned', ?, 'admin', ?)`,
+        [cid, oldStatus, admin_id, `Bulk assigned to ${official.full_name}. ${remarks || ''}`]
+      );
+      assigned++;
+    }
+    res.json({ success: true, message: `${assigned} complaint(s) assigned to ${official.full_name}.`, assigned });
+  } catch (err) {
+    console.error('Bulk assign error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+// ────────────────────────────────────────────────────
+//  OFFICIAL PERFORMANCE DASHBOARD
+// ────────────────────────────────────────────────────
+const getOfficialPerformance = async (req, res) => {
+  try {
+    const [performance] = await db.query(`
+      SELECT
+        o.id, o.full_name, o.department, o.is_active,
+        COUNT(c.id)                                                        AS total_assigned,
+        SUM(c.status = 'resolved')                                         AS resolved,
+        SUM(c.status = 'in_progress')                                      AS in_progress,
+        SUM(c.status = 'rejected')                                         AS rejected,
+        SUM(c.status IN ('open','assigned'))                               AS pending,
+        ROUND(AVG(CASE WHEN c.resolved_at IS NOT NULL
+          THEN TIMESTAMPDIFF(HOUR, c.created_at, c.resolved_at) END), 1)  AS avg_resolution_hours,
+        ROUND(100 * SUM(c.status = 'resolved') / NULLIF(COUNT(c.id), 0), 1) AS resolution_rate
+      FROM officials o
+      LEFT JOIN complaints c ON c.official_id = o.id
+      GROUP BY o.id, o.full_name, o.department, o.is_active
+      ORDER BY resolved DESC
+    `);
+    res.json({ success: true, data: performance });
+  } catch (err) {
+    console.error('Official performance error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+// ────────────────────────────────────────────────────
+//  CATEGORY-WISE HEATMAP DATA
+// ────────────────────────────────────────────────────
+const getCategoryHeatmap = async (req, res) => {
+  try {
+    // Category breakdown per district
+    const [districtCategory] = await db.query(`
+      SELECT d.name AS district, cat.name AS category, COUNT(c.id) AS total
+      FROM complaints c
+      JOIN districts d ON c.district_id = d.id
+      JOIN categories cat ON c.category_id = cat.id
+      GROUP BY d.name, cat.name
+      ORDER BY d.name, total DESC
+    `);
+
+    // Top category per district
+    const [topByDistrict] = await db.query(`
+      SELECT d.name AS district, cat.name AS category, COUNT(c.id) AS total
+      FROM complaints c
+      JOIN districts d ON c.district_id = d.id
+      JOIN categories cat ON c.category_id = cat.id
+      GROUP BY d.id, cat.id
+      HAVING total = (
+        SELECT MAX(cnt) FROM (
+          SELECT COUNT(id) AS cnt FROM complaints c2
+          WHERE c2.district_id = c.district_id AND c2.category_id = c.category_id
+        ) sub
+      )
+    `);
+
+    // Category totals overall
+    const [categoryTotals] = await db.query(`
+      SELECT cat.name AS category, COUNT(c.id) AS total,
+             SUM(c.status = 'resolved') AS resolved,
+             SUM(c.status NOT IN ('resolved','closed','rejected')) AS open
+      FROM complaints c
+      JOIN categories cat ON c.category_id = cat.id
+      GROUP BY cat.name ORDER BY total DESC
+    `);
+
+    res.json({ success: true, data: { districtCategory, topByDistrict, categoryTotals } });
+  } catch (err) {
+    console.error('Category heatmap error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+// ────────────────────────────────────────────────────
+//  MONTHLY REPORT DATA
+// ────────────────────────────────────────────────────
+const getMonthlyReport = async (req, res) => {
+  const { year, month } = req.query;
+  const y = parseInt(year)  || new Date().getFullYear();
+  const m = parseInt(month) || new Date().getMonth() + 1;
+
+  try {
+    const [[summary]] = await db.query(`
+      SELECT
+        COUNT(*)                              AS total,
+        SUM(status = 'resolved')              AS resolved,
+        SUM(status = 'rejected')              AS rejected,
+        SUM(status = 'closed')                AS closed,
+        SUM(status NOT IN ('resolved','closed','rejected')) AS pending,
+        SUM(priority = 'urgent')              AS urgent,
+        ROUND(AVG(CASE WHEN resolved_at IS NOT NULL
+          THEN TIMESTAMPDIFF(HOUR, created_at, resolved_at) END), 1) AS avg_resolution_hours
+      FROM complaints
+      WHERE YEAR(created_at) = ? AND MONTH(created_at) = ?
+    `, [y, m]);
+
+    const [byDistrict] = await db.query(`
+      SELECT d.name AS district, COUNT(c.id) AS total,
+             SUM(c.status = 'resolved') AS resolved,
+             SUM(c.status NOT IN ('resolved','closed','rejected')) AS pending
+      FROM complaints c JOIN districts d ON c.district_id = d.id
+      WHERE YEAR(c.created_at) = ? AND MONTH(c.created_at) = ?
+      GROUP BY d.name ORDER BY total DESC
+    `, [y, m]);
+
+    const [byCategory] = await db.query(`
+      SELECT cat.name AS category, COUNT(c.id) AS total,
+             SUM(c.status = 'resolved') AS resolved
+      FROM complaints c JOIN categories cat ON c.category_id = cat.id
+      WHERE YEAR(c.created_at) = ? AND MONTH(c.created_at) = ?
+      GROUP BY cat.name ORDER BY total DESC
+    `, [y, m]);
+
+    const [byOfficial] = await db.query(`
+      SELECT o.full_name AS official, COUNT(c.id) AS assigned,
+             SUM(c.status = 'resolved') AS resolved,
+             SUM(c.status = 'rejected') AS rejected
+      FROM complaints c JOIN officials o ON c.official_id = o.id
+      WHERE YEAR(c.created_at) = ? AND MONTH(c.created_at) = ?
+      GROUP BY o.full_name ORDER BY resolved DESC
+    `, [y, m]);
+
+    const [dailyTrend] = await db.query(`
+      SELECT DAY(created_at) AS day, COUNT(*) AS total
+      FROM complaints
+      WHERE YEAR(created_at) = ? AND MONTH(created_at) = ?
+      GROUP BY DAY(created_at) ORDER BY day
+    `, [y, m]);
+
+    const monthName = new Date(y, m - 1, 1).toLocaleString('default', { month: 'long' });
+
+    res.json({ success: true, data: { year: y, month: m, monthName, summary, byDistrict, byCategory, byOfficial, dailyTrend } });
+  } catch (err) {
+    console.error('Monthly report error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
 module.exports = {
   deleteOfficial,
   getCategories,
@@ -775,4 +951,8 @@ module.exports = {
   createMandal,
   deleteMandal,
   seedMandals,
+  bulkAssign,
+  getOfficialPerformance,
+  getCategoryHeatmap,
+  getMonthlyReport,
 };

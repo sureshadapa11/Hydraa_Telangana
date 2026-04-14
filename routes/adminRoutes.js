@@ -34,6 +34,10 @@ const {
   createMandal,
   deleteMandal,
   seedMandals,
+  bulkAssign,
+  getOfficialPerformance,
+  getCategoryHeatmap,
+  getMonthlyReport,
 } = require('../controllers/adminController');
 const { verifyToken } = require('../middleware/auth');
 
@@ -82,5 +86,17 @@ router.get('/analytics', verifyToken, getAnalytics);
 
 // ── Heatmap ──
 router.get('/heatmap', verifyToken, getHeatmapData);
+
+// ── Bulk Assign ──
+router.post('/bulk-assign', verifyToken, bulkAssign);
+
+// ── Official Performance ──
+router.get('/official-performance', verifyToken, getOfficialPerformance);
+
+// ── Category Heatmap ──
+router.get('/category-heatmap', verifyToken, getCategoryHeatmap);
+
+// ── Monthly Report ──
+router.get('/monthly-report', verifyToken, getMonthlyReport);
 
 module.exports = router;

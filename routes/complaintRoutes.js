@@ -18,6 +18,9 @@ const {
   resolveComplaint,
   getComments,
   addComment,
+  uploadPhoto,
+  getPhotos,
+  checkDuplicate,
 } = require('../controllers/complaintController');
 const { verifyToken } = require('../middleware/auth');
 
@@ -40,5 +43,12 @@ router.put('/official/resolve/:id', verifyToken, resolveComplaint);
 // ── Comments / Notes (all roles) ──
 router.get('/:id/comments', verifyToken, getComments);
 router.post('/:id/comments', verifyToken, addComment);
+
+// ── Photos ──
+router.post('/:id/photos', verifyToken, uploadPhoto);
+router.get('/:id/photos',  verifyToken, getPhotos);
+
+// ── Duplicate check ──
+router.get('/check-duplicate', verifyToken, checkDuplicate);
 
 module.exports = router;

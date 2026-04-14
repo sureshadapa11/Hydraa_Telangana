@@ -12,6 +12,7 @@ const {
   sendStatusUpdate,
   sendSafe,
 } = require('../utils/emailService');
+const { notifyStatusChange, notifyComplaintLodged } = require('../utils/whatsapp');
 
 // ────────────────────────────────────────────────────
 //  LODGE COMPLAINT
@@ -31,6 +32,23 @@ const lodgeComplaint = async (req, res) => {
   }
 
   try {
+    // ── Duplicate detection ──
+    const [dupes] = await db.query(
+      `SELECT complaint_no, title FROM complaints
+       WHERE user_id = ? AND category_id = ? AND district_id = ?
+         AND status NOT IN ('resolved','closed','rejected')
+       LIMIT 1`,
+      [user_id, category_id, district_id]
+    );
+    if (dupes.length > 0 && !req.body.force_submit) {
+      return res.status(409).json({
+        success: false,
+        duplicate: true,
+        message: `You already have an open complaint in this category and district.`,
+        existing: { complaint_no: dupes[0].complaint_no, title: dupes[0].title },
+      });
+    }
+
     // Generate unique complaint number
     const complaint_no = `HYD${Date.now()}${Math.floor(Math.random() * 1000)}`;
 
@@ -58,9 +76,9 @@ const lodgeComplaint = async (req, res) => {
       );
     } catch (e) { console.warn('complaint_history insert skipped:', e.message); }
 
-    // Send confirmation email (non-blocking, non-fatal)
+    // Send confirmation email + WhatsApp (non-blocking, non-fatal)
     try {
-      const [users] = await db.query('SELECT full_name, email FROM users WHERE id = ?', [user_id]);
+      const [users] = await db.query('SELECT full_name, email, phone FROM users WHERE id = ?', [user_id]);
       if (users[0]) {
         sendSafe(sendComplaintNotification, {
           to: users[0].email,
@@ -69,6 +87,7 @@ const lodgeComplaint = async (req, res) => {
           title,
           priority,
         });
+        notifyComplaintLodged({ phone: users[0].phone, complaintNo: complaint_no, title });
       }
     } catch (e) { /* email non-critical */ }
 
@@ -415,8 +434,8 @@ const updateComplaintStatus = async (req, res) => {
       [id, oldStatus, status, admin_id, 'admin', remarks]
     );
 
-    // Send email to user (non-blocking)
-    const [users] = await db.query('SELECT email, full_name FROM users WHERE id = ?', [complaints[0].user_id]);
+    // Send email + WhatsApp to user (non-blocking)
+    const [users] = await db.query('SELECT email, full_name, phone FROM users WHERE id = ?', [complaints[0].user_id]);
     if (users.length > 0) {
       sendSafe(sendComplaintStatusUpdate, {
         to: users[0].email,
@@ -424,6 +443,8 @@ const updateComplaintStatus = async (req, res) => {
         status,
         remarks,
       });
+      const [[comp]] = await db.query('SELECT complaint_no FROM complaints WHERE id = ?', [id]);
+      notifyStatusChange({ phone: users[0].phone, complaintNo: comp?.complaint_no, oldStatus, newStatus: status, remarks });
     }
 
     res.json({
@@ -649,6 +670,74 @@ const addComment = async (req, res) => {
   }
 };
 
+// ────────────────────────────────────────────────────
+//  PHOTO UPLOAD (official/admin)
+// ────────────────────────────────────────────────────
+const uploadPhoto = async (req, res) => {
+  const { id } = req.params;
+  const { photo_data, caption } = req.body;
+  const uploader_id   = req.user.id;
+  const uploader_role = req.user.role;
+
+  if (!photo_data) return res.status(400).json({ success: false, message: 'photo_data required.' });
+
+  try {
+    // Max 5 photos per complaint
+    const [[cnt]] = await db.query('SELECT COUNT(*) AS c FROM complaint_photos WHERE complaint_id = ?', [id]);
+    if (cnt.c >= 5) return res.status(400).json({ success: false, message: 'Max 5 photos per complaint.' });
+
+    await db.query(
+      `INSERT INTO complaint_photos (complaint_id, photo_data, caption, uploaded_by_id, uploaded_by_role)
+       VALUES (?, ?, ?, ?, ?)`,
+      [id, photo_data, caption || null, uploader_id, uploader_role]
+    );
+    res.json({ success: true, message: 'Photo uploaded.' });
+  } catch (err) {
+    console.error('Photo upload error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+// ────────────────────────────────────────────────────
+//  GET PHOTOS
+// ────────────────────────────────────────────────────
+const getPhotos = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [photos] = await db.query(
+      `SELECT id, caption, uploaded_by_role, created_at, photo_data
+       FROM complaint_photos WHERE complaint_id = ? ORDER BY created_at ASC`,
+      [id]
+    );
+    res.json({ success: true, data: photos });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+// ────────────────────────────────────────────────────
+//  CHECK DUPLICATE (called by frontend before submit)
+// ────────────────────────────────────────────────────
+const checkDuplicate = async (req, res) => {
+  const { category_id, district_id } = req.query;
+  const user_id = req.user.id;
+  if (!category_id || !district_id) return res.json({ success: true, duplicate: false });
+  try {
+    const [dupes] = await db.query(
+      `SELECT complaint_no, title FROM complaints
+       WHERE user_id = ? AND category_id = ? AND district_id = ?
+         AND status NOT IN ('resolved','closed','rejected') LIMIT 1`,
+      [user_id, category_id, district_id]
+    );
+    if (dupes.length > 0) {
+      return res.json({ success: true, duplicate: true, existing: { complaint_no: dupes[0].complaint_no, title: dupes[0].title } });
+    }
+    res.json({ success: true, duplicate: false });
+  } catch (err) {
+    res.json({ success: true, duplicate: false });
+  }
+};
+
 module.exports = {
   lodgeComplaint,
   trackComplaint,
@@ -662,4 +751,7 @@ module.exports = {
   resolveComplaint,
   getComments,
   addComment,
+  uploadPhoto,
+  getPhotos,
+  checkDuplicate,
 };

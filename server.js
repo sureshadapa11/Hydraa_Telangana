@@ -593,6 +593,28 @@ async function ensureDistrictsTables() {
   }
 }
 
+// ── Ensure Complaint Photos Table ──
+async function ensurePhotosTable() {
+  try {
+    const db = require('./utils/db');
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS complaint_photos (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        complaint_id INT NOT NULL,
+        photo_data MEDIUMTEXT NOT NULL,
+        caption VARCHAR(200),
+        uploaded_by_id INT,
+        uploaded_by_role VARCHAR(20) DEFAULT 'official',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_complaint (complaint_id)
+      )
+    `);
+    console.log('✅ complaint_photos table OK');
+  } catch (err) {
+    console.warn('⚠️  complaint_photos table skipped:', err.message);
+  }
+}
+
 // ── Ensure Complaint Comments Table ──
 async function ensureCommentTable() {
   try {
@@ -732,6 +754,7 @@ app.listen(PORT, async () => {
   await seedCategories();
   await seedDefaultAdmin();
   await ensureCommentTable();
+  await ensurePhotosTable();
 });
 
 module.exports = app;
