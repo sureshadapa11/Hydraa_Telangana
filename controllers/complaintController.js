@@ -289,10 +289,12 @@ const getAdminDashboard = async (req, res) => {
     // Recent complaints
     const [recent] = await db.query(`
       SELECT c.id, c.complaint_no, c.title, c.status, c.priority, c.created_at,
-        u.full_name as user_name, cat.name as category_name
+        u.full_name as user_name, cat.name as category_name,
+        o.full_name as official_name, c.official_id
       FROM complaints c
       JOIN users u ON c.user_id = u.id
       LEFT JOIN categories cat ON c.category_id = cat.id
+      LEFT JOIN officials o ON o.id = c.official_id
       ORDER BY c.created_at DESC LIMIT 10
     `);
 
