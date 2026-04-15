@@ -624,7 +624,7 @@ async function ensureCommentTable() {
         id INT PRIMARY KEY AUTO_INCREMENT,
         complaint_id INT NOT NULL,
         author_id INT NOT NULL,
-        author_role ENUM('citizen','official','admin') NOT NULL,
+        author_role VARCHAR(20) NOT NULL DEFAULT 'user',
         author_name VARCHAR(100) NOT NULL DEFAULT '',
         message TEXT NOT NULL,
         is_internal TINYINT(1) DEFAULT 0,
@@ -633,6 +633,11 @@ async function ensureCommentTable() {
         INDEX idx_created (created_at)
       )
     `);
+    // Fix existing tables that used the old ENUM which excluded 'user'
+    await db.query(`
+      ALTER TABLE complaint_comments
+        MODIFY COLUMN author_role VARCHAR(20) NOT NULL DEFAULT 'user'
+    `).catch(() => {}); // ignore if already correct
     console.log('✅ complaint_comments table OK');
   } catch (err) {
     console.warn('⚠️  complaint_comments table skipped:', err.message);
