@@ -70,28 +70,28 @@ if (BREVO_API_KEY) {
 
 // ── Shared Brand Header / Footer ──────────────────────
 const brandHeader = (label = 'CITIZEN PORTAL') => `
-  <div style="background:linear-gradient(135deg,#0b1f3a,#122944);padding:24px 32px;border-radius:12px 12px 0 0">
-    <table width="100%"><tr>
-      <td>
-        <span style="font-family:'Segoe UI',sans-serif;font-size:22px;font-weight:700;color:#ffffff;letter-spacing:2px">💧 HYDRAA</span><br/>
-        <span style="font-size:11px;color:rgba(0,188,212,0.8);letter-spacing:3px;text-transform:uppercase">Government of Telangana</span>
+  <div style="background:linear-gradient(135deg,#0097a7 0%,#006978 60%,#004f5c 100%);padding:22px 28px;border-radius:12px 12px 0 0">
+    <table width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td style="vertical-align:middle">
+        <div style="font-family:Arial,sans-serif;font-size:24px;font-weight:900;color:#ffffff;letter-spacing:3px;line-height:1">💧 HYDRAA</div>
+        <div style="font-size:10px;color:#b2ebf2;letter-spacing:2.5px;text-transform:uppercase;margin-top:4px;font-family:Arial,sans-serif">Government of Telangana</div>
       </td>
-      <td align="right">
-        <span style="background:rgba(0,180,204,0.15);border:1px solid rgba(0,188,212,0.3);color:#4dd6e8;font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:1px">${label}</span>
+      <td align="right" style="vertical-align:middle;width:1%;white-space:nowrap">
+        <span style="display:inline-block;background:#ffffff;color:#006978;font-family:Arial,sans-serif;font-size:9px;font-weight:900;padding:5px 14px;border-radius:20px;letter-spacing:1.5px;white-space:nowrap;text-transform:uppercase">${label}</span>
       </td>
     </tr></table>
   </div>`;
 
 const brandFooter = `
-  <div style="background:#f5fafc;border-top:1px solid #d0e4ec;padding:20px 32px;border-radius:0 0 12px 12px;text-align:center">
-    <p style="font-size:12px;color:#7a9baf;margin:0 0 6px">
-      This is an automated email from HYDRAA — Hyderabad Disaster Response &amp; Asset Protection Agency
+  <div style="background:#f0f9fa;border-top:3px solid #0097a7;padding:18px 28px;border-radius:0 0 12px 12px;text-align:center">
+    <p style="font-size:11px;color:#5a8a95;margin:0 0 5px;font-family:Arial,sans-serif">
+      Automated notification from <strong style="color:#006978">HYDRAA</strong> — Hyderabad Disaster Response &amp; Asset Protection Agency
     </p>
-    <p style="font-size:11px;color:#aac4d0;margin:0">
-      📞 Helpline: 1800-599-0099 &nbsp;|&nbsp; 💬 WhatsApp: 9000113667 &nbsp;|&nbsp;
-      <a href="https://hydraa.telangana.gov.in" style="color:#0097a7;text-decoration:none">hydraa.telangana.gov.in</a>
+    <p style="font-size:11px;color:#7aacb5;margin:0;font-family:Arial,sans-serif">
+      📞 1800-599-0099 &nbsp;·&nbsp;
+      <a href="https://hydraa.telangana.gov.in" style="color:#0097a7;text-decoration:none;font-weight:700">hydraa.telangana.gov.in</a>
     </p>
-    <p style="font-size:10px;color:#c8dde8;margin:8px 0 0">
+    <p style="font-size:10px;color:#a0c4cc;margin:8px 0 0;font-family:Arial,sans-serif">
       © ${new Date().getFullYear()} HYDRAA Telangana. All rights reserved.
     </p>
   </div>`;
