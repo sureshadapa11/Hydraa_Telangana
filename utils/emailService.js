@@ -424,12 +424,19 @@ const sendOfficialWelcome = async ({ to, name, email, password, department }) =>
     </p>
 
     <div style="background:#f0fdf4;border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:20px;margin-bottom:24px">
-      <div style="font-size:12px;color:#065f46;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">🔐 Your Login Credentials</div>
-      <table width="100%" cellpadding="0" cellspacing="0">
-        <tr><td style="font-size:13px;color:#065f46;font-weight:600;width:100px;padding:6px 0">Email:</td><td style="font-size:13px;color:#0d1e2e;font-weight:700">${email}</td></tr>
-        <tr><td style="font-size:13px;color:#065f46;font-weight:600;padding:6px 0">Password:</td><td style="font-size:15px;color:#0d1e2e;font-weight:700;font-family:monospace;letter-spacing:2px">${password}</td></tr>
-        <tr><td style="font-size:13px;color:#065f46;font-weight:600;padding:6px 0">Department:</td><td style="font-size:13px;color:#0d1e2e">${department || 'HYDRAA'}</td></tr>
-      </table>
+      <div style="font-size:12px;color:#065f46;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px">🔐 Your Login Credentials</div>
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Email Address</div>
+        <div style="font-size:14px;color:#0d1e2e;font-weight:700;word-break:break-all;background:#fff;border:1px solid #d1fae5;border-radius:6px;padding:8px 12px">${email}</div>
+      </div>
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Password</div>
+        <div style="font-size:15px;color:#065f46;font-weight:700;word-break:break-all;background:#fff;border:1px solid #d1fae5;border-radius:6px;padding:8px 12px;font-family:monospace">${password}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Department</div>
+        <div style="font-size:13px;color:#0d1e2e;word-break:break-word;background:#fff;border:1px solid #d1fae5;border-radius:6px;padding:8px 12px">${department || 'HYDRAA'}</div>
+      </div>
     </div>
 
     <div style="background:#fef3c7;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:20px">
