@@ -105,7 +105,8 @@
     .sb-ui{width:100%;}
     .sb-ui .un{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:#fff;letter-spacing:0.03em;line-height:1.2;}
     .sb-ui .ur{font-size:0.62rem;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.12em;margin-top:2px;}
-    .sb-ui .dept{display:inline-flex;align-items:center;gap:4px;margin-top:6px;background:rgba(0,188,212,0.12);border:1px solid rgba(0,188,212,0.22);border-radius:100px;padding:2px 10px;font-size:0.62rem;color:rgba(0,220,240,0.9);font-weight:600;letter-spacing:0.04em;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;}
+    .sb-ui .dept{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+    .sb-ui .dept-badge{background:rgba(0,188,212,0.12);border:1px solid rgba(0,188,212,0.22);border-radius:100px;padding:2px 9px;font-size:0.6rem;color:rgba(0,220,240,0.9);font-weight:600;letter-spacing:0.04em;white-space:nowrap;}
     .sb-nav{padding:0.8rem 0;flex:1;}
     .sb-sec{font-size:0.6rem;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:0.14em;font-weight:700;padding:0.6rem 1.2rem;margin-top:0.4rem;}
     .sb-a{display:flex;align-items:center;gap:0.7rem;padding:0.65rem 1.2rem;color:rgba(255,255,255,0.58);text-decoration:none;font-size:0.83rem;font-weight:500;transition:all 0.18s;border-right:3px solid transparent;}
@@ -686,7 +687,10 @@ function initDashboard() {
     const init = (user.full_name || user.username || 'O')[0].toUpperCase();
     document.getElementById('sb-av').textContent = init;
     document.getElementById('sb-un').textContent = user.full_name || user.username || 'Official';
-    if (user.department) document.getElementById('sb-dept').textContent = '📍 ' + user.department;
+    if (user.department) {
+      const depts = user.department.split(',').map(d => d.trim()).filter(Boolean);
+      document.getElementById('sb-dept').innerHTML = depts.map(d => `<span class="dept-badge">📍 ${d}</span>`).join('');
+    }
     document.getElementById('tp-av').textContent = init;
     document.getElementById('tp-nm').textContent = user.full_name || user.username || 'Official';
   }
