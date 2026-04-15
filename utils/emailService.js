@@ -126,15 +126,15 @@ const button = (text, url, color = '#0097a7') =>
 // ─────────────────────────────────────────────────────
 const sendWelcomeEmail = async ({ to, name }) => {
   const html = wrap(`
-    <h2 style="font-size:22px;color:#0b1f3a;margin:0 0 8px">Welcome to HYDRAA, ${name}! 👋</h2>
+    <h2 style="font-size:22px;color:#0b1f3a;margin:0 0 8px">Welcome to HYDRAA, ${name}! 🎉</h2>
     <p style="font-size:14px;color:#3d5a72;margin:0 0 24px;line-height:1.7">
-      Your account has been created successfully. You can now file complaints, track resolutions, and hold officials accountable through the HYDRAA Citizen Portal.
+      Your citizen account is all set. HYDRAA — Hyderabad Disaster Response &amp; Asset Protection Agency — is here to act on your complaints swiftly and transparently.
     </p>
     <div style="background:#e0f7fa;border-left:4px solid #0097a7;border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:24px">
-      <p style="font-size:13px;font-weight:700;color:#0097a7;margin:0 0 4px">✅ Account Activated</p>
-      <p style="font-size:13px;color:#3d5a72;margin:0">Your account is ready to use. Click the button below to login and file your first complaint.</p>
+      <p style="font-size:13px;font-weight:700;color:#0097a7;margin:0 0 4px">✅ You're ready to go!</p>
+      <p style="font-size:13px;color:#3d5a72;margin:0">Log in anytime to file a complaint, upload evidence, and track real-time updates from our field officials.</p>
     </div>
-    ${button('🔑 Login to HYDRAA', `${process.env.APP_URL || 'https://hydraa-telangana.up.railway.app'}/hydraa-login.html`)}
+    ${button('🚀 Go to HYDRAA Portal', `${process.env.APP_URL || 'https://hydraa-telangana.up.railway.app'}/hydraa-login.html`)}
     <hr style="border:none;border-top:1px solid #eef3f6;margin:24px 0"/>
     <table width="100%">
       <tr>
@@ -155,7 +155,7 @@ const sendWelcomeEmail = async ({ to, name }) => {
 
   await sendMail({
     to,
-    subject: '🎉 Welcome to HYDRAA — Please Verify Your Email',
+    subject: '🎉 Welcome to HYDRAA — Your Account is Ready!',
     html,
   });
 };
