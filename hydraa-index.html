@@ -215,7 +215,7 @@
     .cat-hdr{text-align:center;margin-bottom:2.5rem;}
     .cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;}
     .cat-card{background:var(--white);border-radius:var(--r);border:1px solid var(--border);padding:1.5rem;cursor:pointer;transition:all 0.25s;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:0.8rem;position:relative;overflow:hidden;}
-    .cat-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.25s;}
+    .cat-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.25s;pointer-events:none;}
     .cat-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-m);}
     .cat-card:nth-child(1){border-top:3px solid var(--teal);}        .cat-card:nth-child(1):hover{border-color:var(--teal);} .cat-card:nth-child(1)::before{background:linear-gradient(135deg,rgba(0,151,167,0.04),transparent);}
     .cat-card:nth-child(2){border-top:3px solid var(--orange);}      .cat-card:nth-child(2):hover{border-color:var(--orange);}
