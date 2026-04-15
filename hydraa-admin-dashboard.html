@@ -290,8 +290,7 @@
       <div class="tb-sub">HYDRAA · <span id="tb-date"></span></div>
     </div>
     <div class="tb-right">
-      <button onclick="seedDemo()" style="padding:0.4rem 0.9rem;background:rgba(139,92,246,0.12);color:#7c3aed;border:1px solid rgba(139,92,246,0.25);border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;" title="Insert 20 sample complaints for testing">🌱 Seed Demo</button>
-      <div class="tb-notif">🔔<span class="notif-dot"></span></div>
+<div class="tb-notif">🔔<span class="notif-dot"></span></div>
       <div class="tb-pill">
         <div class="tp-av" id="tp-av">A</div>
         <div class="tp-nm" id="tp-nm">Admin</div>
@@ -933,28 +932,6 @@ async function doBulkAssign() {
 }
 
 init();
-
-async function seedDemo() {
-  if (!confirm('Insert 20 sample complaints into the database for testing?\n\nThis can be run multiple times if you need more data.')) return;
-  const btn = document.querySelector('[onclick="seedDemo()"]');
-  const orig = btn.textContent;
-  btn.textContent = '⏳ Seeding...';
-  btn.disabled = true;
-  try {
-    const res = await http.post('/api/admin/seed-demo');
-    if (res.success) {
-      alert(`✅ ${res.message}`);
-      loadDashboard();
-    } else {
-      alert('❌ ' + res.message);
-    }
-  } catch(e) {
-    alert('❌ Network error: ' + e.message);
-  } finally {
-    btn.textContent = orig;
-    btn.disabled = false;
-  }
-}
 </script>
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js").catch(function(){});}</script>
 
