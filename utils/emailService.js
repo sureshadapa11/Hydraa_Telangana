@@ -207,8 +207,6 @@ const sendComplaintConfirmation = async ({ to, name, complaint_no, title, catego
 //  3. COMPLAINT ASSIGNED (to citizen + official)
 // ─────────────────────────────────────────────────────
 const sendComplaintAssigned = async ({ citizenEmail, citizenName, officialEmail, officialName, complaint_no, title, remarks, department }) => {
-  // Show only the first department to avoid dumping a comma-separated list
-  const primaryDept = department ? department.split(',')[0].trim() : 'HYDRAA';
   // Email to citizen
   const citizenHtml = wrap(`
     <h2 style="font-size:22px;color:#0b1f3a;margin:0 0 4px">Complaint Assigned 📌</h2>
@@ -217,7 +215,7 @@ const sendComplaintAssigned = async ({ citizenEmail, citizenName, officialEmail,
       ${infoRow('Complaint No.', `<strong style="color:#0097a7">${complaint_no}</strong>`)}
       ${infoRow('Title', title)}
       ${infoRow('Assigned To', `<strong>${officialName}</strong>`)}
-      ${infoRow('Department', primaryDept)}
+      ${infoRow('Department', department || 'HYDRAA')}
       ${infoRow('Status', badge('ASSIGNED', '#1d4ed8', 'rgba(59,130,246,0.1)'))}
       ${remarks ? infoRow('Admin Note', `<em style="color:#3d5a72">${remarks}</em>`) : ''}
     </table>

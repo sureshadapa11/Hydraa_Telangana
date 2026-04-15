@@ -361,14 +361,24 @@ const assignComplaint = async (req, res) => {
       const [[emailData]] = await db.query(
         `SELECT c.complaint_no, c.title,
                 u.email AS citizen_email, u.full_name AS citizen_name,
-                o.email AS official_email, o.full_name AS official_name, o.department
+                o.email AS official_email, o.full_name AS official_name, o.department,
+                cat.name AS category_name
          FROM complaints c
          JOIN users u ON c.user_id = u.id
          JOIN officials o ON o.id = ?
+         LEFT JOIN categories cat ON cat.id = c.category_id
          WHERE c.id = ?`,
         [official_id, id]
       );
       if (emailData) {
+        // Find the department that best matches the complaint category
+        const depts = (emailData.department || '').split(',').map(d => d.trim()).filter(Boolean);
+        const category = (emailData.category_name || '').toLowerCase();
+        const matchedDept = depts.find(d => category.includes(d.toLowerCase().replace(/\s*wing$/i, '').trim())
+          || d.toLowerCase().replace(/\s*wing$/i, '').trim().split(' ').some(w => w.length > 3 && category.includes(w)))
+          || depts[0]
+          || 'HYDRAA';
+
         await sendSafe(sendComplaintAssigned, {
           citizenEmail:  emailData.citizen_email,
           citizenName:   emailData.citizen_name,
@@ -377,7 +387,7 @@ const assignComplaint = async (req, res) => {
           complaint_no:  emailData.complaint_no,
           title:         emailData.title,
           remarks,
-          department:    emailData.department,
+          department:    matchedDept,
         });
       }
     } catch (e) { console.error('Assign complaint email error:', e.message); }
