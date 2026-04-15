@@ -460,6 +460,40 @@ const sendOfficialWelcome = async ({ to, name, email, password, department }) =>
 };
 
 // ─────────────────────────────────────────────────────
+//  8. ACCOUNT DELETED BY ADMIN
+// ─────────────────────────────────────────────────────
+const sendAccountDeleted = async ({ to, name }) => {
+  const html = wrap(`
+    <h2 style="font-size:22px;color:#0b1f3a;margin:0 0 8px">Account Removed 🔒</h2>
+    <p style="font-size:14px;color:#3d5a72;margin:0 0 24px;line-height:1.7">
+      Dear ${name}, your HYDRAA citizen account registered under <strong>${to}</strong> has been removed by a HYDRAA administrator.
+    </p>
+    <div style="background:#fef2f2;border-left:4px solid #ef4444;border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:24px">
+      <p style="font-size:13px;font-weight:700;color:#b91c1c;margin:0 0 4px">⚠️ What this means</p>
+      <p style="font-size:13px;color:#7f1d1d;margin:0;line-height:1.6">
+        Your account and all associated complaint records have been removed from the HYDRAA portal.
+        You will no longer be able to log in with this account.
+      </p>
+    </div>
+    <div style="background:#f0f9fa;border:1px solid #b2d8df;border-radius:8px;padding:16px 20px;margin-bottom:24px">
+      <p style="font-size:13px;color:#006978;font-weight:700;margin:0 0 6px">📞 Have a concern?</p>
+      <p style="font-size:13px;color:#3d5a72;margin:0;line-height:1.6">
+        If you believe this was done in error, please contact HYDRAA directly:<br/>
+        Helpline: <strong>1800-599-0099</strong> &nbsp;|&nbsp; Visit: <strong>hydraa.telangana.gov.in</strong>
+      </p>
+    </div>
+    <p style="font-size:12px;color:#94a3b8;text-align:center;margin:0">
+      You may register a new account at any time if needed.
+    </p>`);
+
+  await sendMail({
+    to,
+    subject: '⚠️ Your HYDRAA Account Has Been Removed',
+    html,
+  });
+};
+
+// ─────────────────────────────────────────────────────
 //  Helper: send silently (don't crash app on email fail)
 // ─────────────────────────────────────────────────────
 const sendSafe = async (fn, ...args) => {
@@ -475,5 +509,6 @@ module.exports = {
   sendForgotPasswordOTP,
   sendPasswordChangedEmail,
   sendOfficialWelcome,
+  sendAccountDeleted,
   sendSafe,
 };

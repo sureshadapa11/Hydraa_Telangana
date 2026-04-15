@@ -6,7 +6,7 @@
 const bcrypt = require('bcryptjs');
 const db = require('../utils/db');
 const { v4: uuidv4 } = require('uuid');
-const { sendOfficialWelcome, sendSafe } = require('../utils/emailService');
+const { sendOfficialWelcome, sendAccountDeleted, sendSafe } = require('../utils/emailService');
 
 // ────────────────────────────────────────────────────
 //  CATEGORIES: GET
@@ -305,7 +305,7 @@ const activateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
   const { id } = req.params;
   try {
-    const [[user]] = await db.query('SELECT id FROM users WHERE id = ?', [id]);
+    const [[user]] = await db.query('SELECT id, email, full_name FROM users WHERE id = ?', [id]);
     if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
 
     // Delete related records first to avoid FK constraint errors
@@ -320,6 +320,10 @@ const deleteUser = async (req, res) => {
     }
 
     await db.query('DELETE FROM users WHERE id = ?', [id]);
+
+    // Notify the user by email (non-blocking)
+    await sendSafe(sendAccountDeleted, { to: user.email, name: user.full_name || 'Citizen' });
+
     res.json({ success: true, message: 'User and all associated complaints deleted.' });
   } catch (err) {
     console.error('Delete user error:', err);
