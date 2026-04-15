@@ -3,7 +3,7 @@
 //   Cache static assets, network-first for API
 // =====================================================
 
-const CACHE_NAME   = 'hydraa-v1';
+const CACHE_NAME   = 'hydraa-v2';
 const OFFLINE_URL  = '/offline.html';
 
 const STATIC_ASSETS = [
@@ -12,6 +12,11 @@ const STATIC_ASSETS = [
   '/manifest.json',
   '/icon.svg',
   '/icon-maskable.svg',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
+  '/icons/apple-touch-icon.png',
+  '/hydraa-admin-performance.html',
+  '/hydraa-admin-report.html',
   '/http-client.js',
   '/app.js',
   '/hydraa-index.html',
