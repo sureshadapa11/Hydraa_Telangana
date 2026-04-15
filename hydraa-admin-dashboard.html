@@ -422,13 +422,17 @@
 <div id="assignModal" class="modal">
   <div class="modal-box">
     <div class="modal-hdr">
-      <div class="modal-hdr-icon">👷</div>
-      <div class="modal-hdr-text"><div class="mht">Assign to Official</div><div class="mhs">Select a HYDRAA field official to handle this complaint</div></div>
+      <div class="modal-hdr-icon" id="assignModalIcon">👷</div>
+      <div class="modal-hdr-text"><div class="mht" id="assignModalTitle">Assign to Official</div><div class="mhs" id="assignModalSub">Select a HYDRAA field official to handle this complaint</div></div>
     </div>
     <div class="modal-body">
       <input type="hidden" id="assignId"/>
+      <input type="hidden" id="assignMode"/> <!-- 'assign' or 'reassign' -->
+      <div id="currentOfficialInfo" style="display:none;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:0.78rem;color:#92400e;">
+        <strong>Current Official:</strong> <span id="currentOfficialName"></span>
+      </div>
       <div class="m-field">
-        <label class="m-label">Select Official <span>*</span></label>
+        <label class="m-label" id="assignSelLabel">Select Official <span>*</span></label>
         <select id="assignOfficialSel" class="m-select"><option value="">— Choose Official —</option></select>
       </div>
       <div class="m-field">
@@ -438,7 +442,7 @@
       <div id="assignMsg" class="m-msg"></div>
     </div>
     <div class="modal-ftr">
-      <button class="mb-ok" onclick="doAssign()">✅ Assign Now</button>
+      <button class="mb-ok" id="assignSubmitBtn" onclick="doAssignOrReassign()">✅ Assign Now</button>
       <button class="mb-cancel" onclick="closeAssign()">Cancel</button>
     </div>
   </div>
@@ -631,7 +635,7 @@ async function loadDashboard() {
             <td>${sb(c.status)}</td>
             <td>${formatDate(c.created_at)}</td>
             <td><div class="act-wrap">
-              <button class="act-btn ab-assign" onclick="openAssign(${c.id})">👷 Assign</button>
+              ${c.official_name ? `<button class="act-btn ab-assign" onclick="openReassign(${c.id},'${(c.official_name||'').replace(/'/g,"\\'")}')">🔄 Change</button>` : `<button class="act-btn ab-assign" onclick="openAssign(${c.id})">👷 Assign</button>`}
               <button class="act-btn ab-status" onclick="openStatus(${c.id},'${c.status}')">🔄 Status</button>
               <button class="act-btn" style="background:rgba(139,92,246,0.08);color:#8b5cf6;border-color:rgba(139,92,246,0.2)" onclick="openTimeline('${c.complaint_no}')">📋</button>
             </div></td>
@@ -723,7 +727,7 @@ async function loadComplaints() {
             <td style="white-space:nowrap">${c.official_name ? `<span class="assigned-yes">✓ ${c.official_name}</span>` : `<span class="assigned-no">⚠ Unassigned</span>`}</td>
             <td style="white-space:nowrap">${formatDate(c.created_at)}</td>
             <td><div class="act-wrap">
-              <button class="act-btn ab-assign" onclick="openAssign(${c.id})">👷 Assign</button>
+              ${c.official_name ? `<button class="act-btn ab-assign" onclick="openReassign(${c.id},'${(c.official_name||'').replace(/'/g,"\\'")}')">🔄 Change</button>` : `<button class="act-btn ab-assign" onclick="openAssign(${c.id})">👷 Assign</button>`}
               <button class="act-btn ab-status" onclick="openStatus(${c.id},'${c.status}')">🔄 Status</button>
               <button class="act-btn" style="background:rgba(139,92,246,0.08);color:#8b5cf6;border-color:rgba(139,92,246,0.2)" onclick="openTimeline('${c.complaint_no}')">📋</button>
             </div></td>
@@ -736,15 +740,31 @@ async function loadComplaints() {
 }
 
 // Modal functions
-function openAssign(id) {
+function _populateAssignModal(id, mode, currentOfficialName) {
   document.getElementById('assignId').value = id;
+  document.getElementById('assignMode').value = mode;
   document.getElementById('assignRemarksText').value = '';
   document.getElementById('assignMsg').className = 'm-msg';
   const sel = document.getElementById('assignOfficialSel');
   sel.innerHTML = '<option value="">— Choose Official —</option>';
   officials.forEach(o => sel.innerHTML += `<option value="${o.id}">${o.full_name} (${o.department||'N/A'})</option>`);
+  const isReassign = mode === 'reassign';
+  document.getElementById('assignModalIcon').textContent  = isReassign ? '🔄' : '👷';
+  document.getElementById('assignModalTitle').textContent = isReassign ? 'Change Official' : 'Assign to Official';
+  document.getElementById('assignModalSub').textContent   = isReassign ? 'Select a new official — old official will be notified' : 'Select a HYDRAA field official to handle this complaint';
+  document.getElementById('assignSelLabel').innerHTML     = isReassign ? 'Select New Official <span>*</span>' : 'Select Official <span>*</span>';
+  document.getElementById('assignSubmitBtn').textContent  = isReassign ? '🔄 Reassign Now' : '✅ Assign Now';
+  const info = document.getElementById('currentOfficialInfo');
+  if (isReassign && currentOfficialName) {
+    document.getElementById('currentOfficialName').textContent = currentOfficialName;
+    info.style.display = 'block';
+  } else {
+    info.style.display = 'none';
+  }
   document.getElementById('assignModal').classList.add('open');
 }
+function openAssign(id) { _populateAssignModal(id, 'assign', null); }
+function openReassign(id, currentOfficialName) { _populateAssignModal(id, 'reassign', currentOfficialName); }
 function closeAssign() { document.getElementById('assignModal').classList.remove('open'); }
 
 function openStatus(id, cur) {
@@ -760,17 +780,22 @@ function closeStatus() { document.getElementById('statusModal').classList.remove
 document.getElementById('assignModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeAssign(); });
 document.getElementById('statusModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeStatus(); });
 
-async function doAssign() {
-  const id = document.getElementById('assignId').value;
+async function doAssignOrReassign() {
+  const id          = document.getElementById('assignId').value;
+  const mode        = document.getElementById('assignMode').value;
   const official_id = document.getElementById('assignOfficialSel').value;
-  const remarks = document.getElementById('assignRemarksText').value;
-  const msg = document.getElementById('assignMsg');
+  const remarks     = document.getElementById('assignRemarksText').value;
+  const msg         = document.getElementById('assignMsg');
   if (!official_id) { msg.textContent='Please select an official.'; msg.className='m-msg err'; return; }
   try {
-    const res = await http.put('/api/complaints/admin/assign/'+id, {official_id, remarks});
+    const url = mode === 'reassign'
+      ? '/api/complaints/admin/reassign/'+id
+      : '/api/complaints/admin/assign/'+id;
+    const res = await http.put(url, {official_id, remarks});
     if (res.success) {
-      msg.textContent='Complaint assigned successfully!'; msg.className='m-msg ok';
-      setTimeout(()=>{ closeAssign(); loadComplaints(); loadDashboard(); }, 1400);
+      msg.textContent = mode === 'reassign' ? 'Official changed! All parties notified.' : 'Complaint assigned successfully!';
+      msg.className='m-msg ok';
+      setTimeout(()=>{ closeAssign(); loadComplaints(); loadDashboard(); }, 1500);
     } else { msg.textContent=res.message; msg.className='m-msg err'; }
   } catch(e) { msg.textContent='Server error.'; msg.className='m-msg err'; }
 }

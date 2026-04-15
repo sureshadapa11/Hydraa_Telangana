@@ -13,6 +13,7 @@ const {
   getAdminDashboard,
   getAllComplaints,
   assignComplaint,
+  reassignComplaint,
   updateComplaintStatus,
   getOfficialComplaints,
   resolveComplaint,
@@ -34,6 +35,7 @@ router.post('/rate', verifyToken, rateComplaint);
 router.get('/admin/dashboard', verifyToken, getAdminDashboard);
 router.get('/admin/all', verifyToken, getAllComplaints);
 router.put('/admin/assign/:id', verifyToken, assignComplaint);
+router.put('/admin/reassign/:id', verifyToken, reassignComplaint);
 router.put('/admin/status/:id', verifyToken, updateComplaintStatus);
 
 // ── Official Routes ──

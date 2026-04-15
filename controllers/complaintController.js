@@ -8,6 +8,8 @@ const { v4: uuidv4 } = require('uuid');
 const {
   sendComplaintConfirmation,
   sendComplaintAssigned,
+  sendComplaintReassigned,
+  sendOfficialRemoved,
   sendStatusUpdate,
   sendSafe,
 } = require('../utils/emailService');
@@ -403,6 +405,102 @@ const assignComplaint = async (req, res) => {
 };
 
 // ────────────────────────────────────────────────────
+//  ADMIN: REASSIGN COMPLAINT TO A DIFFERENT OFFICIAL
+// ────────────────────────────────────────────────────
+const reassignComplaint = async (req, res) => {
+  const { id } = req.params;
+  const { official_id, remarks } = req.body;
+  const admin_id = req.user.id;
+
+  if (!official_id) return res.status(400).json({ success: false, message: 'New official is required.' });
+
+  try {
+    // Get complaint + old official + citizen + category
+    const [[complaint]] = await db.query(
+      `SELECT c.id, c.complaint_no, c.title, c.status, c.official_id AS old_official_id,
+              c.category_id,
+              u.email AS citizen_email, u.full_name AS citizen_name,
+              cat.name AS category_name,
+              old_o.email AS old_official_email, old_o.full_name AS old_official_name
+       FROM complaints c
+       JOIN users u ON u.id = c.user_id
+       LEFT JOIN categories cat ON cat.id = c.category_id
+       LEFT JOIN officials old_o ON old_o.id = c.official_id
+       WHERE c.id = ?`,
+      [id]
+    );
+    if (!complaint) return res.status(404).json({ success: false, message: 'Complaint not found.' });
+    if (complaint.old_official_id === parseInt(official_id))
+      return res.status(400).json({ success: false, message: 'This official is already assigned.' });
+
+    // Get new official info
+    const [[newOfficial]] = await db.query(
+      'SELECT id, full_name, email, department FROM officials WHERE id = ?', [official_id]
+    );
+    if (!newOfficial) return res.status(404).json({ success: false, message: 'Official not found.' });
+
+    // Update complaint
+    await db.query(
+      'UPDATE complaints SET official_id = ?, admin_remarks = ? WHERE id = ?',
+      [official_id, remarks || null, id]
+    );
+
+    // Log
+    await db.query(
+      `INSERT INTO complaint_history (complaint_id, old_status, new_status, changed_by_id, changed_by_role, remarks)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [id, complaint.status, complaint.status, admin_id, 'admin',
+       `Reassigned from ${complaint.old_official_name || 'previous official'} to ${newOfficial.full_name}${remarks ? ' — ' + remarks : ''}`]
+    );
+
+    // Match department to category
+    const depts = (newOfficial.department || '').split(',').map(d => d.trim()).filter(Boolean);
+    const category = (complaint.category_name || '').toLowerCase();
+    const matchedDept = depts.find(d =>
+      category.includes(d.toLowerCase().replace(/\s*wing$/i, '').trim()) ||
+      d.toLowerCase().replace(/\s*wing$/i, '').trim().split(' ').some(w => w.length > 3 && category.includes(w))
+    ) || depts[0] || 'HYDRAA';
+
+    // Send 3 emails non-blocking
+    try {
+      // 1. Old official — removed
+      if (complaint.old_official_email) {
+        await sendSafe(sendOfficialRemoved, {
+          to: complaint.old_official_email,
+          name: complaint.old_official_name,
+          complaint_no: complaint.complaint_no,
+          title: complaint.title,
+        });
+      }
+      // 2. New official — assigned
+      await sendSafe(sendComplaintAssigned, {
+        citizenEmail:  null, // citizen handled separately below
+        officialEmail: newOfficial.email,
+        officialName:  newOfficial.full_name,
+        complaint_no:  complaint.complaint_no,
+        title:         complaint.title,
+        remarks,
+        department:    matchedDept,
+      });
+      // 3. Citizen — reassigned
+      await sendSafe(sendComplaintReassigned, {
+        to:          complaint.citizen_email,
+        name:        complaint.citizen_name,
+        complaint_no: complaint.complaint_no,
+        title:       complaint.title,
+        officialName: newOfficial.full_name,
+        department:  matchedDept,
+      });
+    } catch (e) { console.error('Reassign email error:', e.message); }
+
+    res.json({ success: true, message: 'Complaint reassigned successfully.' });
+  } catch (err) {
+    console.error('Reassign complaint error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+// ────────────────────────────────────────────────────
 //  ADMIN: UPDATE COMPLAINT STATUS
 // ────────────────────────────────────────────────────
 const updateComplaintStatus = async (req, res) => {
@@ -776,6 +874,7 @@ module.exports = {
   getAdminDashboard,
   getAllComplaints,
   assignComplaint,
+  reassignComplaint,
   updateComplaintStatus,
   getOfficialComplaints,
   resolveComplaint,

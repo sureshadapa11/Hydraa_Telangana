@@ -223,11 +223,14 @@ const sendComplaintAssigned = async ({ citizenEmail, citizenName, officialEmail,
       <p style="font-size:13px;color:#065f46;margin:0">The official will review the complaint and take necessary field action. You will be notified when the status is updated.</p>
     </div>`);
 
-  await sendMail({
-    to:      citizenEmail,
-    subject: `📌 Complaint ${complaint_no} Assigned to Official — HYDRAA`,
-    html:    citizenHtml,
-  });
+  // Only send citizen email if citizenEmail provided (skipped during reassignment)
+  if (citizenEmail) {
+    await sendMail({
+      to:      citizenEmail,
+      subject: `📌 Complaint ${complaint_no} Assigned to Official — HYDRAA`,
+      html:    citizenHtml,
+    });
+  }
 
   // Email to official
   if (officialEmail) {
@@ -460,6 +463,52 @@ const sendOfficialWelcome = async ({ to, name, email, password, department }) =>
 // ─────────────────────────────────────────────────────
 //  8. ACCOUNT DELETED BY ADMIN
 // ─────────────────────────────────────────────────────
+//  9. OFFICIAL REMOVED FROM COMPLAINT (old official)
+// ─────────────────────────────────────────────────────
+const sendOfficialRemoved = async ({ to, name, complaint_no, title }) => {
+  const html = wrap(`
+    <h2 style="font-size:22px;color:#0b1f3a;margin:0 0 4px">Complaint Reassigned ↩️</h2>
+    <p style="font-size:14px;color:#3d5a72;margin:0 0 24px;line-height:1.7">
+      Dear ${name}, you have been <strong>removed</strong> from the following complaint by a HYDRAA administrator. Another official has been assigned to handle it.
+    </p>
+    <table width="100%" cellpadding="0" cellspacing="0">
+      ${infoRow('Complaint No.', `<strong style="color:#0097a7">${complaint_no}</strong>`)}
+      ${infoRow('Title', title)}
+      ${infoRow('Action', `<span style="color:#b45309;font-weight:700">Unassigned — No further action required from you</span>`)}
+    </table>
+    <div style="background:#fff7ed;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;padding:14px 18px;margin-top:20px">
+      <p style="font-size:13px;color:#92400e;margin:0">If you have any pending field notes for this complaint, please contact your HYDRAA administrator.</p>
+    </div>`, 'OFFICIAL PORTAL');
+
+  await sendMail({ to, subject: `↩️ Complaint ${complaint_no} — You Have Been Unassigned`, html });
+};
+
+// ─────────────────────────────────────────────────────
+//  10. CITIZEN — OFFICIAL REASSIGNED NOTIFICATION
+// ─────────────────────────────────────────────────────
+const sendComplaintReassigned = async ({ to, name, complaint_no, title, officialName, department }) => {
+  const html = wrap(`
+    <h2 style="font-size:22px;color:#0b1f3a;margin:0 0 4px">Official Reassigned 🔄</h2>
+    <p style="font-size:14px;color:#3d5a72;margin:0 0 24px;line-height:1.7">
+      Dear ${name}, the HYDRAA field official handling your complaint <strong style="color:#0097a7">${complaint_no}</strong> has been changed by the administrator.
+    </p>
+    <table width="100%" cellpadding="0" cellspacing="0">
+      ${infoRow('Complaint No.', `<strong style="color:#0097a7">${complaint_no}</strong>`)}
+      ${infoRow('Title', title)}
+      ${infoRow('New Official', `<strong>${officialName}</strong>`)}
+      ${infoRow('Department', department || 'HYDRAA')}
+      ${infoRow('Status', badge('ASSIGNED', '#1d4ed8', 'rgba(59,130,246,0.1)'))}
+    </table>
+    <div style="background:#f0fdf4;border-left:4px solid #10b981;border-radius:0 8px 8px 0;padding:14px 18px;margin-top:20px">
+      <p style="font-size:13px;color:#065f46;margin:0">Your complaint is in good hands. The new official will review the case and take necessary field action. You will be notified when the status is updated.</p>
+    </div>`);
+
+  await sendMail({ to, subject: `🔄 Complaint ${complaint_no} — New Official Assigned`, html });
+};
+
+// ─────────────────────────────────────────────────────
+//  8. ACCOUNT DELETED BY ADMIN
+// ─────────────────────────────────────────────────────
 const sendAccountDeleted = async ({ to, name }) => {
   const html = wrap(`
     <h2 style="font-size:22px;color:#0b1f3a;margin:0 0 8px">Account Removed 🔒</h2>
@@ -508,5 +557,7 @@ module.exports = {
   sendPasswordChangedEmail,
   sendOfficialWelcome,
   sendAccountDeleted,
+  sendOfficialRemoved,
+  sendComplaintReassigned,
   sendSafe,
 };
