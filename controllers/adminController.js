@@ -305,8 +305,11 @@ const activateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
   const { id } = req.params;
   try {
-    const [[user]] = await db.query('SELECT id, email, full_name FROM users WHERE id = ?', [id]);
+    const [[user]] = await db.query('SELECT id, email, full_name, phone FROM users WHERE id = ?', [id]);
     if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
+
+    // Count complaints before deletion for audit record
+    const [[{ ccount }]] = await db.query('SELECT COUNT(*) as ccount FROM complaints WHERE user_id = ?', [id]);
 
     // Delete related records first to avoid FK constraint errors
     const [comp] = await db.query('SELECT id FROM complaints WHERE user_id = ?', [id]);
@@ -321,13 +324,42 @@ const deleteUser = async (req, res) => {
 
     await db.query('DELETE FROM users WHERE id = ?', [id]);
 
-    // Notify the user by email (non-blocking)
-    await sendSafe(sendAccountDeleted, { to: user.email, name: user.full_name || 'Citizen' });
+    // Save audit record of deleted user
+    await db.query(
+      `INSERT INTO deleted_users (original_user_id, full_name, email, phone, complaints_count, deleted_by)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [user.id, user.full_name || '', user.email || '', user.phone || null, Number(ccount), 'admin']
+    ).catch(e => console.warn('Audit record insert failed:', e.message));
+
+    // Send deletion email to the user
+    console.log('[DELETE USER] Sending deletion email to:', user.email);
+    try {
+      await sendAccountDeleted({ to: user.email, name: user.full_name || 'Citizen' });
+      console.log('[DELETE USER] Deletion email sent successfully to:', user.email);
+    } catch (emailErr) {
+      console.error('[DELETE USER] Failed to send deletion email:', emailErr.message);
+    }
 
     res.json({ success: true, message: 'User and all associated complaints deleted.' });
   } catch (err) {
     console.error('Delete user error:', err);
     res.status(500).json({ success: false, message: err.message || 'Server error.' });
+  }
+};
+
+// ────────────────────────────────────────────────────
+//  DELETED USERS AUDIT LOG
+// ────────────────────────────────────────────────────
+const getDeletedUsers = async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT id, original_user_id, full_name, email, phone, complaints_count, deleted_at, deleted_by
+       FROM deleted_users ORDER BY deleted_at DESC`
+    );
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    console.error('Get deleted users error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
   }
 };
 
@@ -946,6 +978,7 @@ module.exports = {
   deactivateUser,
   activateUser,
   deleteUser,
+  getDeletedUsers,
   getUserLogs,
   getStates,
   createState,

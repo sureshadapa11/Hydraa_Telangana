@@ -615,6 +615,29 @@ async function ensurePhotosTable() {
   }
 }
 
+// ── Ensure Deleted Users Audit Table ──
+async function ensureDeletedUsersTable() {
+  try {
+    const db = require('./utils/db');
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS deleted_users (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        original_user_id INT NOT NULL,
+        full_name VARCHAR(150) NOT NULL DEFAULT '',
+        email VARCHAR(255) NOT NULL DEFAULT '',
+        phone VARCHAR(20) DEFAULT NULL,
+        complaints_count INT DEFAULT 0,
+        deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        deleted_by VARCHAR(100) DEFAULT 'admin',
+        INDEX idx_deleted_at (deleted_at)
+      )
+    `);
+    console.log('✅ deleted_users table OK');
+  } catch (err) {
+    console.warn('⚠️  deleted_users table skipped:', err.message);
+  }
+}
+
 // ── Ensure Complaint Comments Table ──
 async function ensureCommentTable() {
   try {
@@ -760,6 +783,7 @@ app.listen(PORT, async () => {
   await seedDefaultAdmin();
   await ensureCommentTable();
   await ensurePhotosTable();
+  await ensureDeletedUsersTable();
 });
 
 module.exports = app;

@@ -225,6 +225,18 @@
       <div id="usersTable"><div class="empty"><div class="empty-icon">⏳</div><p>Loading citizens...</p></div></div>
     </div>
 
+    <!-- DELETED USERS SECTION -->
+    <div class="table-card" style="margin-top:1.5rem;border-top:3px solid #ef4444;">
+      <div class="tc-header">
+        <div>
+          <div class="tc-title" style="color:#b91c1c;">🗑️ Deleted User Records</div>
+          <div style="font-size:0.75rem;color:var(--text-3);margin-top:2px">Audit log of all removed citizen accounts</div>
+        </div>
+        <span class="tc-count" id="deletedCount" style="background:#fef2f2;color:#b91c1c;">0 records</span>
+      </div>
+      <div id="deletedUsersTable"><div class="empty"><div class="empty-icon">⏳</div><p>Loading...</p></div></div>
+    </div>
+
   </div>
 </div>
 
@@ -361,10 +373,40 @@
       btnLabel: 'Delete', btnClass: 'danger',
       action: async () => {
         const res = await http.delete(`/api/admin/users/${id}`);
-        if (res.success) loadUsers();
+        if (res.success) { loadUsers(); loadDeletedUsers(); }
         else showToast(res.message || 'Failed to delete user.', 'error');
       }
     });
+  }
+
+  // ── Deleted Users ──
+  async function loadDeletedUsers() {
+    const res = await http.get('/api/admin/users/deleted');
+    const box = document.getElementById('deletedUsersTable');
+    if (!res.success || !res.data.length) {
+      box.innerHTML = '<div class="empty"><div class="empty-icon">🗃️</div><p>No deleted users on record.</p></div>';
+      document.getElementById('deletedCount').textContent = '0 records';
+      return;
+    }
+    document.getElementById('deletedCount').textContent = res.data.length + ' records';
+    const rows = res.data.map((u, i) => `<tr>
+      <td style="color:var(--text-3);font-size:0.75rem">${i + 1}</td>
+      <td><strong>${u.full_name || '—'}</strong></td>
+      <td style="font-size:0.78rem">${u.email || '—'}</td>
+      <td style="font-size:0.78rem">${u.phone || '—'}</td>
+      <td style="text-align:center;font-weight:700;color:var(--teal)">${u.complaints_count || 0}</td>
+      <td style="font-size:0.75rem;white-space:nowrap">${formatDate(u.deleted_at)}</td>
+      <td style="font-size:0.75rem;color:var(--text-3)">${u.deleted_by || 'admin'}</td>
+    </tr>`).join('');
+    box.innerHTML = `<div style="overflow-x:auto">
+      <table style="min-width:650px;width:100%">
+        <thead><tr>
+          <th>#</th><th>Name</th><th>Email</th><th>Phone</th>
+          <th>Complaints</th><th>Deleted On</th><th>Deleted By</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
   }
 
   // Simple toast (reuse if app.js has one, else fallback alert)
@@ -374,6 +416,7 @@
   }
 
   loadUsers();
+  loadDeletedUsers();
 </script>
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js").catch(function(){});}</script>
 
