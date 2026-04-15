@@ -938,36 +938,39 @@ const getMonthlyReport = async (req, res) => {
     `, [y, m]);
 
     const [byDistrict] = await db.query(`
-      SELECT d.name AS district, COUNT(c.id) AS total,
+      SELECT d.name AS district_name, COUNT(c.id) AS total,
              SUM(c.status = 'resolved') AS resolved,
              SUM(c.status NOT IN ('resolved','closed','rejected')) AS pending
       FROM complaints c JOIN districts d ON c.district_id = d.id
       WHERE YEAR(c.created_at) = ? AND MONTH(c.created_at) = ?
-      GROUP BY d.name ORDER BY total DESC
+      GROUP BY d.id, d.name ORDER BY total DESC
     `, [y, m]);
 
     const [byCategory] = await db.query(`
-      SELECT cat.name AS category, COUNT(c.id) AS total,
-             SUM(c.status = 'resolved') AS resolved
+      SELECT cat.name AS category_name, COUNT(c.id) AS total,
+             SUM(c.status = 'resolved') AS resolved,
+             SUM(c.status NOT IN ('resolved','closed','rejected')) AS pending
       FROM complaints c JOIN categories cat ON c.category_id = cat.id
       WHERE YEAR(c.created_at) = ? AND MONTH(c.created_at) = ?
-      GROUP BY cat.name ORDER BY total DESC
+      GROUP BY cat.id, cat.name ORDER BY total DESC
     `, [y, m]);
 
     const [byOfficial] = await db.query(`
-      SELECT o.full_name AS official, COUNT(c.id) AS assigned,
+      SELECT o.full_name, o.department, COUNT(c.id) AS assigned,
              SUM(c.status = 'resolved') AS resolved,
-             SUM(c.status = 'rejected') AS rejected
+             SUM(c.status = 'rejected') AS rejected,
+             ROUND(AVG(CASE WHEN c.resolved_at IS NOT NULL
+               THEN TIMESTAMPDIFF(HOUR, c.created_at, c.resolved_at) END), 1) AS avg_hours
       FROM complaints c JOIN officials o ON c.official_id = o.id
       WHERE YEAR(c.created_at) = ? AND MONTH(c.created_at) = ?
-      GROUP BY o.full_name ORDER BY resolved DESC
+      GROUP BY o.id, o.full_name, o.department ORDER BY resolved DESC
     `, [y, m]);
 
     const [dailyTrend] = await db.query(`
-      SELECT DAY(created_at) AS day, COUNT(*) AS total
+      SELECT DATE(created_at) AS date, COUNT(*) AS count
       FROM complaints
       WHERE YEAR(created_at) = ? AND MONTH(created_at) = ?
-      GROUP BY DAY(created_at) ORDER BY day
+      GROUP BY DATE(created_at) ORDER BY date
     `, [y, m]);
 
     const monthName = new Date(y, m - 1, 1).toLocaleString('default', { month: 'long' });
