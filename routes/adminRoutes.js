@@ -39,7 +39,6 @@ const {
   getOfficialPerformance,
   getCategoryHeatmap,
   getMonthlyReport,
-  seedDemoComplaints,
 } = require('../controllers/adminController');
 const { verifyToken } = require('../middleware/auth');
 
@@ -102,7 +101,5 @@ router.get('/category-heatmap', verifyToken, getCategoryHeatmap);
 // ── Monthly Report ──
 router.get('/monthly-report', verifyToken, getMonthlyReport);
 
-// ── Demo Data Seeder (admin-only, run once for testing) ──
-router.post('/seed-demo', verifyToken, seedDemoComplaints);
 
 module.exports = router;
