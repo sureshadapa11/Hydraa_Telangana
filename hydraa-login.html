@@ -519,7 +519,8 @@
       
       if (res.success && res.token) {
         Auth.setUser(res.user, res.token);
-        window.location.href = '/hydraa-user-dashboard.html';
+        const next = new URLSearchParams(window.location.search).get('next');
+        window.location.href = next || '/hydraa-user-dashboard.html';
       } else {
         alert(res.message || 'Login failed. Please try again.');
       }

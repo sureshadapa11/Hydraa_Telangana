@@ -600,14 +600,14 @@
       <p class="sec-sub">HYDRAA handles civic, environmental and asset protection violations across Hyderabad.</p>
     </div>
     <div class="cat-grid">
-      <div class="cat-card reveal"><div class="cat-icon ci1">🌊</div><div class="cat-name">Lake / Water Body Encroachment</div><div class="cat-desc">Illegal construction within FTL or 30m buffer zones around lakes and nalas.</div><a href="/hydraa-login.html" class="cat-link">Report this →</a></div>
-      <div class="cat-card reveal" style="transition-delay:.05s"><div class="cat-icon ci2">🏗️</div><div class="cat-name">Illegal Construction</div><div class="cat-desc">Unauthorized buildings violating GHMC or town planning regulations.</div><a href="/hydraa-login.html" class="cat-link">Report this →</a></div>
-      <div class="cat-card reveal" style="transition-delay:.10s"><div class="cat-icon ci3">🌳</div><div class="cat-name">Park / Open Space Violation</div><div class="cat-desc">Encroachment on designated parks, playgrounds, or open layout spaces.</div><a href="/hydraa-login.html" class="cat-link">Report this →</a></div>
-      <div class="cat-card reveal" style="transition-delay:.15s"><div class="cat-icon ci4">🚧</div><div class="cat-name">Road / Footpath Obstruction</div><div class="cat-desc">Blocking of carriageways, footpaths, or public roads by unauthorized structures.</div><a href="/hydraa-login.html" class="cat-link">Report this →</a></div>
-      <div class="cat-card reveal" style="transition-delay:.20s"><div class="cat-icon ci5">🌧️</div><div class="cat-name">Flooding &amp; Drainage Issue</div><div class="cat-desc">Blocked drains, waterlogging, or flood-risk due to encroachment.</div><a href="/hydraa-login.html" class="cat-link">Report this →</a></div>
-      <div class="cat-card reveal" style="transition-delay:.25s"><div class="cat-icon ci6">🏛️</div><div class="cat-name">Government Land Encroachment</div><div class="cat-desc">Unauthorized occupation of government-owned land parcels in Hyderabad.</div><a href="/hydraa-login.html" class="cat-link">Report this →</a></div>
-      <div class="cat-card reveal" style="transition-delay:.30s"><div class="cat-icon ci7">📢</div><div class="cat-name">Illegal Advertisements</div><div class="cat-desc">Unauthorized hoardings, banners, or flex boards on public property.</div><a href="/hydraa-login.html" class="cat-link">Report this →</a></div>
-      <div class="cat-card reveal" style="transition-delay:.35s"><div class="cat-icon ci8">🚨</div><div class="cat-name">Disaster / Emergency</div><div class="cat-desc">Fire, collapse, or flood emergency requiring immediate HYDRAA response.</div><a href="/hydraa-login.html" class="cat-link">Report this →</a></div>
+      <div class="cat-card reveal"><div class="cat-icon ci1">🌊</div><div class="cat-name">Lake / Water Body Encroachment</div><div class="cat-desc">Illegal construction within FTL or 30m buffer zones around lakes and nalas.</div><a href="javascript:void(0)" onclick="reportThis()" class="cat-link">Report this →</a></div>
+      <div class="cat-card reveal" style="transition-delay:.05s"><div class="cat-icon ci2">🏗️</div><div class="cat-name">Illegal Construction</div><div class="cat-desc">Unauthorized buildings violating GHMC or town planning regulations.</div><a href="javascript:void(0)" onclick="reportThis()" class="cat-link">Report this →</a></div>
+      <div class="cat-card reveal" style="transition-delay:.10s"><div class="cat-icon ci3">🌳</div><div class="cat-name">Park / Open Space Violation</div><div class="cat-desc">Encroachment on designated parks, playgrounds, or open layout spaces.</div><a href="javascript:void(0)" onclick="reportThis()" class="cat-link">Report this →</a></div>
+      <div class="cat-card reveal" style="transition-delay:.15s"><div class="cat-icon ci4">🚧</div><div class="cat-name">Road / Footpath Obstruction</div><div class="cat-desc">Blocking of carriageways, footpaths, or public roads by unauthorized structures.</div><a href="javascript:void(0)" onclick="reportThis()" class="cat-link">Report this →</a></div>
+      <div class="cat-card reveal" style="transition-delay:.20s"><div class="cat-icon ci5">🌧️</div><div class="cat-name">Flooding &amp; Drainage Issue</div><div class="cat-desc">Blocked drains, waterlogging, or flood-risk due to encroachment.</div><a href="javascript:void(0)" onclick="reportThis()" class="cat-link">Report this →</a></div>
+      <div class="cat-card reveal" style="transition-delay:.25s"><div class="cat-icon ci6">🏛️</div><div class="cat-name">Government Land Encroachment</div><div class="cat-desc">Unauthorized occupation of government-owned land parcels in Hyderabad.</div><a href="javascript:void(0)" onclick="reportThis()" class="cat-link">Report this →</a></div>
+      <div class="cat-card reveal" style="transition-delay:.30s"><div class="cat-icon ci7">📢</div><div class="cat-name">Illegal Advertisements</div><div class="cat-desc">Unauthorized hoardings, banners, or flex boards on public property.</div><a href="javascript:void(0)" onclick="reportThis()" class="cat-link">Report this →</a></div>
+      <div class="cat-card reveal" style="transition-delay:.35s"><div class="cat-icon ci8">🚨</div><div class="cat-name">Disaster / Emergency</div><div class="cat-desc">Fire, collapse, or flood emergency requiring immediate HYDRAA response.</div><a href="javascript:void(0)" onclick="reportThis()" class="cat-link">Report this →</a></div>
     </div>
   </div>
 </section>
@@ -723,6 +723,13 @@
     document.getElementById('navDrawer').classList.remove('open');
     document.getElementById('navOverlay').classList.remove('open');
     document.body.style.overflow='';
+  }
+  function reportThis(){
+    if(localStorage.getItem('hydraa_token')){
+      window.location.href='/hydraa-lodge-complaint.html';
+    } else {
+      window.location.href='/hydraa-login.html?next=/hydraa-lodge-complaint.html';
+    }
   }
 </script>
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js").catch(function(){});}</script>

@@ -1,19 +1,19 @@
 // =====================================================
 //   Land Records Controller — HYDRAA
-//   Proxies Dharani (dharani.telangana.gov.in) API
+//   Proxies Bhu Bharathi (bhubharati.telangana.gov.in) API
 //   when key is available, returns demo data otherwise.
 //
 //   To activate real API:
-//     Add DHARANI_API_KEY=<your_key> to Railway env vars
-//     Add DHARANI_API_BASE=<base_url_from_dharani> to Railway env vars
+//     Add BHUBHARATI_API_KEY=<your_key> to Railway env vars
+//     Add BHUBHARATI_API_BASE=<base_url_from_bhubharati> to Railway env vars
 // =====================================================
 
-const DHARANI_API_BASE = process.env.DHARANI_API_BASE || 'https://api.dharani.telangana.gov.in/v1';
+const DHARANI_API_BASE = process.env.BHUBHARATI_API_BASE || process.env.DHARANI_API_BASE || 'https://api.bhubharati.telangana.gov.in/v1';
 
 // ── Search land record ──────────────────────────────
 const searchLandRecord = async (req, res) => {
   const { district, mandal, village, survey_no, khata_no } = req.query;
-  const apiKey = process.env.DHARANI_API_KEY;
+  const apiKey = process.env.BHUBHARATI_API_KEY || process.env.DHARANI_API_KEY;
 
   if (!district && !survey_no && !khata_no) {
     return res.status(400).json({ success: false, message: 'Provide at least district and survey number or khata number.' });
@@ -38,19 +38,19 @@ const searchLandRecord = async (req, res) => {
 
       if (!response.ok) {
         const errText = await response.text();
-        return res.status(response.status).json({ success: false, message: `Dharani API error: ${errText}` });
+        return res.status(response.status).json({ success: false, message: `Bhu Bharathi API error: ${errText}` });
       }
 
       const data = await response.json();
       return res.json({ success: true, demo: false, data });
     } catch (err) {
-      console.error('Dharani API error:', err);
-      return res.status(502).json({ success: false, message: 'Could not reach Dharani API. Try again.' });
+      console.error('Bhu Bharathi API error:', err);
+      return res.status(502).json({ success: false, message: 'Could not reach Bhu Bharathi API. Try again.' });
     }
   }
 
   // ── Demo mode (no API key configured) ────────────
-  // Realistic Dharani-style data showing all key fields
+  // Realistic Bhu Bharathi-style data showing all key fields
   // officials need for complaint verification
   const hasData = survey_no || khata_no;
   return res.json({

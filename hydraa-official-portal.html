@@ -578,7 +578,7 @@
       <div style="margin-top:1rem;border:1.5px solid rgba(0,151,167,0.25);border-radius:12px;overflow:hidden;">
         <!-- Header -->
         <div style="background:linear-gradient(135deg,#006978,#0097a7);padding:0.75rem 1rem;display:flex;align-items:center;justify-content:space-between;">
-          <span style="font-size:0.82rem;font-weight:800;color:#fff;">🏛️ Dharani Land Records</span>
+          <span style="font-size:0.82rem;font-weight:800;color:#fff;">🏛️ Bhu Bharathi Land Records</span>
           <span id="landApiBadge" style="font-size:0.65rem;background:rgba(255,255,255,0.18);color:#fff;padding:0.2rem 0.55rem;border-radius:20px;font-weight:700;">⏳ Demo Mode</span>
         </div>
 
@@ -1029,7 +1029,7 @@ async function searchLandRecords() {
     res.innerHTML = `
       <div style="padding:0.9rem 1rem;display:flex;flex-direction:column;gap:0.65rem;">
         ${json.demo ? `<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:0.5rem 0.75rem;font-size:0.7rem;color:#92400e;font-weight:600;">
-          ⚠️ Demo Mode — Add <code>DHARANI_API_KEY</code> to Railway env vars for live records
+          ⚠️ Demo Mode — Add <code>DHARANI_API_KEY</code> to Railway env vars for live records (Bhu Bharathi)
         </div>` : ''}
 
         ${alertsHtml}
@@ -1037,7 +1037,10 @@ async function searchLandRecords() {
 
         <div style="background:#fff;border:1.5px solid rgba(0,151,167,0.18);border-radius:10px;overflow:hidden;">
           <div style="background:rgba(0,151,167,0.06);padding:0.55rem 0.85rem;font-size:0.72rem;font-weight:800;color:#006978;border-bottom:1px solid rgba(0,151,167,0.1);">
-            📄 Dharani Land Record
+            📄 Bhu Bharathi Land Record
+          </div>
+          <div style="padding:0.4rem 0.85rem;background:#e0f7fa;border-bottom:1px solid rgba(0,151,167,0.1);text-align:right;">
+            <a href="https://bhubharati.telangana.gov.in/knowLandStatus" target="_blank" rel="noopener" style="font-size:0.72rem;color:#0097a7;font-weight:700;text-decoration:none;">🔗 Open in Bhu Bharathi Portal ↗</a>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;">
             ${landRow('Pattadar / Owner',  d.pattadarName)}
