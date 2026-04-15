@@ -69,7 +69,7 @@ if (BREVO_API_KEY) {
 }
 
 // ── Shared Brand Header / Footer ──────────────────────
-const brandHeader = `
+const brandHeader = (label = 'CITIZEN PORTAL') => `
   <div style="background:linear-gradient(135deg,#0b1f3a,#122944);padding:24px 32px;border-radius:12px 12px 0 0">
     <table width="100%"><tr>
       <td>
@@ -77,7 +77,7 @@ const brandHeader = `
         <span style="font-size:11px;color:rgba(0,188,212,0.8);letter-spacing:3px;text-transform:uppercase">Government of Telangana</span>
       </td>
       <td align="right">
-        <span style="background:rgba(0,180,204,0.15);border:1px solid rgba(0,188,212,0.3);color:#4dd6e8;font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:1px">OFFICIAL PORTAL</span>
+        <span style="background:rgba(0,180,204,0.15);border:1px solid rgba(0,188,212,0.3);color:#4dd6e8;font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:1px">${label}</span>
       </td>
     </tr></table>
   </div>`;
@@ -96,12 +96,12 @@ const brandFooter = `
     </p>
   </div>`;
 
-const wrap = (content) => `
+const wrap = (content, portalLabel = 'CITIZEN PORTAL') => `
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width"/></head>
 <body style="margin:0;padding:20px;background:#eaf4f8;font-family:'Segoe UI',Arial,sans-serif">
   <div style="max-width:600px;margin:0 auto;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,30,60,0.12)">
-    ${brandHeader}
+    ${brandHeader(portalLabel)}
     <div style="background:#ffffff;padding:32px">
       ${content}
     </div>
@@ -207,6 +207,8 @@ const sendComplaintConfirmation = async ({ to, name, complaint_no, title, catego
 //  3. COMPLAINT ASSIGNED (to citizen + official)
 // ─────────────────────────────────────────────────────
 const sendComplaintAssigned = async ({ citizenEmail, citizenName, officialEmail, officialName, complaint_no, title, remarks, department }) => {
+  // Show only the first department to avoid dumping a comma-separated list
+  const primaryDept = department ? department.split(',')[0].trim() : 'HYDRAA';
   // Email to citizen
   const citizenHtml = wrap(`
     <h2 style="font-size:22px;color:#0b1f3a;margin:0 0 4px">Complaint Assigned 📌</h2>
@@ -215,7 +217,7 @@ const sendComplaintAssigned = async ({ citizenEmail, citizenName, officialEmail,
       ${infoRow('Complaint No.', `<strong style="color:#0097a7">${complaint_no}</strong>`)}
       ${infoRow('Title', title)}
       ${infoRow('Assigned To', `<strong>${officialName}</strong>`)}
-      ${infoRow('Department', department || 'HYDRAA')}
+      ${infoRow('Department', primaryDept)}
       ${infoRow('Status', badge('ASSIGNED', '#1d4ed8', 'rgba(59,130,246,0.1)'))}
       ${remarks ? infoRow('Admin Note', `<em style="color:#3d5a72">${remarks}</em>`) : ''}
     </table>
@@ -244,7 +246,7 @@ const sendComplaintAssigned = async ({ citizenEmail, citizenName, officialEmail,
       <div style="background:#fef3c7;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;padding:14px 18px;margin-top:20px">
         <p style="font-size:13px;color:#92400e;font-weight:700;margin:0 0 4px">⚡ Action Required</p>
         <p style="font-size:13px;color:#92400e;margin:0">Please log into the HYDRAA Official Portal to review and update the complaint status.</p>
-      </div>`);
+      </div>`, 'OFFICIAL PORTAL');
 
     await sendMail({
       to:      officialEmail,
@@ -448,7 +450,7 @@ const sendOfficialWelcome = async ({ to, name, email, password, department }) =>
       ${infoRow('Portal', 'HYDRAA Official Portal')}
       ${infoRow('Role', 'Field Official')}
       ${infoRow('Responsibilities', 'Review assigned complaints, take field action, update resolution status')}
-    </table>`);
+    </table>`, 'OFFICIAL PORTAL');
 
   await sendMail({
     to,
