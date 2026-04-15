@@ -357,7 +357,7 @@
   function confirmDelete(id, name) {
     showConfirm({
       icon: '🗑️', title: 'Delete User',
-      msg: `Permanently delete "${name}"? This cannot be undone. Users with existing complaints cannot be deleted.`,
+      msg: `Permanently delete "${name}"? This will also delete all their complaints and cannot be undone.`,
       btnLabel: 'Delete', btnClass: 'danger',
       action: async () => {
         const res = await http.delete(`/api/admin/users/${id}`);

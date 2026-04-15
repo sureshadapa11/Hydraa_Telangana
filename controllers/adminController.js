@@ -305,17 +305,22 @@ const activateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
   const { id } = req.params;
   try {
-    const [[{ count }]] = await db.query('SELECT COUNT(*) as count FROM complaints WHERE user_id = ?', [id]);
-    if (Number(count) > 0) {
-      return res.status(409).json({
-        success: false,
-        message: `Cannot delete — user has ${count} complaint(s) on record. Deactivate instead.`,
-      });
+    const [[user]] = await db.query('SELECT id FROM users WHERE id = ?', [id]);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
+
+    // Delete related records first to avoid FK constraint errors
+    const [comp] = await db.query('SELECT id FROM complaints WHERE user_id = ?', [id]);
+    if (comp.length > 0) {
+      const cIds = comp.map(c => c.id);
+      await db.query('DELETE FROM complaint_photos   WHERE complaint_id IN (?)', [cIds]);
+      await db.query('DELETE FROM complaint_comments WHERE complaint_id IN (?)', [cIds]);
+      await db.query('DELETE FROM complaint_timeline WHERE complaint_id IN (?)', [cIds]).catch(() => {});
+      await db.query('DELETE FROM complaint_ratings  WHERE complaint_id IN (?)', [cIds]).catch(() => {});
+      await db.query('DELETE FROM complaints WHERE user_id = ?', [id]);
     }
-    const [result] = await db.query('DELETE FROM users WHERE id = ?', [id]);
-    if (result.affectedRows === 0)
-      return res.status(404).json({ success: false, message: 'User not found.' });
-    res.json({ success: true, message: 'User deleted.' });
+
+    await db.query('DELETE FROM users WHERE id = ?', [id]);
+    res.json({ success: true, message: 'User and all associated complaints deleted.' });
   } catch (err) {
     console.error('Delete user error:', err);
     res.status(500).json({ success: false, message: err.message || 'Server error.' });
