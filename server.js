@@ -627,11 +627,14 @@ async function ensureDeletedUsersTable() {
         email VARCHAR(255) NOT NULL DEFAULT '',
         phone VARCHAR(20) DEFAULT NULL,
         complaints_count INT DEFAULT 0,
+        complaints_data MEDIUMTEXT DEFAULT NULL,
         deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         deleted_by VARCHAR(100) DEFAULT 'admin',
         INDEX idx_deleted_at (deleted_at)
       )
     `);
+    // Add complaints_data column to existing tables that were created before this column existed
+    await db.query(`ALTER TABLE deleted_users ADD COLUMN IF NOT EXISTS complaints_data MEDIUMTEXT DEFAULT NULL`).catch(() => {});
     console.log('✅ deleted_users table OK');
   } catch (err) {
     console.warn('⚠️  deleted_users table skipped:', err.message);

@@ -389,24 +389,64 @@
       return;
     }
     document.getElementById('deletedCount').textContent = res.data.length + ' records';
-    const rows = res.data.map((u, i) => `<tr>
-      <td style="color:var(--text-3);font-size:0.75rem">${i + 1}</td>
-      <td><strong>${u.full_name || '—'}</strong></td>
-      <td style="font-size:0.78rem">${u.email || '—'}</td>
-      <td style="font-size:0.78rem">${u.phone || '—'}</td>
-      <td style="text-align:center;font-weight:700;color:var(--teal)">${u.complaints_count || 0}</td>
-      <td style="font-size:0.75rem;white-space:nowrap">${formatDate(u.deleted_at)}</td>
-      <td style="font-size:0.75rem;color:var(--text-3)">${u.deleted_by || 'admin'}</td>
-    </tr>`).join('');
+    const rows = res.data.map((u, i) => {
+      const hasComplaints = u.complaints_data && u.complaints_data.length > 0;
+      const cRows = hasComplaints ? u.complaints_data.map(c => `
+        <tr style="background:#fafafa">
+          <td style="font-size:0.72rem;color:#0097a7;font-weight:700">${c.complaint_no || '—'}</td>
+          <td style="font-size:0.72rem">${c.title || '—'}</td>
+          <td style="font-size:0.72rem">${c.category || '—'}</td>
+          <td style="font-size:0.72rem"><span style="background:#f1f5f9;border-radius:4px;padding:2px 7px;font-weight:700;text-transform:uppercase;font-size:0.65rem">${c.status || '—'}</span></td>
+          <td style="font-size:0.72rem">${c.priority || '—'}</td>
+          <td style="font-size:0.72rem">${c.assigned_official || 'Unassigned'}</td>
+          <td style="font-size:0.68rem;color:var(--text-3)">${c.created_at ? new Date(c.created_at).toLocaleDateString('en-IN') : '—'}</td>
+        </tr>`).join('') : `<tr><td colspan="7" style="text-align:center;font-size:0.72rem;color:var(--text-3);padding:0.6rem">No complaints on record</td></tr>`;
+
+      return `<tr>
+        <td style="color:var(--text-3);font-size:0.75rem">${i + 1}</td>
+        <td><strong>${u.full_name || '—'}</strong></td>
+        <td style="font-size:0.78rem">${u.email || '—'}</td>
+        <td style="font-size:0.78rem">${u.phone || '—'}</td>
+        <td style="text-align:center;font-weight:700;color:var(--teal)">${u.complaints_count || 0}</td>
+        <td style="font-size:0.75rem;white-space:nowrap">${formatDate(u.deleted_at)}</td>
+        <td style="font-size:0.75rem;color:var(--text-3)">${u.deleted_by || 'admin'}</td>
+        <td>${hasComplaints ? `<button onclick="toggleComplaints('dc-${i}')" style="font-size:0.7rem;background:#e0f7fa;color:#006978;border:1px solid #b2ebf2;border-radius:6px;padding:3px 10px;cursor:pointer;font-weight:700;">📋 View</button>` : '<span style="font-size:0.7rem;color:var(--text-3)">—</span>'}</td>
+      </tr>
+      <tr id="dc-${i}" style="display:none">
+        <td colspan="8" style="padding:0 1rem 0.8rem 2.5rem">
+          <div style="font-size:0.72rem;font-weight:700;color:#b91c1c;margin-bottom:0.4rem">📂 Complaint History (${u.complaints_count || 0})</div>
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:0.72rem">
+              <thead><tr style="background:#f1f5f9">
+                <th style="padding:5px 8px;text-align:left">No.</th>
+                <th style="padding:5px 8px;text-align:left">Title</th>
+                <th style="padding:5px 8px;text-align:left">Category</th>
+                <th style="padding:5px 8px;text-align:left">Status</th>
+                <th style="padding:5px 8px;text-align:left">Priority</th>
+                <th style="padding:5px 8px;text-align:left">Official</th>
+                <th style="padding:5px 8px;text-align:left">Filed On</th>
+              </tr></thead>
+              <tbody>${cRows}</tbody>
+            </table>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+
     box.innerHTML = `<div style="overflow-x:auto">
-      <table style="min-width:650px;width:100%">
+      <table style="min-width:700px;width:100%">
         <thead><tr>
           <th>#</th><th>Name</th><th>Email</th><th>Phone</th>
-          <th>Complaints</th><th>Deleted On</th><th>Deleted By</th>
+          <th>Complaints</th><th>Deleted On</th><th>Deleted By</th><th>History</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;
+  }
+
+  function toggleComplaints(id) {
+    const row = document.getElementById(id);
+    row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
   }
 
   // Simple toast (reuse if app.js has one, else fallback alert)

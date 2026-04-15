@@ -308,13 +308,23 @@ const deleteUser = async (req, res) => {
     const [[user]] = await db.query('SELECT id, email, full_name, phone FROM users WHERE id = ?', [id]);
     if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
 
-    // Count complaints before deletion for audit record
-    const [[{ ccount }]] = await db.query('SELECT COUNT(*) as ccount FROM complaints WHERE user_id = ?', [id]);
+    // Fetch full complaint records BEFORE deletion for audit
+    const [complaints] = await db.query(
+      `SELECT c.complaint_no, c.title, c.description, c.status, c.priority,
+              c.address, c.created_at, c.resolved_at,
+              cat.name AS category, o.full_name AS assigned_official,
+              c.official_remarks
+       FROM complaints c
+       LEFT JOIN categories cat ON cat.id = c.category_id
+       LEFT JOIN officials o ON o.id = c.official_id
+       WHERE c.user_id = ?
+       ORDER BY c.created_at DESC`,
+      [id]
+    );
 
     // Delete related records first to avoid FK constraint errors
-    const [comp] = await db.query('SELECT id FROM complaints WHERE user_id = ?', [id]);
-    if (comp.length > 0) {
-      const cIds = comp.map(c => c.id);
+    if (complaints.length > 0) {
+      const cIds = (await db.query('SELECT id FROM complaints WHERE user_id = ?', [id]))[0].map(c => c.id);
       await db.query('DELETE FROM complaint_photos   WHERE complaint_id IN (?)', [cIds]);
       await db.query('DELETE FROM complaint_comments WHERE complaint_id IN (?)', [cIds]);
       await db.query('DELETE FROM complaint_timeline WHERE complaint_id IN (?)', [cIds]).catch(() => {});
@@ -324,11 +334,12 @@ const deleteUser = async (req, res) => {
 
     await db.query('DELETE FROM users WHERE id = ?', [id]);
 
-    // Save audit record of deleted user
+    // Save audit record with full complaint history as JSON
     await db.query(
-      `INSERT INTO deleted_users (original_user_id, full_name, email, phone, complaints_count, deleted_by)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [user.id, user.full_name || '', user.email || '', user.phone || null, Number(ccount), 'admin']
+      `INSERT INTO deleted_users (original_user_id, full_name, email, phone, complaints_count, complaints_data, deleted_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [user.id, user.full_name || '', user.email || '', user.phone || null,
+       complaints.length, JSON.stringify(complaints), 'admin']
     ).catch(e => console.warn('Audit record insert failed:', e.message));
 
     // Send deletion email to the user
@@ -353,9 +364,14 @@ const deleteUser = async (req, res) => {
 const getDeletedUsers = async (req, res) => {
   try {
     const [rows] = await db.query(
-      `SELECT id, original_user_id, full_name, email, phone, complaints_count, deleted_at, deleted_by
+      `SELECT id, original_user_id, full_name, email, phone, complaints_count, complaints_data, deleted_at, deleted_by
        FROM deleted_users ORDER BY deleted_at DESC`
     );
+    // Parse complaints_data JSON
+    rows.forEach(r => {
+      try { r.complaints_data = r.complaints_data ? JSON.parse(r.complaints_data) : []; }
+      catch { r.complaints_data = []; }
+    });
     res.json({ success: true, data: rows });
   } catch (err) {
     console.error('Get deleted users error:', err);
