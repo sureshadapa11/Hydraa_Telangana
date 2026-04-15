@@ -991,11 +991,13 @@ const seedDemoComplaints = async (req, res) => {
   try {
     const [categories] = await db.query('SELECT id, name FROM categories ORDER BY id');
     const [districts]  = await db.query('SELECT id FROM districts LIMIT 15');
-    const [users]      = await db.query("SELECT id FROM users WHERE role IN ('citizen','user') ORDER BY id LIMIT 10");
+    // Use any user — citizen preferred, but falls back to admin so seeding always works
+    let [users] = await db.query("SELECT id FROM users WHERE role = 'citizen' ORDER BY id LIMIT 10");
+    if (!users.length) [users] = await db.query('SELECT id FROM users ORDER BY id LIMIT 10');
 
     if (!categories.length) return res.status(400).json({ success: false, message: 'No categories found. Boot server first.' });
-    if (!districts.length)  return res.status(400).json({ success: false, message: 'No districts found.' });
-    if (!users.length)      return res.status(400).json({ success: false, message: 'No citizen users found. Register a citizen account first.' });
+    if (!districts.length)  return res.status(400).json({ success: false, message: 'No districts found. Seed districts first.' });
+    if (!users.length)      return res.status(400).json({ success: false, message: 'No users found at all.' });
 
     const catMap  = Object.fromEntries(categories.map(c => [c.name, c.id]));
     const distIds = districts.map(d => d.id);
