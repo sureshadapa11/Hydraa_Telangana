@@ -634,7 +634,15 @@ async function ensureDeletedUsersTable() {
       )
     `);
     // Add complaints_data column to existing tables that were created before this column existed
-    await db.query(`ALTER TABLE deleted_users ADD COLUMN IF NOT EXISTS complaints_data MEDIUMTEXT DEFAULT NULL`).catch(() => {});
+    const [duCols] = await db.query(
+      `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'deleted_users'`
+    );
+    const duColNames = duCols.map(c => c.COLUMN_NAME);
+    if (!duColNames.includes('complaints_data')) {
+      await db.query(`ALTER TABLE deleted_users ADD COLUMN complaints_data MEDIUMTEXT DEFAULT NULL`);
+      console.log('✅ deleted_users.complaints_data column added');
+    }
     console.log('✅ deleted_users table OK');
   } catch (err) {
     console.warn('⚠️  deleted_users table skipped:', err.message);
