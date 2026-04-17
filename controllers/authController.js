@@ -151,7 +151,13 @@ const loginOfficial = async (req, res) => {
     return res.status(400).json({ success: false, message: 'Email and password are required.' });
 
   try {
-    const [officials] = await db.query('SELECT * FROM officials WHERE email = ? AND is_active = 1', [email]);
+    const [officials] = await db.query(
+      `SELECT o.*, d.name AS district_name
+       FROM officials o
+       LEFT JOIN districts d ON d.id = o.district_id
+       WHERE o.email = ? AND o.is_active = 1`,
+      [email]
+    );
     if (officials.length === 0)
       return res.status(401).json({ success: false, message: 'Invalid credentials or account inactive.' });
 
@@ -165,7 +171,15 @@ const loginOfficial = async (req, res) => {
       success: true,
       message: 'Login successful.',
       token,
-      user: { id: official.id, full_name: official.full_name, email: official.email, department: official.department, role: 'official' },
+      user: {
+        id: official.id,
+        full_name: official.full_name,
+        email: official.email,
+        department: official.department,
+        role: 'official',
+        district_id: official.district_id || null,
+        district_name: official.district_name || null,
+      },
     });
   } catch (err) {
     console.error('Official login error:', err);

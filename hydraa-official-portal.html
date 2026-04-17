@@ -198,9 +198,19 @@
     .done-tag{color:#065f46;font-weight:600;font-size:0.78rem;}
 
     /* Filter bar */
-    .filter-bar{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:0.9rem 1.2rem;margin-bottom:1.2rem;display:flex;gap:0.8rem;flex-wrap:wrap;align-items:center;box-shadow:var(--shadow);}
-    .filter-bar select{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0.52rem 0.85rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.83rem;color:var(--text);background:var(--bg);outline:none;transition:border-color 0.2s;}
-    .filter-bar select:focus{border-color:var(--teal);}
+    .filter-bar{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.2rem;margin-bottom:1.2rem;display:flex;flex-wrap:wrap;gap:0.65rem;align-items:flex-end;box-shadow:var(--shadow);}
+    .fb-group{display:flex;flex-direction:column;gap:0.25rem;}
+    .fb-label{font-size:0.67rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.07em;}
+    .filter-bar select,.filter-bar input[type=text],.filter-bar input[type=date]{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0.45rem 0.75rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.82rem;color:var(--text);background:var(--bg);outline:none;transition:border-color 0.2s;height:34px;}
+    .filter-bar select:focus,.filter-bar input:focus{border-color:var(--teal);}
+    .filter-bar select:disabled{opacity:0.7;cursor:not-allowed;background:rgba(0,151,167,0.06);border-color:rgba(0,151,167,0.3);color:var(--teal);font-weight:600;}
+    .fb-search{flex:1;min-width:160px;}
+    .fb-search input{width:100%;height:34px;}
+    .fb-reset{padding:0 0.85rem;height:34px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:'Plus Jakarta Sans',sans-serif;font-size:0.8rem;font-weight:700;color:var(--text-2);cursor:pointer;transition:all 0.18s;white-space:nowrap;}
+    .fb-reset:hover{border-color:var(--teal);color:var(--teal);}
+    .fb-divider{width:1px;height:34px;background:var(--border);align-self:flex-end;flex-shrink:0;}
+    .fb-count{font-size:0.75rem;color:var(--text-3);font-weight:600;align-self:center;white-space:nowrap;}
+    .fb-district-lock{font-size:0.6rem;color:var(--teal);font-weight:700;margin-top:2px;display:none;}
 
     /* Update action btn */
     .upd-btn{padding:5px 12px;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:6px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.18s;white-space:nowrap;}
@@ -488,20 +498,61 @@
       <!-- ═ COMPLAINTS VIEW ═ -->
       <div class="view" id="view-complaints">
         <div class="filter-bar">
-          <span style="font-size:0.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.07em;">Filter:</span>
-          <select id="filterStatus" onchange="filterComplaints()">
-            <option value="">All Statuses</option>
-            <option value="assigned">Assigned</option>
-            <option value="in_progress">In Progress</option>
-            <option value="resolved">Resolved</option>
-          </select>
-          <select id="filterPriority" onchange="filterComplaints()">
-            <option value="">All Priorities</option>
-            <option value="urgent">🚨 Urgent</option>
-            <option value="high">🔴 High</option>
-            <option value="medium">🟡 Medium</option>
-            <option value="low">🟢 Low</option>
-          </select>
+          <!-- Status -->
+          <div class="fb-group">
+            <span class="fb-label">Status</span>
+            <select id="filterStatus" onchange="filterComplaints()">
+              <option value="">All Statuses</option>
+              <option value="assigned">Assigned</option>
+              <option value="in_progress">In Progress</option>
+              <option value="resolved">Resolved</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
+          <!-- Category -->
+          <div class="fb-group">
+            <span class="fb-label">Category</span>
+            <select id="filterCategory" onchange="filterComplaints()">
+              <option value="">All Categories</option>
+            </select>
+          </div>
+          <!-- District -->
+          <div class="fb-group">
+            <span class="fb-label">District</span>
+            <select id="filterDistrict" onchange="filterComplaints()">
+              <option value="">All Districts</option>
+            </select>
+            <span class="fb-district-lock" id="districtLockNote">🔒 Your district</span>
+          </div>
+          <!-- Priority -->
+          <div class="fb-group">
+            <span class="fb-label">Priority</span>
+            <select id="filterPriority" onchange="filterComplaints()">
+              <option value="">All Priorities</option>
+              <option value="urgent">🚨 Urgent</option>
+              <option value="high">🔴 High</option>
+              <option value="medium">🟡 Medium</option>
+              <option value="low">🟢 Low</option>
+            </select>
+          </div>
+          <!-- Date range -->
+          <div class="fb-group">
+            <span class="fb-label">Date From</span>
+            <input type="date" id="filterDateFrom" onchange="filterComplaints()"/>
+          </div>
+          <div class="fb-group">
+            <span class="fb-label">Date To</span>
+            <input type="date" id="filterDateTo" onchange="filterComplaints()"/>
+          </div>
+          <div class="fb-divider"></div>
+          <!-- Search -->
+          <div class="fb-group fb-search">
+            <span class="fb-label">Search</span>
+            <input type="text" id="filterSearch" placeholder="Complaint no. or title…" oninput="filterComplaints()"/>
+          </div>
+          <!-- Reset + count -->
+          <button class="fb-reset" onclick="resetFilters()">↺ Reset</button>
+          <span class="fb-count" id="fbCount"></span>
         </div>
 
         <div class="table-card">
@@ -730,8 +781,39 @@ async function loadComplaints() {
     if (!res.success) return;
     allComplaints = res.data;
     updateDashboard();
+    _populateFilterDropdowns();
     filterComplaints();
   } catch(err) { console.error(err); }
+}
+
+function _populateFilterDropdowns() {
+  // Category dropdown
+  const cats = [...new Map(allComplaints.filter(c=>c.category_name).map(c=>[c.category_name, c.category_name])).values()].sort();
+  const catSel = document.getElementById('filterCategory');
+  catSel.innerHTML = '<option value="">All Categories</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+
+  // District dropdown — smart single vs multi
+  const districts = [...new Set(allComplaints.filter(c=>c.district_name).map(c=>c.district_name))].sort();
+  const user = Auth.getUser();
+  const distSel = document.getElementById('filterDistrict');
+  const lockNote = document.getElementById('districtLockNote');
+
+  if (districts.length === 0 && user && user.district_name) {
+    // No complaints yet but user has a district — pre-populate
+    distSel.innerHTML = `<option value="${user.district_name}">${user.district_name}</option>`;
+    distSel.disabled = true;
+    lockNote.style.display = 'block';
+  } else if (districts.length === 1) {
+    // All complaints in one district — lock it
+    distSel.innerHTML = `<option value="${districts[0]}">${districts[0]}</option>`;
+    distSel.disabled = true;
+    lockNote.style.display = 'block';
+  } else {
+    // Multiple districts — free dropdown
+    distSel.innerHTML = '<option value="">All Districts</option>' + districts.map(d=>`<option value="${d}">${d}</option>`).join('');
+    distSel.disabled = false;
+    lockNote.style.display = 'none';
+  }
 }
 
 function updateDashboard() {
@@ -791,20 +873,52 @@ function taskItem(x) {
   </div>`;
 }
 
+function resetFilters() {
+  document.getElementById('filterStatus').value   = '';
+  document.getElementById('filterCategory').value = '';
+  if (!document.getElementById('filterDistrict').disabled)
+    document.getElementById('filterDistrict').value = '';
+  document.getElementById('filterPriority').value  = '';
+  document.getElementById('filterDateFrom').value  = '';
+  document.getElementById('filterDateTo').value    = '';
+  document.getElementById('filterSearch').value    = '';
+  filterComplaints();
+}
+
 function filterComplaints() {
-  const status = document.getElementById('filterStatus').value;
-  const prio   = document.getElementById('filterPriority').value;
+  const status    = document.getElementById('filterStatus').value;
+  const category  = document.getElementById('filterCategory').value;
+  const district  = document.getElementById('filterDistrict').value;
+  const prio      = document.getElementById('filterPriority').value;
+  const dateFrom  = document.getElementById('filterDateFrom').value;
+  const dateTo    = document.getElementById('filterDateTo').value;
+  const search    = document.getElementById('filterSearch').value.trim().toLowerCase();
+
   let data = allComplaints;
-  if (status) data = data.filter(c => c.status === status);
-  if (prio)   data = data.filter(c => c.priority === prio);
+  if (status)   data = data.filter(c => c.status === status);
+  if (category) data = data.filter(c => c.category_name === category);
+  if (district) data = data.filter(c => c.district_name === district);
+  if (prio)     data = data.filter(c => c.priority === prio);
+  if (dateFrom) data = data.filter(c => c.created_at && c.created_at.slice(0,10) >= dateFrom);
+  if (dateTo)   data = data.filter(c => c.created_at && c.created_at.slice(0,10) <= dateTo);
+  if (search)   data = data.filter(c =>
+    (c.complaint_no||'').toLowerCase().includes(search) ||
+    (c.title||'').toLowerCase().includes(search)
+  );
+
+  const countEl = document.getElementById('fbCount');
+  if (countEl) countEl.textContent = data.length === allComplaints.length
+    ? `${allComplaints.length} complaints`
+    : `${data.length} of ${allComplaints.length}`;
 
   document.getElementById('complaintsTable').innerHTML = data.length === 0
     ? '<div class="empty"><div class="empty-icon">📭</div><p>No complaints match your filters</p></div>'
-    : `<div style="overflow-x:auto"><table><thead><tr><th>No.</th><th>Title</th><th>Category</th><th>Citizen</th><th>Priority</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+    : `<div style="overflow-x:auto"><table><thead><tr><th>No.</th><th>Title</th><th>Category</th><th>District</th><th>Citizen</th><th>Priority</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
        <tbody>${data.map(c=>`<tr>
          <td><span class="cno">${c.complaint_no}</span></td>
-         <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.title}"><strong>${c.title}</strong></td>
+         <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.title}"><strong>${c.title}</strong></td>
          <td style="font-size:0.78rem">${c.category_name||'—'}</td>
+         <td style="font-size:0.78rem;white-space:nowrap">${c.district_name||'—'}</td>
          <td>${c.user_name}</td>
          <td>${pb(c.priority)}</td>
          <td>${sb(c.status)}</td>
