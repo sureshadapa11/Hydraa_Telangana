@@ -461,7 +461,7 @@
       title: 'Restore Account',
       msg: `Restore account for "${name}" (${email})?\n\nA temporary password will be generated and emailed directly to the citizen.`,
       btnLabel: 'Restore',
-      btnClass: '',
+      btnClass: 'success',
       action: async () => {
         const res = await http.post(`/api/admin/users/deleted/${auditId}/restore`, {});
         if (res.success) {
