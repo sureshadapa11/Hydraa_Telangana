@@ -291,6 +291,14 @@
 <script>
   Auth.requireLogin('user');
   Auth.startSessionCheck();
+  // Instant logout if admin deletes this account from another tab
+  window.addEventListener('storage', function(e) {
+    if (e.key === 'hydraa_kick_user') {
+      var kicked = (e.newValue || '').split(':')[0];
+      var me = (Auth.getUser() || {}).id;
+      if (me && String(me) === String(kicked)) Auth.logout();
+    }
+  });
 
   const user = Auth.getUser();
   if (user) {

@@ -239,7 +239,7 @@
   </div>
 </div>
 
-<script src="http-client.js"></script><script src="app.js"></script>
+<script>window.HYDRAA_TOKEN_KEY="hydraa_admin_token";window.HYDRAA_USER_KEY="hydraa_admin_user";</script><script src="http-client.js"></script><script src="app.js"></script>
 <script>
   if (Auth.isLoggedIn() && Auth.getUser()?.role === 'admin') {
     window.location.href = '/hydraa-admin-dashboard.html';

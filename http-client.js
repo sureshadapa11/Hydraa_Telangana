@@ -4,21 +4,28 @@
 //   Include in all pages: <script src="http-client.js"></script>
 // =====================================================
 
+// Each portal sets its own key before loading this file to prevent token collision
+// Admin pages:   window.HYDRAA_TOKEN_KEY = 'hydraa_admin_token'
+// Official page: window.HYDRAA_TOKEN_KEY = 'hydraa_official_token'
+// Citizen pages: (default) 'hydraa_token'
+const _TOKEN_KEY = (typeof window !== 'undefined' && window.HYDRAA_TOKEN_KEY) || 'hydraa_token';
+const _USER_KEY  = (typeof window !== 'undefined' && window.HYDRAA_USER_KEY)  || 'hydraa_user';
+
 const http = {
   // Get token from localStorage
   getToken() {
-    return localStorage.getItem('hydraa_token') || null;
+    return localStorage.getItem(_TOKEN_KEY) || null;
   },
 
   // Set token
   setToken(token) {
-    if (token) localStorage.setItem('hydraa_token', token);
-    else localStorage.removeItem('hydraa_token');
+    if (token) localStorage.setItem(_TOKEN_KEY, token);
+    else localStorage.removeItem(_TOKEN_KEY);
   },
 
   // Clear token
   clearToken() {
-    localStorage.removeItem('hydraa_token');
+    localStorage.removeItem(_TOKEN_KEY);
   },
 
   // Build headers with auth
@@ -46,7 +53,7 @@ const http = {
       const onLoginPage = path.includes('login') || path.includes('forgot-password');
       if (!onLoginPage) {
         this.clearToken();
-        localStorage.removeItem('hydraa_user');
+        localStorage.removeItem(_USER_KEY);
         if (path.includes('official')) {
           window.location.href = '/hydraa-official-portal.html';
         } else if (path.includes('admin')) {
@@ -142,13 +149,13 @@ const http = {
 // Auth utility for local state
 const Auth = {
   setUser(user, token) {
-    localStorage.setItem('hydraa_user', JSON.stringify(user));
+    localStorage.setItem(_USER_KEY, JSON.stringify(user));
     http.setToken(token);
   },
 
   getUser() {
     try {
-      return JSON.parse(localStorage.getItem('hydraa_user')) || null;
+      return JSON.parse(localStorage.getItem(_USER_KEY)) || null;
     } catch {
       return null;
     }
@@ -165,7 +172,7 @@ const Auth = {
   },
 
   logout() {
-    localStorage.removeItem('hydraa_user');
+    localStorage.removeItem(_USER_KEY);
     http.clearToken();
     const isAdmin = window.location.pathname.includes('admin');
     window.location.href = isAdmin ? '/hydraa-admin-login.html' : '/hydraa-login.html';
