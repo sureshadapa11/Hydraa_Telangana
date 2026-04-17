@@ -107,7 +107,7 @@
     .confirm-icon{font-size:2.2rem;margin-bottom:0.5rem;}
     .confirm-body{padding:1.8rem 1.5rem;text-align:center;}
     .confirm-title{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;color:var(--navy);margin-bottom:0.4rem;}
-    .confirm-msg{font-size:0.85rem;color:var(--text-2);line-height:1.5;}
+    .confirm-msg{font-size:0.85rem;color:var(--text-2);line-height:1.5;white-space:pre-wrap;}
     .confirm-actions{display:flex;gap:0.6rem;padding:1rem 1.5rem;border-top:1px solid var(--border);justify-content:flex-end;}
     .btn-cancel{padding:0.5rem 1.1rem;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg);font-size:0.82rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
     .btn-confirm{padding:0.5rem 1.2rem;border-radius:var(--radius-sm);border:none;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;color:#fff;}
@@ -459,7 +459,7 @@
     showConfirm({
       icon: '♻️',
       title: 'Restore Account',
-      msg: `Restore account for <strong>${name}</strong> (${email})?<br><br>A temporary password will be generated and emailed directly to the citizen.`,
+      msg: `Restore account for "${name}" (${email})?\n\nA temporary password will be generated and emailed directly to the citizen.`,
       btnLabel: 'Restore',
       btnClass: '',
       action: async () => {
