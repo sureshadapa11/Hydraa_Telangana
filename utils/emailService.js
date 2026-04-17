@@ -548,6 +548,44 @@ const sendSafe = async (fn, ...args) => {
   catch (err) { console.error('⚠️ Email send failed (non-critical):', err.message); }
 };
 
+// ─────────────────────────────────────────────────────
+//  ACCOUNT RESTORED — sent to citizen with temp password
+// ─────────────────────────────────────────────────────
+const sendAccountRestored = async ({ to, name, tempPassword, complaintsRestored = 0 }) => {
+  const appUrl = process.env.APP_URL || 'https://hydraa-telangana.up.railway.app';
+  const html = wrap(`
+    <h2 style="font-size:22px;color:#0b1f3a;margin:0 0 8px">Your HYDRAA Account Has Been Restored, ${name}!</h2>
+    <p style="font-size:14px;color:#3d5a72;margin:0 0 20px;line-height:1.7">
+      Your citizen account has been reinstated by the HYDRAA administrator. You can log in immediately using the temporary password below.
+    </p>
+
+    <div style="background:#e0f7fa;border:2px solid #0097a7;border-radius:10px;padding:20px 24px;margin-bottom:24px;text-align:center">
+      <p style="font-size:12px;font-weight:700;color:#0097a7;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 8px">Your Temporary Password</p>
+      <p style="font-size:28px;font-weight:700;letter-spacing:0.15em;color:#0b1f3a;margin:0;font-family:monospace">${tempPassword}</p>
+      <p style="font-size:12px;color:#7a9baf;margin:8px 0 0">Please change this password immediately after logging in.</p>
+    </div>
+
+    ${complaintsRestored > 0 ? `
+    <div style="background:#f0fdf4;border-left:4px solid #10b981;border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:20px">
+      <p style="font-size:13px;font-weight:700;color:#065f46;margin:0 0 4px">✅ ${complaintsRestored} Complaint(s) Also Restored</p>
+      <p style="font-size:13px;color:#3d5a72;margin:0">Your previous complaint records have been recovered and are visible in your account.</p>
+    </div>` : ''}
+
+    <div style="background:#fff8e1;border-left:4px solid #f4a820;border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:24px">
+      <p style="font-size:13px;font-weight:700;color:#92400e;margin:0 0 4px">⚠️ Action Required</p>
+      <p style="font-size:13px;color:#3d5a72;margin:0">Log in and change your password from the Change Password page to secure your account.</p>
+    </div>
+
+    ${button('🔑 Login to HYDRAA', `${appUrl}/hydraa-login.html`)}
+  `);
+
+  await sendMail({
+    to,
+    subject: '✅ HYDRAA Account Restored — Your Temporary Password Inside',
+    html,
+  });
+};
+
 module.exports = {
   sendWelcomeEmail,
   sendComplaintConfirmation,
@@ -559,5 +597,6 @@ module.exports = {
   sendAccountDeleted,
   sendOfficialRemoved,
   sendComplaintReassigned,
+  sendAccountRestored,
   sendSafe,
 };

@@ -6,7 +6,7 @@
 const bcrypt = require('bcryptjs');
 const db = require('../utils/db');
 const { v4: uuidv4 } = require('uuid');
-const { sendOfficialWelcome, sendAccountDeleted, sendWelcomeEmail, sendSafe } = require('../utils/emailService');
+const { sendOfficialWelcome, sendAccountDeleted, sendAccountRestored, sendSafe } = require('../utils/emailService');
 
 // ────────────────────────────────────────────────────
 //  CATEGORIES: GET
@@ -515,14 +515,17 @@ const restoreUser = async (req, res) => {
     // Remove audit record
     await db.query('DELETE FROM deleted_users WHERE id = ?', [id]);
 
-    // Welcome email (non-blocking)
-    sendSafe(sendWelcomeEmail, { to: record.email, name: record.full_name });
-    console.log(`[RESTORE] ${record.full_name} <${record.email}> temp password: ${tempPassword}`);
+    // Email the citizen their temp password directly
+    sendSafe(sendAccountRestored, {
+      to: record.email,
+      name: record.full_name,
+      tempPassword,
+      complaintsRestored,
+    });
 
     res.json({
       success: true,
-      message: `Account restored for ${record.full_name} with ${complaintsRestored} complaint(s).`,
-      temp_password: tempPassword,
+      message: `Account restored for ${record.full_name}. Temporary password sent to ${record.email}.`,
       email: record.email,
       complaints_restored: complaintsRestored,
       full_restore: isV2,
