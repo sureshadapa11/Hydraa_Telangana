@@ -387,6 +387,12 @@ const getDeletedUsers = async (req, res) => {
   }
 };
 
+// Convert any date value (ISO string or Date object) to MySQL DATETIME string
+const toMySQL = (val) => {
+  if (!val) return null;
+  try { return new Date(val).toISOString().slice(0, 19).replace('T', ' '); } catch { return null; }
+};
+
 // ────────────────────────────────────────────────────
 //  RESTORE DELETED USER (account + all complaints)
 // ────────────────────────────────────────────────────
@@ -446,7 +452,7 @@ const restoreUser = async (req, res) => {
            c.status, c.admin_remarks || null, c.official_remarks || null,
            c.land_district || null, c.land_mandal || null, c.land_village || null,
            c.land_address || null, c.land_survey_no || null, c.khata_no || null,
-           c.created_at, c.resolved_at || null]
+           toMySQL(c.created_at), toMySQL(c.resolved_at)]
         );
         const newCId = cRes.insertId;
 
@@ -455,7 +461,7 @@ const restoreUser = async (req, res) => {
           await db.query(
             `INSERT INTO complaint_history (complaint_id, old_status, new_status, changed_by_id, changed_by_role, remarks, changed_at)
              VALUES (?,?,?,?,?,?,?)`,
-            [newCId, h.old_status, h.new_status, h.changed_by_id || null, h.changed_by_role, h.remarks || null, h.changed_at]
+            [newCId, h.old_status, h.new_status, h.changed_by_id || null, h.changed_by_role, h.remarks || null, toMySQL(h.changed_at)]
           ).catch(() => {});
         }
 
@@ -464,7 +470,7 @@ const restoreUser = async (req, res) => {
           await db.query(
             `INSERT INTO complaint_comments (complaint_id, author_id, author_role, author_name, message, is_internal, created_at)
              VALUES (?,?,?,?,?,?,?)`,
-            [newCId, cm.author_id || null, cm.author_role, cm.author_name, cm.message, cm.is_internal || 0, cm.created_at]
+            [newCId, cm.author_id || null, cm.author_role, cm.author_name, cm.message, cm.is_internal || 0, toMySQL(cm.created_at)]
           ).catch(() => {});
         }
 
@@ -473,7 +479,7 @@ const restoreUser = async (req, res) => {
           await db.query(
             `INSERT INTO complaint_ratings (complaint_id, user_id, rating, comment, created_at)
              VALUES (?,?,?,?,?)`,
-            [newCId, newUserId, r.rating, r.comment || null, r.created_at]
+            [newCId, newUserId, r.rating, r.comment || null, toMySQL(r.created_at)]
           ).catch(() => {});
         }
 
@@ -505,7 +511,7 @@ const restoreUser = async (req, res) => {
            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
           [complaint_no, newUserId, c.title, c.description, category_id,
            c.priority, c.address, official_id, c.status, c.official_remarks || null,
-           c.created_at, c.resolved_at || null]
+           toMySQL(c.created_at), toMySQL(c.resolved_at)]
         ).catch(() => {});
 
         complaintsRestored++;
