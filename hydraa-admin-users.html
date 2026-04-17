@@ -410,7 +410,10 @@
         <td style="text-align:center;font-weight:700;color:var(--teal)">${u.complaints_count || 0}</td>
         <td style="font-size:0.75rem;white-space:nowrap">${formatDate(u.deleted_at)}</td>
         <td style="font-size:0.75rem;color:var(--text-3)">${u.deleted_by || 'admin'}</td>
-        <td>${hasComplaints ? `<button onclick="toggleComplaints('dc-${i}')" style="font-size:0.7rem;background:#e0f7fa;color:#006978;border:1px solid #b2ebf2;border-radius:6px;padding:3px 10px;cursor:pointer;font-weight:700;">📋 View</button>` : '<span style="font-size:0.7rem;color:var(--text-3)">—</span>'}</td>
+        <td style="white-space:nowrap;display:flex;gap:0.4rem;align-items:center">
+          ${hasComplaints ? `<button onclick="toggleComplaints('dc-${i}')" style="font-size:0.7rem;background:#e0f7fa;color:#006978;border:1px solid #b2ebf2;border-radius:6px;padding:3px 10px;cursor:pointer;font-weight:700;">📋 View</button>` : '<span style="font-size:0.7rem;color:var(--text-3)">—</span>'}
+          <button onclick="restoreUser(${u.id}, '${(u.full_name||'').replace(/'/g,"\\'")}', '${u.email}')" style="font-size:0.7rem;background:#d1fae5;color:#065f46;border:1px solid #6ee7b7;border-radius:6px;padding:3px 10px;cursor:pointer;font-weight:700;">♻️ Restore</button>
+        </td>
       </tr>
       <tr id="dc-${i}" style="display:none">
         <td colspan="8" style="padding:0 1rem 0.8rem 2.5rem">
@@ -437,7 +440,7 @@
       <table style="min-width:700px;width:100%">
         <thead><tr>
           <th>#</th><th>Name</th><th>Email</th><th>Phone</th>
-          <th>Complaints</th><th>Deleted On</th><th>Deleted By</th><th>History</th>
+          <th>Complaints</th><th>Deleted On</th><th>Deleted By</th><th>Actions</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
@@ -447,6 +450,22 @@
   function toggleComplaints(id) {
     const row = document.getElementById(id);
     row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+  }
+
+  async function restoreUser(auditId, name, email) {
+    if (!confirm(`Restore account for ${name} (${email})?\n\nA temporary password will be generated. Share it with the citizen so they can log in and change it.`)) return;
+    const res = await http.post(`/api/admin/users/deleted/${auditId}/restore`, {});
+    if (res.success) {
+      showToast(`✅ Account restored for ${name}`, 'success');
+      // Show the temp password prominently so admin can share it
+      setTimeout(() => {
+        alert(`Account restored!\n\nName: ${name}\nEmail: ${email}\nTemporary Password: ${res.temp_password}\n\nPlease share this password with the citizen. They should change it after logging in.`);
+      }, 300);
+      loadDeletedUsers();
+      loadUsers();
+    } else {
+      showToast(res.message || 'Restore failed.', 'error');
+    }
   }
 
   // Simple toast (reuse if app.js has one, else fallback alert)

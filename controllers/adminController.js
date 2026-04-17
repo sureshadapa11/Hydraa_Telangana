@@ -6,7 +6,7 @@
 const bcrypt = require('bcryptjs');
 const db = require('../utils/db');
 const { v4: uuidv4 } = require('uuid');
-const { sendOfficialWelcome, sendAccountDeleted, sendSafe } = require('../utils/emailService');
+const { sendOfficialWelcome, sendAccountDeleted, sendWelcomeEmail, sendSafe } = require('../utils/emailService');
 
 // ────────────────────────────────────────────────────
 //  CATEGORIES: GET
@@ -375,6 +375,61 @@ const getDeletedUsers = async (req, res) => {
     res.json({ success: true, data: rows });
   } catch (err) {
     console.error('Get deleted users error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+// ────────────────────────────────────────────────────
+//  RESTORE DELETED USER
+// ────────────────────────────────────────────────────
+const restoreUser = async (req, res) => {
+  const { id } = req.params; // deleted_users.id (audit record)
+  try {
+    const [[record]] = await db.query(
+      'SELECT * FROM deleted_users WHERE id = ?', [id]
+    );
+    if (!record) return res.status(404).json({ success: false, message: 'Deleted user record not found.' });
+
+    // Check if email already exists (e.g. re-registered after deletion)
+    const [existing] = await db.query('SELECT id FROM users WHERE email = ?', [record.email]);
+    if (existing.length > 0) {
+      return res.status(409).json({
+        success: false,
+        message: `An account with email ${record.email} already exists. Cannot restore.`,
+      });
+    }
+
+    // Generate a random temporary password
+    const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase();
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+    // Re-insert the user
+    await db.query(
+      'INSERT INTO users (name, full_name, email, phone, password, is_verified, created_at) VALUES (?, ?, ?, ?, ?, 1, NOW())',
+      [record.full_name, record.full_name, record.email, record.phone || null, hashedPassword]
+    );
+
+    // Remove from deleted_users audit log
+    await db.query('DELETE FROM deleted_users WHERE id = ?', [id]);
+
+    // Email the citizen their temporary password (non-blocking)
+    sendSafe(sendWelcomeEmail, { to: record.email, name: record.full_name });
+    // Also send temp password via a plain email
+    sendSafe(async ({ to, name, password }) => {
+      const { sendPasswordChangedEmail } = require('../utils/emailService');
+      // Reuse password changed email template or send a custom note
+      // We'll just log it for now since there's no "account restored" template
+      console.log(`[RESTORE] ${name} <${to}> temp password: ${password}`);
+    }, { to: record.email, name: record.full_name, password: tempPassword });
+
+    res.json({
+      success: true,
+      message: `Account restored for ${record.full_name}. Temporary password: ${tempPassword}`,
+      temp_password: tempPassword,
+      email: record.email,
+    });
+  } catch (err) {
+    console.error('Restore user error:', err);
     res.status(500).json({ success: false, message: 'Server error.' });
   }
 };
@@ -999,6 +1054,7 @@ module.exports = {
   activateUser,
   deleteUser,
   getDeletedUsers,
+  restoreUser,
   getUserLogs,
   getStates,
   createState,
