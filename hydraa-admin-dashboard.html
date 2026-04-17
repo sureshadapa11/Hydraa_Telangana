@@ -431,9 +431,13 @@
       <div id="currentOfficialInfo" style="display:none;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:0.78rem;color:#92400e;">
         <strong>Current Official:</strong> <span id="currentOfficialName"></span>
       </div>
+      <div id="assignMatchBanner" style="display:none;border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:0.76rem;font-weight:600;"></div>
       <div class="m-field">
         <label class="m-label" id="assignSelLabel">Select Official <span>*</span></label>
         <select id="assignOfficialSel" class="m-select"><option value="">— Choose Official —</option></select>
+      </div>
+      <div id="assignShowAll" style="display:none;margin-top:6px;">
+        <button type="button" onclick="showAllOfficials()" style="background:none;border:none;color:var(--teal);font-size:0.75rem;font-weight:600;cursor:pointer;padding:0;text-decoration:underline;">Show all officials instead →</button>
       </div>
       <div class="m-field">
         <label class="m-label">Remarks / Instructions</label>
@@ -618,6 +622,9 @@ async function loadDashboard() {
       </div>`;
     }).join('');
 
+    // Keep allComplaints in sync for assign modal category lookup
+    if (recent) recent.forEach(c => { if (!allComplaints.find(x => x.id === c.id)) allComplaints.push(c); });
+
     // Recent table
     if (!recent||recent.length===0) {
       document.getElementById('recentTable').innerHTML = `<div class="empty"><div class="empty-icon">📭</div><h3>No complaints yet</h3><p>Complaints will appear here once citizens start filing</p></div>`;
@@ -695,6 +702,8 @@ async function loadComplaints() {
     }
 
     let data = res.data;
+    // Keep allComplaints in sync so assign modal can look up category by id
+    data.forEach(c => { if (!allComplaints.find(x => x.id === c.id)) allComplaints.push(c); });
 
     document.getElementById('cTotal').textContent = data.length;
     document.getElementById('cUnassigned').textContent = data.filter(c=>!c.official_name).length;
@@ -740,14 +749,66 @@ async function loadComplaints() {
 }
 
 // Modal functions
+// Returns officials whose department matches the complaint category
+function getMatchedOfficials(categoryName) {
+  if (!categoryName) return null;
+  const stopWords = new Set(['the','and','or','of','in','on','at','by','for','with','from','to','a','an','issue','violation','obstruction']);
+  const catWords = categoryName.toLowerCase().split(/[\s\/\-&,]+/).filter(w => w.length > 2 && !stopWords.has(w));
+  const matched = officials.filter(o => {
+    const dept = (o.department || '').toLowerCase();
+    return catWords.some(w => dept.includes(w));
+  });
+  return matched.length ? matched : null;
+}
+
+function _fillOfficialSelect(list) {
+  const sel = document.getElementById('assignOfficialSel');
+  sel.innerHTML = '<option value="">— Choose Official —</option>';
+  list.forEach(o => {
+    const depts = (o.department||'').split(',').map(d=>d.trim()).filter(Boolean);
+    const deptLabel = depts.length > 1 ? depts[0] + ' +' + (depts.length-1) + ' more' : (depts[0] || 'N/A');
+    sel.innerHTML += `<option value="${o.id}">${o.full_name} · ${deptLabel}</option>`;
+  });
+}
+
+function showAllOfficials() {
+  _fillOfficialSelect(officials);
+  const banner = document.getElementById('assignMatchBanner');
+  banner.style.cssText = 'display:block;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:0.76rem;font-weight:600;color:#92400e;';
+  banner.textContent = '⚠️ Showing all officials — select the most suitable one';
+  document.getElementById('assignShowAll').style.display = 'none';
+}
+
 function _populateAssignModal(id, mode, currentOfficialName) {
   document.getElementById('assignId').value = id;
   document.getElementById('assignMode').value = mode;
   document.getElementById('assignRemarksText').value = '';
   document.getElementById('assignMsg').className = 'm-msg';
-  const sel = document.getElementById('assignOfficialSel');
-  sel.innerHTML = '<option value="">— Choose Official —</option>';
-  officials.forEach(o => sel.innerHTML += `<option value="${o.id}">${o.full_name} (${o.department||'N/A'})</option>`);
+
+  // Find complaint category for smart matching
+  const complaint = allComplaints.find(c => c.id === id);
+  const categoryName = complaint ? (complaint.category_name || '') : '';
+  const matched = getMatchedOfficials(categoryName);
+
+  const banner = document.getElementById('assignMatchBanner');
+  const showAllBtn = document.getElementById('assignShowAll');
+
+  if (matched) {
+    _fillOfficialSelect(matched);
+    banner.style.cssText = 'display:block;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:0.76rem;font-weight:600;color:#065f46;';
+    banner.textContent = `✅ ${matched.length} official${matched.length>1?'s':''} matched for "${categoryName}"`;
+    showAllBtn.style.display = 'block';
+  } else {
+    _fillOfficialSelect(officials);
+    if (categoryName) {
+      banner.style.cssText = 'display:block;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:0.76rem;font-weight:600;color:#92400e;';
+      banner.textContent = `⚠️ No department match for "${categoryName}" — showing all officials`;
+    } else {
+      banner.style.display = 'none';
+    }
+    showAllBtn.style.display = 'none';
+  }
+
   const isReassign = mode === 'reassign';
   document.getElementById('assignModalIcon').textContent  = isReassign ? '🔄' : '👷';
   document.getElementById('assignModalTitle').textContent = isReassign ? 'Change Official' : 'Assign to Official';
