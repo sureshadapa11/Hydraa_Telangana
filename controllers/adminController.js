@@ -308,45 +308,53 @@ const deleteUser = async (req, res) => {
     const [[user]] = await db.query('SELECT id, email, full_name, phone FROM users WHERE id = ?', [id]);
     if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
 
-    // Fetch full complaint records BEFORE deletion for audit
-    const [complaints] = await db.query(
-      `SELECT c.complaint_no, c.title, c.description, c.status, c.priority,
-              c.address, c.created_at, c.resolved_at,
-              cat.name AS category, o.full_name AS assigned_official,
-              c.official_remarks
-       FROM complaints c
-       LEFT JOIN categories cat ON cat.id = c.category_id
-       LEFT JOIN officials o ON o.id = c.official_id
-       WHERE c.user_id = ?
-       ORDER BY c.created_at DESC`,
-      [id]
-    );
+    // Fetch ALL complaint rows (every column) before deletion
+    const [complaints] = await db.query('SELECT * FROM complaints WHERE user_id = ?', [id]);
 
-    // Delete related records first to avoid FK constraint errors
+    let snapshot = { format: 'v2', complaints: [] };
+
     if (complaints.length > 0) {
-      const cIds = (await db.query('SELECT id FROM complaints WHERE user_id = ?', [id]))[0].map(c => c.id);
-      await db.query('DELETE FROM complaint_photos   WHERE complaint_id IN (?)', [cIds]);
-      await db.query('DELETE FROM complaint_comments WHERE complaint_id IN (?)', [cIds]);
-      await db.query('DELETE FROM complaint_timeline WHERE complaint_id IN (?)', [cIds]).catch(() => {});
+      const cIds = complaints.map(c => c.id);
+
+      // Capture history, comments and ratings for every complaint
+      const [history] = await db.query(
+        'SELECT * FROM complaint_history WHERE complaint_id IN (?)', [cIds]
+      ).catch(() => [[]]);
+      const [comments] = await db.query(
+        'SELECT * FROM complaint_comments WHERE complaint_id IN (?)', [cIds]
+      ).catch(() => [[]]);
+      const [ratings] = await db.query(
+        'SELECT * FROM complaint_ratings WHERE complaint_id IN (?)', [cIds]
+      ).catch(() => [[]]);
+
+      snapshot.complaints = complaints.map(c => ({
+        ...c,
+        history:  history.filter(h  => h.complaint_id  === c.id),
+        comments: comments.filter(cm => cm.complaint_id === c.id),
+        ratings:  ratings.filter(r  => r.complaint_id  === c.id),
+      }));
+
+      // Delete in correct dependency order
+      await db.query('DELETE FROM complaint_photos   WHERE complaint_id IN (?)', [cIds]).catch(() => {});
+      await db.query('DELETE FROM complaint_comments WHERE complaint_id IN (?)', [cIds]).catch(() => {});
+      await db.query('DELETE FROM complaint_history  WHERE complaint_id IN (?)', [cIds]).catch(() => {});
       await db.query('DELETE FROM complaint_ratings  WHERE complaint_id IN (?)', [cIds]).catch(() => {});
       await db.query('DELETE FROM complaints WHERE user_id = ?', [id]);
     }
 
     await db.query('DELETE FROM users WHERE id = ?', [id]);
 
-    // Save audit record with full complaint history as JSON
+    // Save comprehensive audit record
     await db.query(
       `INSERT INTO deleted_users (original_user_id, full_name, email, phone, complaints_count, complaints_data, deleted_by)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [user.id, user.full_name || '', user.email || '', user.phone || null,
-       complaints.length, JSON.stringify(complaints), 'admin']
+       complaints.length, JSON.stringify(snapshot), 'admin']
     ).catch(e => console.warn('Audit record insert failed:', e.message));
 
-    // Send deletion email to the user
-    console.log('[DELETE USER] Sending deletion email to:', user.email);
+    // Send deletion email
     try {
       await sendAccountDeleted({ to: user.email, name: user.full_name || 'Citizen' });
-      console.log('[DELETE USER] Deletion email sent successfully to:', user.email);
     } catch (emailErr) {
       console.error('[DELETE USER] Failed to send deletion email:', emailErr.message);
     }
@@ -380,17 +388,15 @@ const getDeletedUsers = async (req, res) => {
 };
 
 // ────────────────────────────────────────────────────
-//  RESTORE DELETED USER
+//  RESTORE DELETED USER (account + all complaints)
 // ────────────────────────────────────────────────────
 const restoreUser = async (req, res) => {
-  const { id } = req.params; // deleted_users.id (audit record)
+  const { id } = req.params;
   try {
-    const [[record]] = await db.query(
-      'SELECT * FROM deleted_users WHERE id = ?', [id]
-    );
+    const [[record]] = await db.query('SELECT * FROM deleted_users WHERE id = ?', [id]);
     if (!record) return res.status(404).json({ success: false, message: 'Deleted user record not found.' });
 
-    // Check if email already exists (e.g. re-registered after deletion)
+    // Block if email already active
     const [existing] = await db.query('SELECT id FROM users WHERE email = ?', [record.email]);
     if (existing.length > 0) {
       return res.status(409).json({
@@ -399,34 +405,127 @@ const restoreUser = async (req, res) => {
       });
     }
 
-    // Generate a random temporary password
+    // Parse snapshot — supports both v2 (full) and legacy (display-only) formats
+    let raw;
+    try { raw = JSON.parse(record.complaints_data || '[]'); } catch { raw = []; }
+    const isV2 = raw && raw.format === 'v2';
+    const complaints = isV2 ? (raw.complaints || []) : (Array.isArray(raw) ? raw : []);
+
+    // Generate temp password
     const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase();
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
-    // Re-insert the user
-    await db.query(
+    // Re-insert user
+    const [userResult] = await db.query(
       'INSERT INTO users (name, full_name, email, phone, password, is_verified, created_at) VALUES (?, ?, ?, ?, ?, 1, NOW())',
       [record.full_name, record.full_name, record.email, record.phone || null, hashedPassword]
     );
+    const newUserId = userResult.insertId;
 
-    // Remove from deleted_users audit log
+    let complaintsRestored = 0;
+
+    if (isV2) {
+      // ── Full restore: all columns + history + comments + ratings ──
+      for (const c of complaints) {
+        // Avoid duplicate complaint_no
+        const [dup] = await db.query('SELECT id FROM complaints WHERE complaint_no = ?', [c.complaint_no]);
+        const complaint_no = dup.length > 0 ? `${c.complaint_no}-RS` : c.complaint_no;
+
+        const [cRes] = await db.query(
+          `INSERT INTO complaints
+             (complaint_no, user_id, title, description, category_id, subcategory_id,
+              priority, address, district_id, mandal_id, official_id, status,
+              admin_remarks, official_remarks,
+              land_district, land_mandal, land_village, land_address, land_survey_no, khata_no,
+              created_at, resolved_at)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+          [complaint_no, newUserId, c.title, c.description,
+           c.category_id || null, c.subcategory_id || null,
+           c.priority, c.address,
+           c.district_id || null, c.mandal_id || null, c.official_id || null,
+           c.status, c.admin_remarks || null, c.official_remarks || null,
+           c.land_district || null, c.land_mandal || null, c.land_village || null,
+           c.land_address || null, c.land_survey_no || null, c.khata_no || null,
+           c.created_at, c.resolved_at || null]
+        );
+        const newCId = cRes.insertId;
+
+        // Restore history
+        for (const h of (c.history || [])) {
+          await db.query(
+            `INSERT INTO complaint_history (complaint_id, old_status, new_status, changed_by_id, changed_by_role, remarks, changed_at)
+             VALUES (?,?,?,?,?,?,?)`,
+            [newCId, h.old_status, h.new_status, h.changed_by_id || null, h.changed_by_role, h.remarks || null, h.changed_at]
+          ).catch(() => {});
+        }
+
+        // Restore comments
+        for (const cm of (c.comments || [])) {
+          await db.query(
+            `INSERT INTO complaint_comments (complaint_id, author_id, author_role, author_name, message, is_internal, created_at)
+             VALUES (?,?,?,?,?,?,?)`,
+            [newCId, cm.author_id || null, cm.author_role, cm.author_name, cm.message, cm.is_internal || 0, cm.created_at]
+          ).catch(() => {});
+        }
+
+        // Restore ratings
+        for (const r of (c.ratings || [])) {
+          await db.query(
+            `INSERT INTO complaint_ratings (complaint_id, user_id, rating, comment, created_at)
+             VALUES (?,?,?,?,?)`,
+            [newCId, newUserId, r.rating, r.comment || null, r.created_at]
+          ).catch(() => {});
+        }
+
+        complaintsRestored++;
+      }
+    } else {
+      // ── Legacy format: restore what's available (basic fields only) ──
+      for (const c of complaints) {
+        const [dup] = await db.query('SELECT id FROM complaints WHERE complaint_no = ?', [c.complaint_no]);
+        const complaint_no = dup.length > 0 ? `${c.complaint_no}-RS` : c.complaint_no;
+
+        // Try to resolve category_id from saved name
+        let category_id = null;
+        if (c.category) {
+          const [cats] = await db.query('SELECT id FROM categories WHERE name = ?', [c.category]);
+          if (cats.length) category_id = cats[0].id;
+        }
+        // Try to resolve official_id from saved name
+        let official_id = null;
+        if (c.assigned_official) {
+          const [offs] = await db.query('SELECT id FROM officials WHERE full_name = ?', [c.assigned_official]);
+          if (offs.length) official_id = offs[0].id;
+        }
+
+        await db.query(
+          `INSERT INTO complaints
+             (complaint_no, user_id, title, description, category_id, priority, address,
+              official_id, status, official_remarks, created_at, resolved_at)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+          [complaint_no, newUserId, c.title, c.description, category_id,
+           c.priority, c.address, official_id, c.status, c.official_remarks || null,
+           c.created_at, c.resolved_at || null]
+        ).catch(() => {});
+
+        complaintsRestored++;
+      }
+    }
+
+    // Remove audit record
     await db.query('DELETE FROM deleted_users WHERE id = ?', [id]);
 
-    // Email the citizen their temporary password (non-blocking)
+    // Welcome email (non-blocking)
     sendSafe(sendWelcomeEmail, { to: record.email, name: record.full_name });
-    // Also send temp password via a plain email
-    sendSafe(async ({ to, name, password }) => {
-      const { sendPasswordChangedEmail } = require('../utils/emailService');
-      // Reuse password changed email template or send a custom note
-      // We'll just log it for now since there's no "account restored" template
-      console.log(`[RESTORE] ${name} <${to}> temp password: ${password}`);
-    }, { to: record.email, name: record.full_name, password: tempPassword });
+    console.log(`[RESTORE] ${record.full_name} <${record.email}> temp password: ${tempPassword}`);
 
     res.json({
       success: true,
-      message: `Account restored for ${record.full_name}. Temporary password: ${tempPassword}`,
+      message: `Account restored for ${record.full_name} with ${complaintsRestored} complaint(s).`,
       temp_password: tempPassword,
       email: record.email,
+      complaints_restored: complaintsRestored,
+      full_restore: isV2,
     });
   } catch (err) {
     console.error('Restore user error:', err);

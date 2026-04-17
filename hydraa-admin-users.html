@@ -457,9 +457,11 @@
     const res = await http.post(`/api/admin/users/deleted/${auditId}/restore`, {});
     if (res.success) {
       showToast(`✅ Account restored for ${name}`, 'success');
-      // Show the temp password prominently so admin can share it
       setTimeout(() => {
-        alert(`Account restored!\n\nName: ${name}\nEmail: ${email}\nTemporary Password: ${res.temp_password}\n\nPlease share this password with the citizen. They should change it after logging in.`);
+        const detail = res.full_restore
+          ? `Full restore: account + ${res.complaints_restored} complaint(s) with history, comments & ratings.`
+          : `Partial restore: account + ${res.complaints_restored} complaint(s) (basic fields only — old snapshot format).`;
+        alert(`Account Restored!\n\nName: ${name}\nEmail: ${email}\nTemporary Password: ${res.temp_password}\n\n${detail}\n\nShare this password with the citizen. They should change it after logging in.`);
       }, 300);
       loadDeletedUsers();
       loadUsers();
