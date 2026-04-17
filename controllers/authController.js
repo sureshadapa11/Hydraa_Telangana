@@ -288,6 +288,32 @@ const forgotPasswordReset = async (req, res) => {
   }
 };
 
+// ────────────────────────────────────────────────────
+//  SESSION VERIFY — used by frontend polling to detect deleted/deactivated accounts
+// ────────────────────────────────────────────────────
+const verifySession = async (req, res) => {
+  const { id, role } = req.user;
+  try {
+    let rows;
+    if (role === 'user') {
+      [rows] = await db.query('SELECT id FROM users WHERE id = ?', [id]);
+    } else if (role === 'official') {
+      [rows] = await db.query('SELECT id FROM officials WHERE id = ? AND is_active = 1', [id]);
+    } else if (role === 'admin') {
+      [rows] = await db.query('SELECT id FROM admins WHERE id = ?', [id]);
+    } else {
+      return res.json({ success: true });
+    }
+    if (!rows || rows.length === 0) {
+      return res.status(401).json({ success: false, message: 'Account no longer exists.' });
+    }
+    res.json({ success: true });
+  } catch (err) {
+    // On DB error don't kick out — just say OK and let the next poll retry
+    res.json({ success: true });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -297,4 +323,5 @@ module.exports = {
   changePassword,
   forgotPasswordRequest,
   forgotPasswordReset,
+  verifySession,
 };

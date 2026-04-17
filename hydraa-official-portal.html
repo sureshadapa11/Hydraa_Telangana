@@ -753,6 +753,7 @@ function initDashboard() {
   }
   document.getElementById('tb-date').textContent = new Date().toLocaleDateString('en-IN', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
   loadComplaints();
+  Auth.startSessionCheck();
 }
 
 // Check if already logged in

@@ -713,6 +713,7 @@
   }
 
   Auth.requireLogin('user');
+  Auth.startSessionCheck();
 
   // Populate sidebar & topbar with user info
   const user = Auth.getUser();

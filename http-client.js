@@ -170,4 +170,19 @@ const Auth = {
     const isAdmin = window.location.pathname.includes('admin');
     window.location.href = isAdmin ? '/hydraa-admin-login.html' : '/hydraa-login.html';
   },
+
+  // Poll the server every intervalMs to detect if this account has been deleted/deactivated.
+  // If the server returns 401, http.handleResponse() automatically clears the token and redirects.
+  startSessionCheck(intervalMs = 30000) {
+    if (this._sessionTimer) return; // already running
+    this._sessionTimer = setInterval(async () => {
+      if (!http.getToken()) return;
+      try { await http.get('/api/auth/verify-session'); } catch(e) {}
+    }, intervalMs);
+  },
+
+  stopSessionCheck() {
+    clearInterval(this._sessionTimer);
+    this._sessionTimer = null;
+  },
 };

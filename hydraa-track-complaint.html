@@ -290,6 +290,7 @@
 <script src="http-client.js"></script><script src="app.js"></script>
 <script>
   Auth.requireLogin('user');
+  Auth.startSessionCheck();
 
   const user = Auth.getUser();
   if (user) {

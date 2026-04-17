@@ -15,6 +15,7 @@ const {
   changePassword,
   forgotPasswordRequest,
   forgotPasswordReset,
+  verifySession,
 } = require('../controllers/authController');
 const { verifyToken } = require('../middleware/auth');
 
@@ -31,6 +32,9 @@ router.post('/official/login',   loginOfficial);
 
 // ── All roles: Change password (requires login) ──
 router.put('/change-password', verifyToken, changePassword);
+
+// ── Session validity check (frontend polls this to detect deleted accounts) ──
+router.get('/verify-session', verifyToken, verifySession);
 
 // ── Forgot password (no auth required) ──
 router.post('/forgot-password',        forgotPasswordRequest);  // Step 1: Send OTP

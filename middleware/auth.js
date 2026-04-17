@@ -4,13 +4,12 @@
 // =====================================================
 
 const jwt = require('jsonwebtoken');
-const db  = require('../utils/db');
 require('dotenv').config();
 
 // ────────────────────────────────────────────────────
 //  VERIFY TOKEN
 // ────────────────────────────────────────────────────
-const verifyToken = async (req, res, next) => {
+const verifyToken = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
 
   if (!token) {
@@ -23,27 +22,6 @@ const verifyToken = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
-
-    // Verify account still exists in DB (catches deleted/deactivated accounts mid-session)
-    const { id, role } = decoded;
-    let rows;
-    if (role === 'user') {
-      [rows] = await db.query('SELECT id FROM users WHERE id = ?', [id]);
-    } else if (role === 'official') {
-      [rows] = await db.query('SELECT id FROM officials WHERE id = ? AND is_active = 1', [id]);
-    } else if (role === 'admin') {
-      [rows] = await db.query('SELECT id FROM admins WHERE id = ?', [id]);
-    } else {
-      rows = [{}]; // unknown role — let other middleware handle
-    }
-
-    if (!rows || rows.length === 0) {
-      return res.status(401).json({
-        success: false,
-        message: 'Account no longer exists. Please login again.',
-      });
-    }
-
     next();
   } catch (err) {
     return res.status(401).json({
