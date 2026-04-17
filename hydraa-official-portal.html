@@ -754,6 +754,14 @@ function initDashboard() {
   document.getElementById('tb-date').textContent = new Date().toLocaleDateString('en-IN', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
   loadComplaints();
   Auth.startSessionCheck();
+
+  // Background refresh every 15s — skip if modal open or user is typing
+  setInterval(() => {
+    if (document.querySelector('.modal.open')) return;
+    const el = document.activeElement;
+    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT')) return;
+    loadComplaints();
+  }, 15000);
 }
 
 // Check if already logged in

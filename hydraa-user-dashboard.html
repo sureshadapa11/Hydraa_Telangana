@@ -408,6 +408,13 @@
   }
 
   loadDashboard();
+
+  // Background refresh every 15s — skip if user is typing
+  setInterval(() => {
+    const el = document.activeElement;
+    const busy = el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT');
+    if (!busy) loadDashboard();
+  }, 15000);
 </script>
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js").catch(function(){});}</script>
 

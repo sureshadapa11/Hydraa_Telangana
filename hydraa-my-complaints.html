@@ -593,6 +593,14 @@
   }
 
   loadComplaints();
+
+  // Background refresh every 15s — skip if modal open or user is typing
+  setInterval(() => {
+    if (document.querySelector('.modal.open')) return;
+    const el = document.activeElement;
+    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT')) return;
+    loadComplaints();
+  }, 15000);
 </script>
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js").catch(function(){});}</script>
 

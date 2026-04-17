@@ -995,6 +995,19 @@ async function doBulkAssign() {
 }
 
 init();
+
+// ── Background refresh (15s) — skips if modal open or user is typing ──
+function _isBusy() {
+  if (document.querySelector('.modal.open')) return true;
+  const el = document.activeElement;
+  return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT');
+}
+setInterval(() => {
+  if (_isBusy()) return;
+  const onComplaints = document.getElementById('view-complaints').classList.contains('active');
+  if (onComplaints) loadComplaints();
+  else loadDashboard();
+}, 15000);
 </script>
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js").catch(function(){});}</script>
 
