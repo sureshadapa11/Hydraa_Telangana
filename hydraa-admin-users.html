@@ -455,19 +455,27 @@
     row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
   }
 
-  async function restoreUser(auditId, name, email) {
-    if (!confirm(`Restore account for ${name} (${email})?\n\nA temporary password will be generated. Share it with the citizen so they can log in and change it.`)) return;
-    const res = await http.post(`/api/admin/users/deleted/${auditId}/restore`, {});
-    if (res.success) {
-      const detail = res.full_restore
-        ? `${res.complaints_restored} complaint(s) fully restored (history, comments & ratings included).`
-        : `${res.complaints_restored} complaint(s) restored (basic fields).`;
-      showToast(`✅ Account restored for ${name}. Temporary password emailed to ${email}. ${detail}`, 'success');
-      loadDeletedUsers();
-      loadUsers();
-    } else {
-      showToast(res.message || 'Restore failed.', 'error');
-    }
+  function restoreUser(auditId, name, email) {
+    showConfirm({
+      icon: '♻️',
+      title: 'Restore Account',
+      msg: `Restore account for <strong>${name}</strong> (${email})?<br><br>A temporary password will be generated and emailed directly to the citizen.`,
+      btnLabel: 'Restore',
+      btnClass: '',
+      action: async () => {
+        const res = await http.post(`/api/admin/users/deleted/${auditId}/restore`, {});
+        if (res.success) {
+          const detail = res.full_restore
+            ? `${res.complaints_restored} complaint(s) fully restored (history, comments & ratings included).`
+            : `${res.complaints_restored} complaint(s) restored (basic fields).`;
+          showToast(`✅ Account restored for ${name}. Temporary password emailed to ${email}. ${detail}`, 'success');
+          loadDeletedUsers();
+          loadUsers();
+        } else {
+          showToast(res.message || 'Restore failed.', 'error');
+        }
+      }
+    });
   }
 
   // Simple toast (reuse if app.js has one, else fallback alert)
