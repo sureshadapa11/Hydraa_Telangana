@@ -185,17 +185,17 @@
     <!-- MAP CARD -->
     <div class="card">
       <div class="card-hdr">
-        <div class="card-title">🗺️ State-wise Complaint Map</div>
-        <div class="card-sub">Bubble size represents complaint volume per state</div>
+        <div class="card-title">🗺️ District-wise Complaint Map — Telangana</div>
+        <div class="card-sub">Bubble size represents complaint volume per district</div>
       </div>
       <div id="map"></div>
     </div>
 
-    <!-- STATE SUMMARY PILLS -->
+    <!-- DISTRICT SUMMARY PILLS -->
     <div class="card">
       <div class="card-hdr">
-        <div class="card-title">📍 Telangana Summary</div>
-        <div class="card-sub">Total complaints filed in Telangana</div>
+        <div class="card-title">📍 District-wise Breakdown</div>
+        <div class="card-sub">Complaint totals across Telangana districts</div>
       </div>
       <div class="state-grid" id="stateGrid"><div class="loading">Loading...</div></div>
     </div>
@@ -248,13 +248,41 @@
     document.getElementById('tp-nm').textContent  = user.full_name || user.username || 'Admin';
   }
 
-  // Approximate centre coordinates for states
-  const STATE_COORDS = {
-    'Telangana':      [17.9, 79.4],
-    'Andhra Pradesh': [15.9, 79.7],
-    'Maharashtra':    [19.7, 75.7],
-    'Karnataka':      [15.3, 75.7],
-    'Tamil Nadu':     [10.9, 78.7],
+  // Approximate centre coordinates for Telangana districts
+  const DISTRICT_COORDS = {
+    'Hyderabad':                  [17.385, 78.487],
+    'Rangareddy':                 [17.200, 78.200],
+    'Medchal-Malkajgiri':         [17.620, 78.530],
+    'Sangareddy':                 [17.620, 77.900],
+    'Vikarabad':                  [17.330, 77.900],
+    'Yadadri Bhuvanagiri':        [17.100, 79.000],
+    'Nalgonda':                   [17.050, 79.270],
+    'Suryapet':                   [17.150, 79.620],
+    'Khammam':                    [17.250, 80.150],
+    'Bhadradri Kothagudem':       [17.550, 80.620],
+    'Warangal':                   [18.000, 79.580],
+    'Hanamkonda':                 [17.980, 79.560],
+    'Jangoan':                    [17.720, 79.150],
+    'Mahabubabad':                [17.600, 80.000],
+    'Mulugu':                     [18.200, 80.050],
+    'Jayashankar Bhupalpally':    [18.450, 80.050],
+    'Siddipet':                   [18.100, 78.850],
+    'Kamareddy':                  [18.320, 78.340],
+    'Nizamabad':                  [18.670, 78.100],
+    'Jagtial':                    [18.800, 78.900],
+    'Peddapalli':                 [18.620, 79.380],
+    'Karimnagar':                 [18.430, 79.130],
+    'Rajanna Sircilla':           [18.400, 78.830],
+    'Mancherial':                 [18.870, 79.450],
+    'Nirmal':                     [19.100, 78.340],
+    'Adilabad':                   [19.660, 78.530],
+    'Kumuram Bheem Asifabad':     [19.380, 79.290],
+    'Nagarkurnool':               [16.480, 78.330],
+    'Wanaparthy':                 [16.360, 78.060],
+    'Narayanpet':                 [16.740, 77.500],
+    'Jogulamba Gadwal':           [16.230, 77.800],
+    'Mahabubnagar':               [16.740, 78.000],
+    'Narayanpet':                 [16.740, 77.490],
   };
 
   // Heatmap colour scale based on intensity 0-1
@@ -277,8 +305,8 @@
     return { bg: '#006978', color: '#fff' };
   }
 
-  // Init Leaflet map
-  const map = L.map('map').setView([17.5, 78.5], 6);
+  // Init Leaflet map — centered on Telangana
+  const map = L.map('map').setView([17.8, 79.2], 7);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
   }).addTo(map);
@@ -288,41 +316,48 @@
     if (!res.success) return;
     const d = res.data;
 
-    // ── MAP BUBBLES ──
-    const maxState = Math.max(...d.stateData.map(s => s.total), 1);
-    d.stateData.forEach(s => {
-      const coords = STATE_COORDS[s.state_name];
-      if (!coords || !s.total) return;
-      const radius = 20000 + (s.total / maxState) * 80000;
+    // ── DISTRICT MAP BUBBLES ──
+    const withCoords = d.districtData.filter(d => DISTRICT_COORDS[d.district_name]);
+    const maxDist = Math.max(...withCoords.map(d => Number(d.total)), 1);
+    d.districtData.forEach(dist => {
+      const coords = DISTRICT_COORDS[dist.district_name];
+      if (!coords) return;
+      const total = Number(dist.total) || 0;
+      const radius = total > 0 ? 8000 + (total / maxDist) * 40000 : 5000;
+      const fillOpacity = total > 0 ? 0.45 : 0.12;
       L.circle(coords, {
         color: '#0097a7', fillColor: '#0097a7',
-        fillOpacity: 0.4, weight: 2, radius,
+        fillOpacity, weight: 2, radius,
       }).addTo(map).bindPopup(`
-        <strong>${s.state_name}</strong><br>
-        Total: ${s.total}<br>
-        Resolved: ${s.resolved}<br>
-        Pending: ${s.pending}
+        <strong>📍 ${dist.district_name}</strong><br>
+        Total: <b>${total}</b><br>
+        ✅ Resolved: ${dist.resolved || 0}<br>
+        ⏳ Pending: ${dist.pending || 0}
       `);
-      L.marker(coords, {
-        icon: L.divIcon({
-          className: '',
-          html: `<div style="background:#0097a7;color:#fff;padding:2px 6px;border-radius:6px;font-size:11px;font-weight:700;white-space:nowrap">${s.total}</div>`,
-          iconAnchor: [16, 0],
-        })
-      }).addTo(map);
+      if (total > 0) {
+        L.marker(coords, {
+          icon: L.divIcon({
+            className: '',
+            html: `<div style="background:#0097a7;color:#fff;padding:2px 7px;border-radius:6px;font-size:11px;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.2)">${total}</div>`,
+            iconAnchor: [16, 0],
+          })
+        }).addTo(map);
+      }
     });
 
-    // ── STATE PILLS (Telangana only) ──
-    const telanganaData = d.stateData.filter(s => s.state_name === 'Telangana');
-    const maxPill = Math.max(...telanganaData.map(s => s.total), 1);
-    document.getElementById('stateGrid').innerHTML = telanganaData.map(s => `
-      <div class="state-pill">
-        <div class="sp-name">${s.state_name}</div>
-        <div class="sp-total">${s.total}</div>
-        <div class="sp-detail">✅ ${s.resolved} resolved &nbsp; ⏳ ${s.pending} pending</div>
-        <div class="sp-bar"><div class="sp-fill" style="width:${Math.round((s.total/maxPill)*100)}%"></div></div>
-      </div>
-    `).join('') || '<div class="loading">No data yet.</div>';
+    // ── DISTRICT PILLS ──
+    const distWithData = d.districtData.filter(d => Number(d.total) > 0);
+    const maxPill = Math.max(...distWithData.map(d => Number(d.total)), 1);
+    document.getElementById('stateGrid').innerHTML = distWithData.length
+      ? distWithData.map(dist => `
+        <div class="state-pill">
+          <div class="sp-name">📍 ${dist.district_name}</div>
+          <div class="sp-total">${dist.total}</div>
+          <div class="sp-detail">✅ ${dist.resolved||0} resolved &nbsp; ⏳ ${dist.pending||0} pending</div>
+          <div class="sp-bar"><div class="sp-fill" style="width:${Math.round((Number(dist.total)/maxPill)*100)}%"></div></div>
+        </div>
+      `).join('')
+      : '<div class="loading">No district complaint data yet.</div>';
 
     // ── TIME HEATMAP ──
     const DAYS  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];

@@ -593,14 +593,14 @@ const getAnalytics = async (req, res) => {
 // ────────────────────────────────────────────────────
 const getHeatmapData = async (req, res) => {
   try {
-    // Complaints by state
-    const [stateData] = await db.query(`
-      SELECT s.state_name, s.code, COUNT(c.id) AS total,
+    // Complaints by district (Telangana districts only)
+    const [districtData] = await db.query(`
+      SELECT d.name AS district_name, COUNT(c.id) AS total,
              SUM(c.status = 'resolved') AS resolved,
              SUM(c.status IN ('open','assigned','in_progress')) AS pending
-      FROM states s
-      LEFT JOIN complaints c ON c.state_id = s.id
-      GROUP BY s.id, s.state_name, s.code
+      FROM districts d
+      LEFT JOIN complaints c ON c.district_id = d.id
+      GROUP BY d.id, d.name
       ORDER BY total DESC
     `);
 
@@ -630,7 +630,7 @@ const getHeatmapData = async (req, res) => {
       GROUP BY day ORDER BY day ASC
     `);
 
-    res.json({ success: true, data: { stateData, timeGrid, catPriMatrix, dailyCount } });
+    res.json({ success: true, data: { districtData, timeGrid, catPriMatrix, dailyCount } });
   } catch (err) {
     console.error('Heatmap error:', err);
     res.status(500).json({ success: false, message: 'Server error.' });
