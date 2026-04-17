@@ -40,13 +40,20 @@ const http = {
       data = { success: false, message: res.statusText };
     }
 
-    // 401 Unauthorized — redirect to login (unless already on a login page)
+    // 401 Unauthorized — account deleted/deactivated mid-session, force logout
     if (res.status === 401) {
-      const onLoginPage = window.location.pathname.includes('login') ||
-                          window.location.pathname.includes('forgot-password');
+      const path = window.location.pathname;
+      const onLoginPage = path.includes('login') || path.includes('forgot-password');
       if (!onLoginPage) {
         this.clearToken();
-        window.location.href = '/hydraa-login.html';
+        localStorage.removeItem('hydraa_user');
+        if (path.includes('official')) {
+          window.location.href = '/hydraa-official-portal.html';
+        } else if (path.includes('admin')) {
+          window.location.href = '/hydraa-admin-login.html';
+        } else {
+          window.location.href = '/hydraa-login.html';
+        }
       }
       return data;
     }
