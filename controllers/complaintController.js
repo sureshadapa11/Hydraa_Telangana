@@ -286,6 +286,11 @@ const getAdminDashboard = async (req, res) => {
       `SELECT priority, COUNT(*) as count FROM complaints GROUP BY priority`
     );
 
+    // Unassigned count
+    const [[{ unassigned }]] = await db.query(
+      `SELECT COUNT(*) as unassigned FROM complaints WHERE official_id IS NULL`
+    );
+
     // Recent complaints
     const [recent] = await db.query(`
       SELECT c.id, c.complaint_no, c.title, c.status, c.priority, c.created_at,
@@ -310,6 +315,7 @@ const getAdminDashboard = async (req, res) => {
           resolved:    sc.resolved    || 0,
           closed:      sc.closed      || 0,
           rejected:    sc.rejected    || 0,
+          unassigned:  Number(unassigned) || 0,
           overdue:     Number(overdue) || 0,
           today:       Number(today)   || 0,
           this_week:   Number(this_week) || 0,
