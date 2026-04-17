@@ -702,7 +702,8 @@ const getAllComplaints = async (req, res) => {
   try {
     let where = '1=1';
     const params = [];
-    if (status)      { where += ' AND c.status = ?';      params.push(status); }
+    if (status === 'unassigned') { where += ' AND c.official_id IS NULL'; }
+    else if (status) { where += ' AND c.status = ?';      params.push(status); }
     if (category_id) { where += ' AND c.category_id = ?'; params.push(category_id); }
     if (district_id) { where += ' AND c.district_id = ?'; params.push(district_id); }
     if (priority)    { where += ' AND c.priority = ?';    params.push(priority); }
