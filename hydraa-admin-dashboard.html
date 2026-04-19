@@ -436,10 +436,10 @@
 
       <!-- Filter bar — two rows -->
       <div class="filter-bar" style="flex-direction:column;align-items:stretch;gap:0.6rem;">
-        <!-- Row 1: status + category + district + priority (fixed widths) -->
+        <!-- Row 1: dropdowns + search + CSV/PDF -->
         <div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;">
           <span class="fb-label">Filter:</span>
-          <select id="filterStatus" onchange="loadComplaints()" style="width:148px">
+          <select id="filterStatus" onchange="loadComplaints()" style="width:140px">
             <option value="">All Statuses</option>
             <option value="open">Pending</option>
             <option value="assigned">Assigned</option>
@@ -449,32 +449,30 @@
             <option value="rejected">Rejected</option>
             <option value="unassigned">Unassigned</option>
           </select>
-          <select id="filterCategory" onchange="loadComplaints()" style="width:172px">
+          <select id="filterCategory" onchange="loadComplaints()" style="width:160px">
             <option value="">All Categories</option>
           </select>
-          <select id="filterDistrict" onchange="loadComplaints()" style="width:148px">
+          <select id="filterDistrict" onchange="loadComplaints()" style="width:138px">
             <option value="">All Districts</option>
           </select>
-          <select id="filterPriority" onchange="loadComplaints()" style="width:130px">
+          <select id="filterPriority" onchange="loadComplaints()" style="width:124px">
             <option value="">All Priorities</option>
             <option value="urgent">🚨 Urgent</option>
             <option value="high">🔴 High</option>
             <option value="medium">🟡 Medium</option>
             <option value="low">🟢 Low</option>
           </select>
+          <input type="text" id="filterSearch" placeholder="Search no / title / citizen..." style="flex:1;min-width:160px;" oninput="loadComplaints()"/>
+          <button class="btn-filter" onclick="adminExportCSV()" style="background:rgba(16,185,129,0.1);color:#065f46;border:1.5px solid rgba(16,185,129,0.3);">⬇ CSV</button>
+          <button class="btn-filter" onclick="adminExportPDF()" style="background:rgba(239,68,68,0.08);color:#b91c1c;border:1.5px solid rgba(239,68,68,0.25);">⬇ PDF</button>
         </div>
-        <!-- Row 2: search + date range + buttons -->
+        <!-- Row 2: date range + search button -->
         <div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;">
-          <input type="text" id="filterSearch" placeholder="🔍 Search by no, title or citizen..." style="flex:1;min-width:200px;max-width:340px" oninput="loadComplaints()"/>
           <span style="font-size:0.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap;">From</span>
           <input type="date" id="filterDateFrom" onchange="loadComplaints()" title="From date" style="width:148px;padding:0.45rem 0.6rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:0.82rem;color:var(--text);background:var(--bg)"/>
           <span style="font-size:0.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;">To</span>
           <input type="date" id="filterDateTo" onchange="loadComplaints()" title="To date" style="width:148px;padding:0.45rem 0.6rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:0.82rem;color:var(--text);background:var(--bg)"/>
           <button class="btn-filter" onclick="loadComplaints()">🔍 Search</button>
-          <div style="margin-left:auto;display:flex;gap:0.4rem;">
-            <button class="btn-filter" onclick="adminExportCSV()" style="background:rgba(16,185,129,0.1);color:#065f46;border:1.5px solid rgba(16,185,129,0.3);">⬇ CSV</button>
-            <button class="btn-filter" onclick="adminExportPDF()" style="background:rgba(239,68,68,0.08);color:#b91c1c;border:1.5px solid rgba(239,68,68,0.25);">⬇ PDF</button>
-          </div>
         </div>
       </div>
 
