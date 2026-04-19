@@ -1170,29 +1170,29 @@ async function loadComplaints() {
           </tr>
         </thead>
         <tbody>${data.map((c,i)=>`
-          <tr style="border-bottom:1px solid rgba(208,228,236,0.5);background:${i%2===0?'#fff':'#fafcfd'};transition:background 0.15s;" onmouseover="this.style.background='rgba(0,151,167,0.04)'" onmouseout="this.style.background='${i%2===0?'#fff':'#fafcfd'}'">
-            <td style="padding:0.45rem 0.5rem;text-align:center;"><input type="checkbox" class="row-check" value="${c.id}" onchange="updateBulkBtn()"/></td>
-            <td style="padding:0.45rem 0.6rem;"><span class="cno" style="font-size:0.72rem;">${c.complaint_no}</span></td>
-            <td style="padding:0.45rem 0.6rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${c.title}"><strong style="color:var(--navy);font-size:0.8rem;">${c.title}</strong></td>
-            <td style="padding:0.45rem 0.6rem;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px;" title="${c.user_name}">${c.user_name}</td>
-            <td style="padding:0.45rem 0.6rem;font-size:0.74rem;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px;" title="${c.category_name||''}">${c.category_name||'—'}</td>
-            <td style="padding:0.45rem 0.6rem;">
-              ${c.district_name ? `<span style="font-size:0.74rem;color:var(--teal);font-weight:600;">📍 ${c.district_name}</span>` : '<span style="color:var(--text-3);font-size:0.74rem;">—</span>'}
-              ${c.mandal_name ? `<br><span style="color:var(--text-3);font-size:0.68rem;">${c.mandal_name}</span>` : ''}
+          <tr style="border-bottom:1px solid rgba(208,228,236,0.6);background:${i%2===0?'#fff':'#fafcfd'};transition:background 0.15s;" onmouseover="this.style.background='rgba(0,151,167,0.05)'" onmouseout="this.style.background='${i%2===0?'#fff':'#fafcfd'}'">
+            <td style="padding:0.7rem 0.6rem;text-align:center;"><input type="checkbox" class="row-check" value="${c.id}" onchange="updateBulkBtn()"/></td>
+            <td style="padding:0.7rem 0.8rem;"><span class="cno">${c.complaint_no}</span></td>
+            <td style="padding:0.7rem 0.8rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${c.title}"><strong style="color:var(--navy)">${c.title}</strong></td>
+            <td style="padding:0.7rem 0.8rem;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:110px;" title="${c.user_name}">${c.user_name}</td>
+            <td style="padding:0.7rem 0.8rem;font-size:0.78rem;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px;" title="${c.category_name||''}">${c.category_name||'—'}</td>
+            <td style="padding:0.7rem 0.8rem;">
+              ${c.district_name ? `<span style="font-size:0.78rem;color:var(--teal);font-weight:600;">📍 ${c.district_name}</span>` : '<span style="color:var(--text-3);font-size:0.78rem;">—</span>'}
+              ${c.mandal_name ? `<br><span style="color:var(--text-3);font-size:0.7rem;">${c.mandal_name}</span>` : ''}
             </td>
-            <td style="padding:0.45rem 0.6rem;">${pb(c.priority)}</td>
-            <td style="padding:0.45rem 0.6rem;">${sb(c.status)}</td>
-            <td style="padding:0.45rem 0.6rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;" title="${c.official_name||''}">
-              ${c.official_name ? `<span style="color:var(--green);font-size:0.74rem;font-weight:600;">✓ ${c.official_name}</span>` : `<span style="color:var(--orange);font-size:0.74rem;font-weight:600;">⚠ Unassigned</span>`}
+            <td style="padding:0.7rem 0.8rem;">${pb(c.priority)}</td>
+            <td style="padding:0.7rem 0.8rem;">${sb(c.status)}</td>
+            <td style="padding:0.7rem 0.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px;" title="${c.official_name||''}">
+              ${c.official_name ? `<span style="color:var(--green);font-size:0.78rem;font-weight:600;">✓ ${c.official_name}</span>` : `<span style="color:var(--orange);font-size:0.78rem;font-weight:600;">⚠ Unassigned</span>`}
             </td>
-            <td style="padding:0.45rem 0.6rem;white-space:nowrap;font-size:0.74rem;color:var(--text-3);">${formatDate(c.created_at)}</td>
-            <td style="padding:0.45rem 0.6rem;">
-              <div style="display:flex;gap:0.25rem;align-items:center;flex-wrap:nowrap;">
+            <td style="padding:0.7rem 0.8rem;white-space:nowrap;font-size:0.78rem;color:var(--text-3);">${formatDate(c.created_at)}</td>
+            <td style="padding:0.7rem 0.8rem;">
+              <div class="act-wrap">
                 ${c.official_name
-                  ? `<button onclick="openReassign(${c.id},'${(c.official_name||'').replace(/'/g,"\\'")}') " style="padding:3px 7px;font-size:0.68rem;font-weight:700;background:rgba(59,130,246,0.1);color:#1d4ed8;border:1px solid rgba(59,130,246,0.25);border-radius:5px;cursor:pointer;white-space:nowrap;">🔄</button>`
-                  : `<button onclick="openAssign(${c.id})" style="padding:3px 7px;font-size:0.68rem;font-weight:700;background:rgba(0,151,167,0.1);color:var(--teal-dark);border:1px solid rgba(0,151,167,0.25);border-radius:5px;cursor:pointer;white-space:nowrap;">👷 Assign</button>`}
-                <button onclick="openStatus(${c.id},'${c.status}')" style="padding:3px 7px;font-size:0.68rem;font-weight:700;background:rgba(245,158,11,0.1);color:#b45309;border:1px solid rgba(245,158,11,0.25);border-radius:5px;cursor:pointer;white-space:nowrap;">Status</button>
-                <button onclick="openTimeline('${c.complaint_no}')" style="padding:3px 7px;font-size:0.68rem;font-weight:700;background:rgba(139,92,246,0.08);color:#7c3aed;border:1px solid rgba(139,92,246,0.2);border-radius:5px;cursor:pointer;">📋</button>
+                  ? `<button class="act-btn ab-assign" onclick="openReassign(${c.id},'${(c.official_name||'').replace(/'/g,"\\'")}')">🔄 Change</button>`
+                  : `<button class="act-btn ab-assign" onclick="openAssign(${c.id})">👷 Assign</button>`}
+                <button class="act-btn ab-status" onclick="openStatus(${c.id},'${c.status}')">🔄 Status</button>
+                <button class="act-btn" style="background:rgba(139,92,246,0.08);color:#8b5cf6;border-color:rgba(139,92,246,0.2)" onclick="openTimeline('${c.complaint_no}')">📋</button>
               </div>
             </td>
           </tr>`).join('')}
