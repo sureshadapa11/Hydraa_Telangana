@@ -1140,8 +1140,7 @@ async function loadComplaints() {
         </button>
         <span style="margin-left:auto;font-size:0.72rem;color:var(--text-3)">${data.length} complaints</span>
       </div>
-      <div style="overflow-x:auto;">
-      <table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
+      <table style="width:100%;border-collapse:collapse;font-size:0.8rem;min-width:1000px;">
         <colgroup>
           <col style="width:36px"/>
           <col style="width:110px"/>
@@ -1198,8 +1197,7 @@ async function loadComplaints() {
             </td>
           </tr>`).join('')}
         </tbody>
-      </table>
-      </div>`;
+      </table>`;
   } catch(err) {
     document.getElementById('complaintsTable').innerHTML = `<div class="empty"><div class="empty-icon">❌</div><h3>Failed to load</h3><p>Please try again</p></div>`;
   }
