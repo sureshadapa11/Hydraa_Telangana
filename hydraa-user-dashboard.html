@@ -666,7 +666,7 @@
   setInterval(() => {
     const el = document.activeElement;
     const busy = el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT');
-    if (!busy) { loadDashboard(); loadAnnouncements(); }
+    if (!busy) { loadDashboard(); loadDistrictStats(); loadAnnouncements(); }
   }, 15000);
 </script>
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js").catch(function(){});}</script>
