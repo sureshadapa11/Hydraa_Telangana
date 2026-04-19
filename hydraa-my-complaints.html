@@ -358,10 +358,11 @@
   </div>
 </div>
 
-<script src="http-client.js"></script><script src="app.js"></script>
+<script src="http-client.js"></script><script src="app.js"></script><script src="session-timeout.js"></script>
 <script>
   Auth.requireLogin('user');
   Auth.startSessionCheck();
+  SessionTimeout.init({ timeout: 60 * 60 * 1000, warning: 60 * 1000 }); // 60 min, 60s warning
   // Instant logout if admin deletes this account from another tab
   window.addEventListener('storage', function(e) {
     if (e.key === 'hydraa_kick_user') {

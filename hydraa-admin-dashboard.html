@@ -574,9 +574,10 @@
   </div>
 </div>
 
-<script>window.HYDRAA_TOKEN_KEY="hydraa_admin_token";window.HYDRAA_USER_KEY="hydraa_admin_user";</script><script src="http-client.js"></script><script src="app.js"></script>
+<script>window.HYDRAA_TOKEN_KEY="hydraa_admin_token";window.HYDRAA_USER_KEY="hydraa_admin_user";</script><script src="http-client.js"></script><script src="app.js"></script><script src="session-timeout.js"></script>
 <script>
 Auth.requireLogin('admin');
+SessionTimeout.init({ timeout: 30 * 60 * 1000, warning: 60 * 1000 }); // 30 min, 60s warning
 
 // Init user
 const user = Auth.getUser();

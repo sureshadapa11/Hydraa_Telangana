@@ -3,7 +3,7 @@
 //   Cache static assets, network-first for API
 // =====================================================
 
-const CACHE_NAME   = 'hydraa-v4';
+const CACHE_NAME   = 'hydraa-v5';
 const OFFLINE_URL  = '/offline.html';
 
 // Only cache non-HTML static assets — HTML is always fetched fresh from network
@@ -17,6 +17,7 @@ const STATIC_ASSETS = [
   '/icons/apple-touch-icon.png',
   '/http-client.js',
   '/app.js',
+  '/session-timeout.js',
 ];
 
 // ── Install: cache static assets ──

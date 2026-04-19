@@ -689,7 +689,7 @@
   </div>
 </div>
 
-<script>window.HYDRAA_TOKEN_KEY="hydraa_official_token";window.HYDRAA_USER_KEY="hydraa_official_user";</script><script src="http-client.js"></script><script src="app.js"></script>
+<script>window.HYDRAA_TOKEN_KEY="hydraa_official_token";window.HYDRAA_USER_KEY="hydraa_official_user";</script><script src="http-client.js"></script><script src="app.js"></script><script src="session-timeout.js"></script>
 <script>
 // ═══════════════ LOGIN ═══════════════
 function togglePw() {
@@ -754,6 +754,7 @@ function initDashboard() {
   document.getElementById('tb-date').textContent = new Date().toLocaleDateString('en-IN', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
   loadComplaints();
   Auth.startSessionCheck();
+  SessionTimeout.init({ timeout: 30 * 60 * 1000, warning: 60 * 1000 }); // 30 min, 60s warning
 
   // Background refresh every 15s — skip if modal open or user is typing
   setInterval(() => {
