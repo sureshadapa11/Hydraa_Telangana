@@ -552,15 +552,19 @@
         </div>
         <div style="padding:1.2rem 1.4rem;">
           <div style="background:#fafafa;border:1px solid #e5e7eb;border-radius:10px;padding:.9rem 1rem;margin-bottom:1rem;">
-            <div style="font-size:.7rem;font-weight:700;letter-spacing:1.5px;color:#6b7280;text-transform:uppercase;margin-bottom:.5rem;">Existing Complaint</div>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem;">
-              <span style="font-weight:700;color:#111827;font-size:.88rem;" id="dupModalNo">—</span>
-              <span id="dupModalStatus" style="padding:.2rem .7rem;border-radius:999px;font-size:.72rem;font-weight:700;"></span>
+            <div style="font-size:.7rem;font-weight:700;letter-spacing:1.5px;color:#6b7280;text-transform:uppercase;margin-bottom:.6rem;">Complaint Details</div>
+            <div style="display:grid;grid-template-columns:auto 1fr;gap:.35rem .8rem;font-size:.82rem;">
+              <span style="color:#9ca3af;font-weight:600;">Status</span>
+              <span id="dupModalStatus" style="display:inline-block;padding:.15rem .7rem;border-radius:999px;font-size:.72rem;font-weight:700;width:fit-content;"></span>
+              <span style="color:#9ca3af;font-weight:600;">Category</span>
+              <span id="dupModalCategory" style="color:#111827;font-weight:600;">—</span>
+              <span style="color:#9ca3af;font-weight:600;">District</span>
+              <span id="dupModalDistrict" style="color:#111827;">—</span>
+              <span style="color:#9ca3af;font-weight:600;">Filed on</span>
+              <span id="dupModalDate" style="color:#111827;">—</span>
             </div>
-            <div style="font-size:.82rem;color:#374151;margin-bottom:.25rem;" id="dupModalTitle">—</div>
-            <div style="font-size:.75rem;color:#9ca3af;" id="dupModalMeta">—</div>
           </div>
-          <div id="dupModalNote" style="font-size:.82rem;color:#374151;line-height:1.6;margin-bottom:1rem;"></div>
+          <div id="dupModalNote" style="font-size:.82rem;color:#374151;line-height:1.6;margin-bottom:1rem;padding:.7rem .9rem;background:#fff7ed;border-radius:8px;border-left:3px solid #f97316;"></div>
           <div style="display:flex;gap:.7rem;justify-content:flex-end;flex-wrap:wrap;">
             <button onclick="window.location.href='/hydraa-my-complaints.html'" style="padding:.5rem 1.1rem;background:#f3f4f6;border:1px solid #d1d5db;color:#374151;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;">View My Complaints</button>
             <button onclick="closeDupModal()" style="padding:.5rem 1.1rem;background:#fff;border:2px solid #f97316;color:#c2410c;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;">Cancel</button>
@@ -937,24 +941,27 @@
     const isActive = ['open','assigned','in_progress'].includes(e.status);
 
     document.getElementById('dupModalHeading').textContent =
-      isExact ? '⚠️ Same Land Survey Number Already Filed' : '⚠️ Similar Complaint Exists in This Area';
+      isExact ? 'Same Land Survey Number Already Filed'
+              : 'Similar Complaint Already Exists in This Area';
     document.getElementById('dupModalSubheading').textContent =
-      isExact ? 'A complaint with the same survey number was filed recently.' :
-                'A complaint with the same category and district was filed recently.';
-    document.getElementById('dupModalNo').textContent    = e.complaint_no || '—';
-    document.getElementById('dupModalTitle').textContent = e.title        || '—';
-    document.getElementById('dupModalMeta').textContent  =
-      `${e.category_name || ''} · ${e.district_name || ''} · Filed: ${e.created_at ? new Date(e.created_at).toLocaleDateString('en-IN') : '—'}`;
-    const stEl = document.getElementById('dupModalStatus');
-    stEl.textContent = st.label;
-    stEl.style.background = st.bg;
-    stEl.style.color = st.color;
-    document.getElementById('dupModalNote').textContent = isActive
-      ? 'This complaint is currently being handled by our team. Submitting again may slow down resolution for everyone.'
-      : 'This issue was already resolved. If the problem has reoccurred, you may still submit a new complaint.';
+      isExact ? 'A complaint with the same survey number was filed recently by someone in this area.'
+              : 'A complaint with the same category and district was filed recently.';
 
-    const overlay = document.getElementById('dupModalOverlay');
-    overlay.style.display = 'flex';
+    const stEl = document.getElementById('dupModalStatus');
+    stEl.textContent       = st.label;
+    stEl.style.background  = st.bg;
+    stEl.style.color       = st.color;
+
+    document.getElementById('dupModalCategory').textContent = e.category_name || '—';
+    document.getElementById('dupModalDistrict').textContent = e.district_name  || '—';
+    document.getElementById('dupModalDate').textContent     =
+      e.created_at ? new Date(e.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' }) : '—';
+
+    document.getElementById('dupModalNote').textContent = isActive
+      ? 'Our team is already working on this issue. Submitting the same complaint again will not speed up the resolution process.'
+      : 'This issue was previously resolved. If the problem has come back, you may still submit a new complaint.';
+
+    document.getElementById('dupModalOverlay').style.display = 'flex';
   }
 
   function closeDupModal() {
