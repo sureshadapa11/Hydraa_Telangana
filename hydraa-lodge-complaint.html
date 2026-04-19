@@ -540,16 +540,38 @@
     <!-- Alert -->
     <div id="alertBox" class="alert"></div>
 
-    <!-- Duplicate Warning -->
-    <div id="dupWarning" style="display:none;background:#fff7ed;border:2px solid #f97316;border-radius:12px;padding:1rem 1.2rem;margin-bottom:1rem;">
-      <div style="font-size:0.88rem;font-weight:800;color:#c2410c;margin-bottom:0.4rem;">⚠️ Similar Complaint Already Open</div>
-      <div style="font-size:0.82rem;color:#7c2d12;margin-bottom:0.75rem;">
-        You already have an open complaint in this category and district:<br/>
-        <strong id="dupComplaintNo"></strong> — <span id="dupTitle"></span>
+    <!-- Duplicate Warning Modal -->
+    <div id="dupModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
+      <div style="background:#fff;border-radius:16px;max-width:500px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden;">
+        <div style="background:#fff7ed;border-bottom:2px solid #fed7aa;padding:1.2rem 1.4rem;display:flex;align-items:center;gap:.7rem;">
+          <span style="font-size:1.8rem">⚠️</span>
+          <div>
+            <div id="dupModalHeading" style="font-weight:800;font-size:1rem;color:#9a3412;"></div>
+            <div id="dupModalSubheading" style="font-size:.78rem;color:#c2410c;margin-top:.1rem;"></div>
+          </div>
+        </div>
+        <div style="padding:1.2rem 1.4rem;">
+          <div style="background:#fafafa;border:1px solid #e5e7eb;border-radius:10px;padding:.9rem 1rem;margin-bottom:1rem;">
+            <div style="font-size:.7rem;font-weight:700;letter-spacing:1.5px;color:#6b7280;text-transform:uppercase;margin-bottom:.5rem;">Existing Complaint</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem;">
+              <span style="font-weight:700;color:#111827;font-size:.88rem;" id="dupModalNo">—</span>
+              <span id="dupModalStatus" style="padding:.2rem .7rem;border-radius:999px;font-size:.72rem;font-weight:700;"></span>
+            </div>
+            <div style="font-size:.82rem;color:#374151;margin-bottom:.25rem;" id="dupModalTitle">—</div>
+            <div style="font-size:.75rem;color:#9ca3af;" id="dupModalMeta">—</div>
+          </div>
+          <div id="dupModalNote" style="font-size:.82rem;color:#374151;line-height:1.6;margin-bottom:1rem;"></div>
+          <div style="display:flex;gap:.7rem;justify-content:flex-end;flex-wrap:wrap;">
+            <button onclick="window.location.href='/hydraa-my-complaints.html'" style="padding:.5rem 1.1rem;background:#f3f4f6;border:1px solid #d1d5db;color:#374151;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;">View My Complaints</button>
+            <button onclick="closeDupModal()" style="padding:.5rem 1.1rem;background:#fff;border:2px solid #f97316;color:#c2410c;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;">Cancel</button>
+            <button onclick="forceSubmitAnyway()" style="padding:.5rem 1.1rem;background:#f97316;color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;">Submit Anyway</button>
+          </div>
+        </div>
       </div>
-      <div style="display:flex;gap:0.6rem;flex-wrap:wrap;">
-        <button onclick="window.location.href='/hydraa-my-complaints.html'" style="padding:0.5rem 1rem;background:#f97316;color:#fff;border:none;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;">View Existing Complaint</button>
-        <button onclick="forceSubmitAnyway()" style="padding:0.5rem 1rem;background:none;border:2px solid #f97316;color:#c2410c;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;">Submit Anyway</button>
+    </div>
+    <!-- legacy dupWarning hidden placeholder (keeps old references safe) -->
+    <div id="dupWarning" style="display:none;">
+      <strong id="dupComplaintNo"></strong><span id="dupTitle"></span>
       </div>
     </div>
 
@@ -878,20 +900,14 @@
       const res = await http.post('/api/complaints/lodge', payload);
 
       if (res.duplicate) {
-        // Show duplicate warning — let user decide
         setLoading(btn, false);
-        const existing = res.existing;
-        const dupBox = document.getElementById('dupWarning');
-        document.getElementById('dupComplaintNo').textContent = existing.complaint_no;
-        document.getElementById('dupTitle').textContent = existing.title;
-        dupBox.style.display = 'block';
-        dupBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        showDupModal(res);
         return;
       }
 
       if (res.success) {
         _forceSubmit = false;
-        document.getElementById('dupWarning').style.display = 'none';
+        closeDupModal();
         const complaintNo = (res.data && res.data.complaint_no) || res.complaint_no || '';
         showAlert('alertBox', 'success', `✅ Complaint submitted successfully! Complaint No: ${complaintNo}`);
         document.getElementById('complaintForm').reset();
@@ -906,9 +922,48 @@
     }
   }
 
+  function showDupModal(res) {
+    const e = res.existing || {};
+    const isExact = res.match_type === 'exact';
+    const statusMap = {
+      open:        { label: 'Open',        bg: '#dbeafe', color: '#1e40af' },
+      assigned:    { label: 'Assigned',    bg: '#ede9fe', color: '#5b21b6' },
+      in_progress: { label: 'In Progress', bg: '#fef3c7', color: '#92400e' },
+      resolved:    { label: 'Resolved',    bg: '#dcfce7', color: '#15803d' },
+      rejected:    { label: 'Rejected',    bg: '#fee2e2', color: '#991b1b' },
+      closed:      { label: 'Closed',      bg: '#f3f4f6', color: '#374151' },
+    };
+    const st = statusMap[e.status] || { label: e.status || '—', bg: '#f3f4f6', color: '#374151' };
+    const isActive = ['open','assigned','in_progress'].includes(e.status);
+
+    document.getElementById('dupModalHeading').textContent =
+      isExact ? '⚠️ Same Land Survey Number Already Filed' : '⚠️ Similar Complaint Exists in This Area';
+    document.getElementById('dupModalSubheading').textContent =
+      isExact ? 'A complaint with the same survey number was filed recently.' :
+                'A complaint with the same category and district was filed recently.';
+    document.getElementById('dupModalNo').textContent    = e.complaint_no || '—';
+    document.getElementById('dupModalTitle').textContent = e.title        || '—';
+    document.getElementById('dupModalMeta').textContent  =
+      `${e.category_name || ''} · ${e.district_name || ''} · Filed: ${e.created_at ? new Date(e.created_at).toLocaleDateString('en-IN') : '—'}`;
+    const stEl = document.getElementById('dupModalStatus');
+    stEl.textContent = st.label;
+    stEl.style.background = st.bg;
+    stEl.style.color = st.color;
+    document.getElementById('dupModalNote').textContent = isActive
+      ? 'This complaint is currently being handled by our team. Submitting again may slow down resolution for everyone.'
+      : 'This issue was already resolved. If the problem has reoccurred, you may still submit a new complaint.';
+
+    const overlay = document.getElementById('dupModalOverlay');
+    overlay.style.display = 'flex';
+  }
+
+  function closeDupModal() {
+    document.getElementById('dupModalOverlay').style.display = 'none';
+  }
+
   function forceSubmitAnyway() {
     _forceSubmit = true;
-    document.getElementById('dupWarning').style.display = 'none';
+    closeDupModal();
     submitComplaint();
   }
 

@@ -40,6 +40,8 @@ const {
   getOfficialPerformance,
   getCategoryHeatmap,
   getMonthlyReport,
+  getDuplicates,
+  resolveDuplicate,
 } = require('../controllers/adminController');
 const { verifyToken } = require('../middleware/auth');
 
@@ -103,5 +105,8 @@ router.get('/category-heatmap', verifyToken, getCategoryHeatmap);
 // ── Monthly Report ──
 router.get('/monthly-report', verifyToken, getMonthlyReport);
 
+// ── Duplicates ──
+router.get('/duplicates', verifyToken, getDuplicates);
+router.put('/duplicates/:id/resolve', verifyToken, resolveDuplicate);
 
 module.exports = router;

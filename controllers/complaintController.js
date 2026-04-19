@@ -33,36 +33,66 @@ const lodgeComplaint = async (req, res) => {
 
   try {
     // ── Duplicate detection ──
-    const [dupes] = await db.query(
-      `SELECT complaint_no, title FROM complaints
-       WHERE user_id = ? AND category_id = ? AND district_id = ?
-         AND status NOT IN ('resolved','closed','rejected')
-       LIMIT 1`,
-      [user_id, category_id, district_id]
-    );
-    if (dupes.length > 0 && !req.body.force_submit) {
+    let matchedDuplicate = null;
+    // 1. Strong match: same survey number (across all users)
+    if (land_survey_no) {
+      const [surveyMatch] = await db.query(
+        `SELECT c.id, c.complaint_no, c.title, c.status, c.created_at,
+                cat.name AS category_name, d.name AS district_name
+         FROM complaints c
+         LEFT JOIN categories cat ON cat.id = c.category_id
+         LEFT JOIN districts d ON d.id = c.district_id
+         WHERE c.land_survey_no = ? AND c.id != 0
+           AND c.created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+         ORDER BY c.created_at DESC LIMIT 1`,
+        [land_survey_no]
+      );
+      if (surveyMatch.length > 0) matchedDuplicate = { ...surveyMatch[0], match_type: 'exact' };
+    }
+    // 2. Medium match: same district + category (across all users)
+    if (!matchedDuplicate && category_id && district_id) {
+      const [catMatch] = await db.query(
+        `SELECT c.id, c.complaint_no, c.title, c.status, c.created_at,
+                cat.name AS category_name, d.name AS district_name
+         FROM complaints c
+         LEFT JOIN categories cat ON cat.id = c.category_id
+         LEFT JOIN districts d ON d.id = c.district_id
+         WHERE c.category_id = ? AND c.district_id = ?
+           AND c.created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+         ORDER BY c.created_at DESC LIMIT 1`,
+        [category_id, district_id]
+      );
+      if (catMatch.length > 0) matchedDuplicate = { ...catMatch[0], match_type: 'similar' };
+    }
+    if (matchedDuplicate && !req.body.force_submit) {
       return res.status(409).json({
         success: false,
         duplicate: true,
-        message: `You already have an open complaint in this category and district.`,
-        existing: { complaint_no: dupes[0].complaint_no, title: dupes[0].title },
+        match_type: matchedDuplicate.match_type,
+        existing: matchedDuplicate,
       });
     }
 
     // Generate unique complaint number
     const complaint_no = `HYD${Date.now()}${Math.floor(Math.random() * 1000)}`;
 
+    // Resolve duplicate metadata for forced submit
+    const isDup = (matchedDuplicate && req.body.force_submit) ? 1 : 0;
+    const dupOf = isDup ? matchedDuplicate.id : null;
+
     // Insert complaint
     const [result] = await db.query(
       `INSERT INTO complaints (
         complaint_no, user_id, title, description, category_id, subcategory_id,
         priority, address, district_id, mandal_id, status,
-        land_district, land_mandal, land_village, land_address, land_survey_no, khata_no, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+        land_district, land_mandal, land_village, land_address, land_survey_no, khata_no,
+        is_duplicate, duplicate_of, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
       [complaint_no, user_id, title, description, category_id || null, subcategory_id || null,
        priority || 'medium', address, district_id || null, mandal_id || null, 'open',
        land_district || null, land_mandal || null, land_village || null,
-       land_address || null, land_survey_no || null, khata_no || null]
+       land_address || null, land_survey_no || null, khata_no || null,
+       isDup, dupOf]
     );
 
     const complaint_id = result.insertId;
@@ -856,18 +886,41 @@ const getPhotos = async (req, res) => {
 //  CHECK DUPLICATE (called by frontend before submit)
 // ────────────────────────────────────────────────────
 const checkDuplicate = async (req, res) => {
-  const { category_id, district_id } = req.query;
-  const user_id = req.user.id;
-  if (!category_id || !district_id) return res.json({ success: true, duplicate: false });
+  const { category_id, district_id, land_survey_no } = req.query;
   try {
-    const [dupes] = await db.query(
-      `SELECT complaint_no, title FROM complaints
-       WHERE user_id = ? AND category_id = ? AND district_id = ?
-         AND status NOT IN ('resolved','closed','rejected') LIMIT 1`,
-      [user_id, category_id, district_id]
-    );
-    if (dupes.length > 0) {
-      return res.json({ success: true, duplicate: true, existing: { complaint_no: dupes[0].complaint_no, title: dupes[0].title } });
+    // 1. Strong: same survey number across all citizens in last 6 months
+    if (land_survey_no) {
+      const [rows] = await db.query(
+        `SELECT c.id, c.complaint_no, c.title, c.status, c.created_at,
+                cat.name AS category_name, d.name AS district_name
+         FROM complaints c
+         LEFT JOIN categories cat ON cat.id = c.category_id
+         LEFT JOIN districts d ON d.id = c.district_id
+         WHERE c.land_survey_no = ?
+           AND c.created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+         ORDER BY c.created_at DESC LIMIT 1`,
+        [land_survey_no]
+      );
+      if (rows.length > 0) {
+        return res.json({ success: true, duplicate: true, match_type: 'exact', existing: rows[0] });
+      }
+    }
+    // 2. Medium: same district + category across all citizens in last 6 months
+    if (category_id && district_id) {
+      const [rows] = await db.query(
+        `SELECT c.id, c.complaint_no, c.title, c.status, c.created_at,
+                cat.name AS category_name, d.name AS district_name
+         FROM complaints c
+         LEFT JOIN categories cat ON cat.id = c.category_id
+         LEFT JOIN districts d ON d.id = c.district_id
+         WHERE c.category_id = ? AND c.district_id = ?
+           AND c.created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+         ORDER BY c.created_at DESC LIMIT 1`,
+        [category_id, district_id]
+      );
+      if (rows.length > 0) {
+        return res.json({ success: true, duplicate: true, match_type: 'similar', existing: rows[0] });
+      }
     }
     res.json({ success: true, duplicate: false });
   } catch (err) {

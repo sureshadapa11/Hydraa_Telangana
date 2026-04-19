@@ -1146,6 +1146,58 @@ const getMonthlyReport = async (req, res) => {
 };
 
 
+// ────────────────────────────────────────────────────
+//  GET DUPLICATE COMPLAINTS
+// ────────────────────────────────────────────────────
+const getDuplicates = async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT
+         c.id, c.complaint_no, c.title, c.status, c.created_at, c.is_duplicate,
+         c.duplicate_of, c.land_survey_no, c.khata_no,
+         cat.name  AS category_name,
+         d.name    AS district_name,
+         u.full_name AS citizen_name, u.email AS citizen_email,
+         orig.complaint_no AS orig_complaint_no,
+         orig.title        AS orig_title,
+         orig.status       AS orig_status,
+         orig.created_at   AS orig_created_at
+       FROM complaints c
+       LEFT JOIN categories cat  ON cat.id  = c.category_id
+       LEFT JOIN districts   d   ON d.id    = c.district_id
+       LEFT JOIN users       u   ON u.id    = c.user_id
+       LEFT JOIN complaints  orig ON orig.id = c.duplicate_of
+       WHERE c.is_duplicate = 1
+       ORDER BY c.created_at DESC`
+    );
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    console.error('getDuplicates error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+// ────────────────────────────────────────────────────
+//  RESOLVE DUPLICATE (admin action: confirm or keep)
+// ────────────────────────────────────────────────────
+const resolveDuplicate = async (req, res) => {
+  const { id } = req.params;
+  const { action } = req.body; // 'confirm' = keep as duplicate | 'keep' = remove flag (treat as new)
+  try {
+    if (action === 'keep') {
+      await db.query(
+        `UPDATE complaints SET is_duplicate = 0, duplicate_of = NULL WHERE id = ?`, [id]
+      );
+      return res.json({ success: true, message: 'Complaint treated as a new separate complaint.' });
+    }
+    // confirm — already flagged, just acknowledge (no DB change needed)
+    res.json({ success: true, message: 'Complaint confirmed as duplicate.' });
+  } catch (err) {
+    console.error('resolveDuplicate error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
 module.exports = {
   deleteOfficial,
   getCategories,
@@ -1181,4 +1233,6 @@ module.exports = {
   getOfficialPerformance,
   getCategoryHeatmap,
   getMonthlyReport,
+  getDuplicates,
+  resolveDuplicate,
 };
