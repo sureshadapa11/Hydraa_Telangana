@@ -600,6 +600,13 @@
     } catch(e) { msg.textContent = 'Server error. Try again.'; msg.className = 'm-msg err'; }
   }
 
+  // Auto-apply status filter from URL param (e.g. ?status=open from dashboard card click)
+  const _urlStatus = new URLSearchParams(window.location.search).get('status');
+  if (_urlStatus) {
+    const _tab = document.querySelector(`.stab[data-status="${_urlStatus}"]`);
+    if (_tab) setTab(_tab);
+  }
+
   loadComplaints();
 
   // Background refresh every 15s — skip if modal open or user is typing

@@ -80,8 +80,8 @@
 
     /* Stats */
     .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
-    .stat-card{background:#fff;border-radius:var(--radius);border:1px solid var(--border);padding:1.3rem 1.4rem;box-shadow:var(--shadow);display:flex;align-items:center;gap:1rem;transition:all 0.22s;cursor:default;}
-    .stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+    .stat-card{background:#fff;border-radius:var(--radius);border:1px solid var(--border);padding:1.3rem 1.4rem;box-shadow:var(--shadow);display:flex;align-items:center;gap:1rem;transition:all 0.22s;cursor:pointer;}
+    .stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--teal);}
     .sc-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
     .ic-blue{background:rgba(59,130,246,0.1);} .ic-orange{background:rgba(245,158,11,0.1);} .ic-purple{background:rgba(139,92,246,0.1);} .ic-green{background:rgba(16,185,129,0.1);}
     .sc-val{font-family:'Rajdhani',sans-serif;font-size:2rem;font-weight:700;color:var(--text);line-height:1;}
@@ -258,10 +258,10 @@
 
     <!-- Stats -->
     <div class="stats-grid">
-      <div class="stat-card"><div class="sc-icon ic-blue">📋</div><div><div class="sc-val" id="s-total">—</div><div class="sc-lbl">Total Filed</div></div></div>
-      <div class="stat-card"><div class="sc-icon ic-orange">⏳</div><div><div class="sc-val" id="s-pending">—</div><div class="sc-lbl">Pending</div></div></div>
-      <div class="stat-card"><div class="sc-icon ic-purple">🔄</div><div><div class="sc-val" id="s-progress">—</div><div class="sc-lbl">In Progress</div></div></div>
-      <div class="stat-card"><div class="sc-icon ic-green">✅</div><div><div class="sc-val" id="s-resolved">—</div><div class="sc-lbl">Resolved</div></div></div>
+      <div class="stat-card" onclick="goToMyComplaints()" title="View all complaints"><div class="sc-icon ic-blue">📋</div><div><div class="sc-val" id="s-total">—</div><div class="sc-lbl">Total Filed</div></div></div>
+      <div class="stat-card" onclick="goToMyComplaints('open')" title="View pending complaints"><div class="sc-icon ic-orange">⏳</div><div><div class="sc-val" id="s-pending">—</div><div class="sc-lbl">Pending</div></div></div>
+      <div class="stat-card" onclick="goToMyComplaints('in_progress')" title="View in-progress complaints"><div class="sc-icon ic-purple">🔄</div><div><div class="sc-val" id="s-progress">—</div><div class="sc-lbl">In Progress</div></div></div>
+      <div class="stat-card" onclick="goToMyComplaints('resolved')" title="View resolved complaints"><div class="sc-icon ic-green">✅</div><div><div class="sc-val" id="s-resolved">—</div><div class="sc-lbl">Resolved</div></div></div>
     </div>
 
     <!-- Two column -->
@@ -413,6 +413,13 @@
           </tbody>
         </table>`;
     } catch(err) { console.error(err); }
+  }
+
+  function goToMyComplaints(status) {
+    const url = status
+      ? '/hydraa-my-complaints.html?status=' + status
+      : '/hydraa-my-complaints.html';
+    window.location.href = url;
   }
 
   loadDashboard();
