@@ -34,35 +34,46 @@ const lodgeComplaint = async (req, res) => {
   try {
     // ── Duplicate detection ──
     let matchedDuplicate = null;
-    // 1. Strong match: same survey number (across all users)
-    if (land_survey_no) {
-      const [surveyMatch] = await db.query(
-        `SELECT c.id, c.complaint_no, c.title, c.status, c.created_at,
-                cat.name AS category_name, d.name AS district_name
-         FROM complaints c
-         LEFT JOIN categories cat ON cat.id = c.category_id
-         LEFT JOIN districts d ON d.id = c.district_id
-         WHERE c.land_survey_no = ? AND c.id != 0
+    const selectFields = `
+      SELECT c.id, c.complaint_no, c.title, c.status, c.created_at,
+             cat.name AS category_name, d.name AS district_name,
+             c.land_mandal, c.land_village
+      FROM complaints c
+      LEFT JOIN categories cat ON cat.id = c.category_id
+      LEFT JOIN districts   d  ON d.id   = c.district_id`;
+
+    // 1. Exact: district + mandal + village + survey number all match
+    if (district_id && mandal_id && land_survey_no) {
+      const [rows] = await db.query(
+        `${selectFields}
+         WHERE c.district_id = ? AND c.mandal_id = ? AND c.land_survey_no = ?
            AND c.created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
          ORDER BY c.created_at DESC LIMIT 1`,
-        [land_survey_no]
+        [district_id, mandal_id, land_survey_no]
       );
-      if (surveyMatch.length > 0) matchedDuplicate = { ...surveyMatch[0], match_type: 'exact' };
+      if (rows.length > 0) matchedDuplicate = { ...rows[0], match_type: 'exact' };
     }
-    // 2. Medium match: same district + category (across all users)
-    if (!matchedDuplicate && category_id && district_id) {
-      const [catMatch] = await db.query(
-        `SELECT c.id, c.complaint_no, c.title, c.status, c.created_at,
-                cat.name AS category_name, d.name AS district_name
-         FROM complaints c
-         LEFT JOIN categories cat ON cat.id = c.category_id
-         LEFT JOIN districts d ON d.id = c.district_id
-         WHERE c.category_id = ? AND c.district_id = ?
+    // 2. Exact: district + mandal + village + khata number all match
+    if (!matchedDuplicate && district_id && mandal_id && khata_no) {
+      const [rows] = await db.query(
+        `${selectFields}
+         WHERE c.district_id = ? AND c.mandal_id = ? AND c.khata_no = ?
            AND c.created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
          ORDER BY c.created_at DESC LIMIT 1`,
-        [category_id, district_id]
+        [district_id, mandal_id, khata_no]
       );
-      if (catMatch.length > 0) matchedDuplicate = { ...catMatch[0], match_type: 'similar' };
+      if (rows.length > 0) matchedDuplicate = { ...rows[0], match_type: 'exact' };
+    }
+    // 3. Similar: same district + mandal + category (no land numbers)
+    if (!matchedDuplicate && district_id && mandal_id && category_id) {
+      const [rows] = await db.query(
+        `${selectFields}
+         WHERE c.district_id = ? AND c.mandal_id = ? AND c.category_id = ?
+           AND c.created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+         ORDER BY c.created_at DESC LIMIT 1`,
+        [district_id, mandal_id, category_id]
+      );
+      if (rows.length > 0) matchedDuplicate = { ...rows[0], match_type: 'similar' };
     }
     if (matchedDuplicate && !req.body.force_submit) {
       return res.status(409).json({
@@ -886,41 +897,46 @@ const getPhotos = async (req, res) => {
 //  CHECK DUPLICATE (called by frontend before submit)
 // ────────────────────────────────────────────────────
 const checkDuplicate = async (req, res) => {
-  const { category_id, district_id, land_survey_no } = req.query;
+  const { category_id, district_id, mandal_id, land_survey_no, khata_no } = req.query;
+  const sel = `
+    SELECT c.id, c.status, c.created_at,
+           cat.name AS category_name, d.name AS district_name
+    FROM complaints c
+    LEFT JOIN categories cat ON cat.id = c.category_id
+    LEFT JOIN districts   d  ON d.id   = c.district_id`;
   try {
-    // 1. Strong: same survey number across all citizens in last 6 months
-    if (land_survey_no) {
+    // 1. Exact: district + mandal + survey number
+    if (district_id && mandal_id && land_survey_no) {
       const [rows] = await db.query(
-        `SELECT c.id, c.complaint_no, c.title, c.status, c.created_at,
-                cat.name AS category_name, d.name AS district_name
-         FROM complaints c
-         LEFT JOIN categories cat ON cat.id = c.category_id
-         LEFT JOIN districts d ON d.id = c.district_id
-         WHERE c.land_survey_no = ?
+        `${sel} WHERE c.district_id=? AND c.mandal_id=? AND c.land_survey_no=?
            AND c.created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
          ORDER BY c.created_at DESC LIMIT 1`,
-        [land_survey_no]
+        [district_id, mandal_id, land_survey_no]
       );
-      if (rows.length > 0) {
+      if (rows.length > 0)
         return res.json({ success: true, duplicate: true, match_type: 'exact', existing: rows[0] });
-      }
     }
-    // 2. Medium: same district + category across all citizens in last 6 months
-    if (category_id && district_id) {
+    // 2. Exact: district + mandal + khata number
+    if (district_id && mandal_id && khata_no) {
       const [rows] = await db.query(
-        `SELECT c.id, c.complaint_no, c.title, c.status, c.created_at,
-                cat.name AS category_name, d.name AS district_name
-         FROM complaints c
-         LEFT JOIN categories cat ON cat.id = c.category_id
-         LEFT JOIN districts d ON d.id = c.district_id
-         WHERE c.category_id = ? AND c.district_id = ?
+        `${sel} WHERE c.district_id=? AND c.mandal_id=? AND c.khata_no=?
            AND c.created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
          ORDER BY c.created_at DESC LIMIT 1`,
-        [category_id, district_id]
+        [district_id, mandal_id, khata_no]
       );
-      if (rows.length > 0) {
+      if (rows.length > 0)
+        return res.json({ success: true, duplicate: true, match_type: 'exact', existing: rows[0] });
+    }
+    // 3. Similar: district + mandal + category
+    if (district_id && mandal_id && category_id) {
+      const [rows] = await db.query(
+        `${sel} WHERE c.district_id=? AND c.mandal_id=? AND c.category_id=?
+           AND c.created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+         ORDER BY c.created_at DESC LIMIT 1`,
+        [district_id, mandal_id, category_id]
+      );
+      if (rows.length > 0)
         return res.json({ success: true, duplicate: true, match_type: 'similar', existing: rows[0] });
-      }
     }
     res.json({ success: true, duplicate: false });
   } catch (err) {
