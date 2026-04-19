@@ -462,17 +462,17 @@
             <option value="medium">🟡 Medium</option>
             <option value="low">🟢 Low</option>
           </select>
-          <input type="text" id="filterSearch" placeholder="Search no / title / citizen..." style="flex:1;min-width:160px;" oninput="loadComplaints()"/>
-          <button class="btn-filter" onclick="adminExportCSV()" style="background:rgba(16,185,129,0.1);color:#065f46;border:1.5px solid rgba(16,185,129,0.3);">⬇ CSV</button>
-          <button class="btn-filter" onclick="adminExportPDF()" style="background:rgba(239,68,68,0.08);color:#b91c1c;border:1.5px solid rgba(239,68,68,0.25);">⬇ PDF</button>
+          <input type="text" id="filterSearch" placeholder="Search no / title / citizen..." style="width:200px;" oninput="loadComplaints()"/>
         </div>
-        <!-- Row 2: date range + search button -->
+        <!-- Row 2: date range + search + CSV + PDF -->
         <div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;">
           <span style="font-size:0.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap;">From</span>
           <input type="date" id="filterDateFrom" onchange="loadComplaints()" title="From date" style="width:148px;padding:0.45rem 0.6rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:0.82rem;color:var(--text);background:var(--bg)"/>
           <span style="font-size:0.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;">To</span>
           <input type="date" id="filterDateTo" onchange="loadComplaints()" title="To date" style="width:148px;padding:0.45rem 0.6rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:0.82rem;color:var(--text);background:var(--bg)"/>
           <button class="btn-filter" onclick="loadComplaints()">🔍 Search</button>
+          <button class="btn-filter" onclick="adminExportCSV()" style="background:rgba(16,185,129,0.1);color:#065f46;border:1.5px solid rgba(16,185,129,0.3);">⬇ CSV</button>
+          <button class="btn-filter" onclick="adminExportPDF()" style="background:rgba(239,68,68,0.08);color:#b91c1c;border:1.5px solid rgba(239,68,68,0.25);">⬇ PDF</button>
         </div>
       </div>
 
