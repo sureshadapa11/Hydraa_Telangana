@@ -657,16 +657,9 @@ function switchView(v) {
   document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.sb-a').forEach(el => el.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
-  // Re-highlight matching sidebar link
-  document.querySelectorAll('.sb-a').forEach(el => {
-    if (el.getAttribute('onclick') && el.getAttribute('onclick').includes("'"+v+"'")) el.classList.add('active');
-  });
   document.getElementById('tb-title').textContent = v==='dashboard' ? 'Admin Dashboard' : 'All Complaints';
-  localStorage.setItem('hydraa_admin_view', v);
   if (v==='complaints') loadComplaints();
-  else loadDashboard();
 }
-
 
 // Stat card click — go to complaints with filter pre-applied
 function goToComplaints(status, dateRange) {
@@ -1097,8 +1090,7 @@ async function init() {
       distRes.data.forEach(d => document.getElementById('filterDistrict').innerHTML += `<option value="${d.id}">${d.name}</option>`);
     }
   } catch(e) { console.error(e); }
-  const saved = localStorage.getItem('hydraa_admin_view');
-  switchView((saved && document.getElementById('view-'+saved)) ? saved : 'dashboard');
+  loadDashboard();
 }
 
 async function loadComplaints({ silent = false } = {}) {
