@@ -3,7 +3,7 @@
 //   Cache static assets, network-first for API
 // =====================================================
 
-const CACHE_NAME   = 'hydraa-v2';
+const CACHE_NAME   = 'hydraa-v3';
 const OFFLINE_URL  = '/offline.html';
 
 const STATIC_ASSETS = [
@@ -83,15 +83,27 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Static assets — Cache first, fall back to network, then offline page
+  // HTML pages — Network first so deployments show immediately on normal refresh
+  // Falls back to cache only when truly offline
+  if (request.destination === 'document') {
+    event.respondWith(
+      fetch(request).then(response => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
+        return response;
+      }).catch(() =>
+        caches.match(request).then(cached => cached || caches.match(OFFLINE_URL))
+      )
+    );
+    return;
+  }
+
+  // JS / CSS / Images — Cache first (these are versioned; cache is fine)
   event.respondWith(
     caches.match(request).then(cached => {
       if (cached) return cached;
-
       return fetch(request).then(response => {
-        // Cache successful HTML/JS/CSS responses
         if (response.ok && (
-          request.destination === 'document' ||
           request.destination === 'script' ||
           request.destination === 'style' ||
           request.destination === 'image'
@@ -100,12 +112,7 @@ self.addEventListener('fetch', event => {
           caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
         }
         return response;
-      }).catch(() => {
-        // Offline fallback for navigation requests
-        if (request.destination === 'document') {
-          return caches.match(OFFLINE_URL);
-        }
-      });
+      }).catch(() => caches.match(OFFLINE_URL));
     })
   );
 });
