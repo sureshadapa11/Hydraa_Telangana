@@ -1267,6 +1267,44 @@ const resolveDuplicate = async (req, res) => {
   }
 };
 
+// ────────────────────────────────────────────────────
+//  ANNOUNCEMENTS
+// ────────────────────────────────────────────────────
+const getAnnouncements = async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT id, title, message, is_active, created_at FROM announcements ORDER BY created_at DESC`
+    );
+    res.json({ success: true, data: rows });
+  } catch (err) { res.status(500).json({ success: false, message: 'Server error.' }); }
+};
+
+const createAnnouncement = async (req, res) => {
+  const { title, message } = req.body;
+  if (!title || !message) return res.status(400).json({ success: false, message: 'Title and message required.' });
+  try {
+    const [r] = await db.query(`INSERT INTO announcements (title, message) VALUES (?, ?)`, [title, message]);
+    res.json({ success: true, data: { id: r.insertId, title, message, is_active: 1, created_at: new Date() } });
+  } catch (err) { res.status(500).json({ success: false, message: 'Server error.' }); }
+};
+
+const deleteAnnouncement = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.query(`DELETE FROM announcements WHERE id = ?`, [id]);
+    res.json({ success: true, message: 'Announcement deleted.' });
+  } catch (err) { res.status(500).json({ success: false, message: 'Server error.' }); }
+};
+
+const toggleAnnouncement = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.query(`UPDATE announcements SET is_active = IF(is_active=1, 0, 1) WHERE id = ?`, [id]);
+    const [[row]] = await db.query(`SELECT is_active FROM announcements WHERE id = ?`, [id]);
+    res.json({ success: true, is_active: row.is_active });
+  } catch (err) { res.status(500).json({ success: false, message: 'Server error.' }); }
+};
+
 module.exports = {
   deleteOfficial,
   getCategories,
@@ -1306,4 +1344,8 @@ module.exports = {
   getDuplicates,
   resolveDuplicate,
   getOverdueComplaints,
+  getAnnouncements,
+  createAnnouncement,
+  deleteAnnouncement,
+  toggleAnnouncement,
 };

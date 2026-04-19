@@ -22,6 +22,8 @@ const {
   uploadPhoto,
   getPhotos,
   checkDuplicate,
+  getDistrictStats,
+  getUserProfile,
 } = require('../controllers/complaintController');
 const { verifyToken } = require('../middleware/auth');
 
@@ -52,5 +54,9 @@ router.get('/:id/photos',  verifyToken, getPhotos);
 
 // ── Duplicate check ──
 router.get('/check-duplicate', verifyToken, checkDuplicate);
+
+// ── District stats & user profile (citizen dashboard) ──
+router.get('/district-stats', verifyToken, getDistrictStats);
+router.get('/user-profile', verifyToken, getUserProfile);
 
 module.exports = router;

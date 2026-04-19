@@ -359,6 +359,25 @@
         </div>
         <div id="dupTable"><div class="empty"><div class="empty-icon">✅</div><p>No duplicate complaints found</p></div></div>
       </div>
+
+      <!-- Announcements Management -->
+      <div class="table-card" style="margin-top:1.4rem;border:2px solid #bae6fd;">
+        <div class="tc-hdr" style="background:linear-gradient(to right,#f0f9ff,#fff);">
+          <div class="tc-hdr-left">
+            <div class="tc-title" style="color:#0369a1;">📢 Announcements / Notices</div>
+            <div class="tc-sub">Post notices to citizens — they appear on every citizen's dashboard</div>
+          </div>
+        </div>
+        <div style="padding:1rem 1.4rem;border-bottom:1px solid var(--border);background:#f8fbff;">
+          <div style="display:flex;gap:0.7rem;align-items:flex-start;flex-wrap:wrap;">
+            <input type="text" id="annTitle" placeholder="Notice title..." style="flex:1;min-width:180px;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0.6rem 0.9rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.85rem;color:var(--text);outline:none;" onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='var(--border)'"/>
+            <textarea id="annMessage" placeholder="Notice message..." rows="2" style="flex:2;min-width:240px;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0.6rem 0.9rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.85rem;color:var(--text);outline:none;resize:vertical;" onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+            <button onclick="postAnnouncement()" style="background:linear-gradient(135deg,#0369a1,#0ea5e9);color:#fff;border:none;border-radius:var(--radius-sm);padding:0.65rem 1.3rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;align-self:flex-end;">📢 Post Notice</button>
+          </div>
+          <div id="annMsg" style="font-size:0.78rem;margin-top:0.5rem;display:none;"></div>
+        </div>
+        <div id="annList"><div class="empty" style="padding:1.5rem"><div class="empty-icon">📭</div><p>No announcements posted yet</p></div></div>
+      </div>
     </div>
 
     <!-- ═══ COMPLAINTS VIEW ═══ -->
@@ -707,6 +726,7 @@ async function loadDashboard() {
       </table>`;
   } catch(err) { console.error(err); }
   loadDuplicates();
+  loadAnnouncements();
 }
 
 // ═══ DUPLICATES ═══
@@ -756,6 +776,66 @@ async function loadDuplicates() {
         </tbody>
       </table></div>`;
   } catch(e) { console.error('loadDuplicates error:', e); }
+}
+
+// ═══ ANNOUNCEMENTS ═══
+async function loadAnnouncements() {
+  try {
+    const res = await http.get('/api/admin/announcements');
+    const list = (res.success && res.data) ? res.data : [];
+    if (!list.length) {
+      document.getElementById('annList').innerHTML =
+        '<div class="empty" style="padding:1.5rem"><div class="empty-icon">📭</div><p>No announcements posted yet</p></div>';
+      return;
+    }
+    document.getElementById('annList').innerHTML = `<table>
+      <thead><tr><th>Title</th><th>Message</th><th>Status</th><th>Posted</th><th>Actions</th></tr></thead>
+      <tbody>${list.map(a => `<tr>
+        <td><strong>${a.title}</strong></td>
+        <td style="max-width:260px;font-size:0.8rem;color:var(--text-2)">${a.message}</td>
+        <td><span style="padding:3px 10px;border-radius:100px;font-size:0.68rem;font-weight:700;background:${a.is_active?'rgba(16,185,129,0.12)':'rgba(107,114,128,0.12)'};color:${a.is_active?'#065f46':'#374151'}">${a.is_active?'Active':'Hidden'}</span></td>
+        <td style="white-space:nowrap;font-size:0.78rem">${new Date(a.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</td>
+        <td>
+          <div style="display:flex;gap:0.4rem">
+            <button onclick="toggleAnn(${a.id})" style="padding:4px 10px;border:none;border-radius:6px;font-size:0.72rem;font-weight:700;cursor:pointer;background:rgba(59,130,246,0.12);color:#1d4ed8;border:1px solid rgba(59,130,246,0.25)">${a.is_active?'Hide':'Show'}</button>
+            <button onclick="deleteAnn(${a.id})" style="padding:4px 10px;border:none;border-radius:6px;font-size:0.72rem;font-weight:700;cursor:pointer;background:rgba(239,68,68,0.1);color:#b91c1c;border:1px solid rgba(239,68,68,0.25)">Delete</button>
+          </div>
+        </td>
+      </tr>`).join('')}
+      </tbody></table>`;
+  } catch(e) { console.error('loadAnnouncements error:', e); }
+}
+
+async function postAnnouncement() {
+  const title   = document.getElementById('annTitle').value.trim();
+  const message = document.getElementById('annMessage').value.trim();
+  const msgEl   = document.getElementById('annMsg');
+  if (!title || !message) {
+    msgEl.style.display='block'; msgEl.style.color='#b91c1c';
+    msgEl.textContent = 'Both title and message are required.'; return;
+  }
+  try {
+    const res = await http.post('/api/admin/announcements', { title, message });
+    if (res.success) {
+      document.getElementById('annTitle').value = '';
+      document.getElementById('annMessage').value = '';
+      msgEl.style.display='block'; msgEl.style.color='#065f46';
+      msgEl.textContent = 'Notice posted! Citizens will see it on their dashboard.';
+      setTimeout(() => { msgEl.style.display='none'; }, 3000);
+      loadAnnouncements();
+    } else { msgEl.style.display='block'; msgEl.style.color='#b91c1c'; msgEl.textContent = res.message; }
+  } catch(e) { msgEl.style.display='block'; msgEl.style.color='#b91c1c'; msgEl.textContent='Server error.'; }
+}
+
+async function toggleAnn(id) {
+  const res = await http.put(`/api/admin/announcements/${id}/toggle`, {});
+  if (res.success) loadAnnouncements();
+}
+
+async function deleteAnn(id) {
+  if (!confirm('Delete this announcement? Citizens will no longer see it.')) return;
+  const res = await http.delete(`/api/admin/announcements/${id}`);
+  if (res.success) loadAnnouncements();
 }
 
 // ── OVERDUE MODAL ──

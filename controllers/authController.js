@@ -80,12 +80,15 @@ const loginUser = async (req, res) => {
     await db.query('INSERT INTO user_logs (user_id, action, ip_address) VALUES (?, ?, ?)',
       [user.id, 'LOGIN', req.ip]);
 
+    const last_login = user.last_login; // capture previous login time before overwriting
+    try { await db.query('UPDATE users SET last_login = NOW() WHERE id = ?', [user.id]); } catch(e) {}
+
     const token = generateToken(user.id, 'user');
     res.json({
       success: true,
       message: 'Login successful.',
       token,
-      user: { id: user.id, full_name: user.full_name, email: user.email, role: 'user' },
+      user: { id: user.id, full_name: user.full_name, email: user.email, role: 'user', last_login },
     });
   } catch (err) {
     console.error('Login error:', err);

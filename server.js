@@ -471,6 +471,7 @@ async function fixUsersTable() {
       { name: 'is_verified',         def: 'BOOLEAN DEFAULT 0' },
       { name: 'verification_token',  def: 'VARCHAR(255)' },
       { name: 'created_at',          def: 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP' },
+      { name: 'last_login',          def: 'TIMESTAMP NULL' },
     ];
     const missing = required.filter(c => !colNames.includes(c.name));
     if (missing.length > 0) {
@@ -625,6 +626,25 @@ async function ensurePhotosTable() {
     console.log('✅ complaint_photos table OK');
   } catch (err) {
     console.warn('⚠️  complaint_photos table skipped:', err.message);
+  }
+}
+
+// ── Ensure Announcements Table ──
+async function ensureAnnouncementsTable() {
+  try {
+    const db = require('./utils/db');
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS announcements (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        title VARCHAR(200) NOT NULL,
+        message TEXT NOT NULL,
+        is_active TINYINT DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('✅ announcements table OK');
+  } catch (err) {
+    console.warn('⚠️  announcements table skipped:', err.message);
   }
 }
 
@@ -808,6 +828,7 @@ app.listen(PORT, async () => {
   await ensureCommentTable();
   await ensurePhotosTable();
   await ensureDeletedUsersTable();
+  await ensureAnnouncementsTable();
 });
 
 module.exports = app;

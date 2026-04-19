@@ -148,6 +148,70 @@
     .empty h3{font-size:1rem;color:var(--text-2);margin-bottom:0.3rem;}
     .empty p{font-size:0.82rem;}
     .empty a{color:var(--teal);font-weight:600;text-decoration:none;}
+
+    /* Profile completion banner */
+    .profile-banner{background:linear-gradient(135deg,#fffbeb,#fef3c7);border:1.5px solid #fcd34d;border-radius:var(--radius);padding:0.85rem 1.2rem;margin-bottom:1.2rem;display:flex;align-items:center;gap:1rem;}
+    .profile-banner-icon{font-size:1.4rem;flex-shrink:0;}
+    .profile-banner-text{flex:1;font-size:0.82rem;color:#92400e;font-weight:500;}
+    .profile-banner-text strong{font-weight:700;}
+    .profile-banner a{font-size:0.8rem;font-weight:700;color:#b45309;background:rgba(245,158,11,0.15);border:1px solid #fcd34d;padding:0.3rem 0.9rem;border-radius:100px;text-decoration:none;white-space:nowrap;}
+    .profile-banner a:hover{background:rgba(245,158,11,0.25);}
+
+    /* Announcements */
+    .announce-section{margin-bottom:1.4rem;}
+    .announce-hdr{display:flex;align-items:center;gap:0.5rem;margin-bottom:0.7rem;}
+    .announce-hdr-title{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);}
+    .announce-card{background:#fff;border:1.5px solid #bae6fd;border-radius:var(--radius);padding:1rem 1.2rem;margin-bottom:0.6rem;box-shadow:var(--shadow);}
+    .announce-card-title{font-size:0.88rem;font-weight:700;color:#0369a1;margin-bottom:0.25rem;display:flex;align-items:center;gap:0.5rem;}
+    .announce-card-msg{font-size:0.82rem;color:var(--text-2);line-height:1.55;}
+    .announce-card-date{font-size:0.68rem;color:var(--text-3);margin-top:0.4rem;}
+
+    /* Status timeline */
+    .timeline-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem 1.4rem;box-shadow:var(--shadow);margin-bottom:1.4rem;}
+    .tl-card-title{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:1rem;}
+    .tl-steps{display:flex;align-items:center;gap:0;}
+    .tl-step{display:flex;flex-direction:column;align-items:center;flex:1;position:relative;}
+    .tl-step:not(:last-child)::after{content:'';position:absolute;top:16px;left:50%;width:100%;height:2px;background:var(--border);z-index:0;}
+    .tl-step.done:not(:last-child)::after{background:var(--teal);}
+    .tl-step-dot{width:32px;height:32px;border-radius:50%;border:3px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;font-size:0.85rem;z-index:1;position:relative;}
+    .tl-step.done .tl-step-dot{border-color:var(--teal);background:var(--teal);color:#fff;}
+    .tl-step.active .tl-step-dot{border-color:var(--orange);background:var(--orange);color:#fff;box-shadow:0 0 0 4px rgba(245,158,11,0.2);}
+    .tl-step-lbl{font-size:0.65rem;color:var(--text-3);margin-top:6px;text-align:center;font-weight:600;}
+    .tl-step.done .tl-step-lbl,.tl-step.active .tl-step-lbl{color:var(--text-2);}
+    .tl-complaint-info{font-size:0.78rem;color:var(--text-3);margin-bottom:0.8rem;}
+    .tl-complaint-info strong{color:var(--text-2);}
+
+    /* Info grid (extra stat cards) */
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.4rem;}
+    .info-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.2rem;box-shadow:var(--shadow);display:flex;align-items:center;gap:0.9rem;}
+    .info-card-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+    .info-card-val{font-family:'Rajdhani',sans-serif;font-size:1.5rem;font-weight:700;color:var(--text);line-height:1;}
+    .info-card-lbl{font-size:0.72rem;color:var(--text-2);margin-top:2px;font-weight:500;}
+    .info-card-sub{font-size:0.68rem;color:var(--text-3);margin-top:1px;}
+
+    /* Quick track */
+    .track-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem 1.4rem;box-shadow:var(--shadow);}
+    .track-card-title{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:0.3rem;}
+    .track-card-sub{font-size:0.72rem;color:var(--text-3);margin-bottom:0.8rem;}
+    .track-row{display:flex;gap:0.5rem;}
+    .track-input{flex:1;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0.65rem 0.9rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.85rem;color:var(--text);outline:none;transition:border-color 0.2s;}
+    .track-input:focus{border-color:var(--teal);}
+    .track-btn{background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:var(--radius-sm);padding:0.65rem 1.2rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;}
+
+    /* Top issues */
+    .issues-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem 1.4rem;box-shadow:var(--shadow);}
+    .issues-card-title{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:0.3rem;}
+    .issues-card-sub{font-size:0.72rem;color:var(--text-3);margin-bottom:0.8rem;}
+    .issue-row{display:flex;align-items:center;gap:0.7rem;margin-bottom:0.6rem;}
+    .issue-rank{width:22px;height:22px;border-radius:50%;background:var(--teal);color:#fff;font-size:0.65rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .issue-name{flex:1;font-size:0.82rem;color:var(--text-2);font-weight:500;}
+    .issue-count{font-family:'Rajdhani',sans-serif;font-size:0.9rem;font-weight:700;color:var(--text);background:var(--bg);border-radius:100px;padding:2px 10px;font-size:0.75rem;}
+
+    /* Stars */
+    .stars{color:#f59e0b;letter-spacing:1px;font-size:1rem;}
+
+    /* Last login */
+    .last-login-text{font-size:0.68rem;color:rgba(255,255,255,0.45);margin-top:4px;}
   
     .ham-btn{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:var(--bg,#f2f6f9);border:1px solid var(--border,#d0e4ec);border-radius:8px;cursor:pointer;font-size:1.1rem;flex-shrink:0;margin-right:0.7rem;}
 
@@ -242,6 +306,13 @@
 
   <div class="content">
 
+    <!-- Profile completion banner (shown if phone/address missing) -->
+    <div class="profile-banner" id="profileBanner" style="display:none">
+      <div class="profile-banner-icon">⚠️</div>
+      <div class="profile-banner-text"><strong>Complete your profile</strong> — Add your phone number and address so officials can contact you about your complaints.</div>
+      <a href="/hydraa-change-password.html">Update Profile →</a>
+    </div>
+
     <!-- Welcome banner -->
     <div class="welcome-banner">
       <div class="wb-bg"></div>
@@ -250,6 +321,7 @@
         <div class="wb-greeting">Welcome back</div>
         <div class="wb-name" id="wb-name">Citizen 👋</div>
         <div class="wb-sub">Here's a summary of your complaint activity with HYDRAA</div>
+        <div class="last-login-text" id="lastLoginText"></div>
       </div>
       <div class="wb-right">
         <a href="/hydraa-lodge-complaint.html" class="wb-btn">📝 Lodge New Complaint</a>
@@ -264,7 +336,60 @@
       <div class="stat-card" onclick="goToMyComplaints('resolved')" title="View resolved complaints"><div class="sc-icon ic-green">✅</div><div><div class="sc-val" id="s-resolved">—</div><div class="sc-lbl">Resolved</div></div></div>
     </div>
 
-    <!-- Two column -->
+    <!-- Info row: avg resolution time + satisfaction score -->
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-card-icon" style="background:rgba(0,151,167,0.1)">⏱️</div>
+        <div>
+          <div class="info-card-val" id="avgDays">—</div>
+          <div class="info-card-lbl">Avg. Resolution Days</div>
+          <div class="info-card-sub" id="avgDaysDistrict">in your district</div>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-icon" style="background:rgba(245,158,11,0.1)">⭐</div>
+        <div>
+          <div class="info-card-val" id="satisfactionScore">—</div>
+          <div class="info-card-lbl">Your Satisfaction Score</div>
+          <div class="info-card-sub" id="satisfactionSub">avg rating you gave</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Announcements (shown only if any exist) -->
+    <div class="announce-section" id="announceSection" style="display:none">
+      <div class="announce-hdr">
+        <span style="font-size:1.1rem">📢</span>
+        <div class="announce-hdr-title">Notices from HYDRAA</div>
+      </div>
+      <div id="announceList"></div>
+    </div>
+
+    <!-- Latest complaint status timeline -->
+    <div class="timeline-card" id="timelineCard" style="display:none">
+      <div class="tl-card-title">📍 Latest Complaint Progress</div>
+      <div class="tl-complaint-info" id="tlComplaintInfo"></div>
+      <div class="tl-steps" id="tlSteps"></div>
+    </div>
+
+    <!-- Two column: Quick track + Top issues -->
+    <div class="two-col">
+      <div class="track-card">
+        <div class="track-card-title">🔍 Quick Track</div>
+        <div class="track-card-sub">Enter your complaint number to jump directly to it</div>
+        <div class="track-row">
+          <input type="text" class="track-input" id="quickTrackInput" placeholder="e.g. HYD-2024-001" onkeydown="if(event.key==='Enter')quickTrack()"/>
+          <button class="track-btn" onclick="quickTrack()">Track</button>
+        </div>
+      </div>
+      <div class="issues-card">
+        <div class="issues-card-title">🏘️ Top Issues in Your Area</div>
+        <div class="issues-card-sub" id="topIssuesSub">Most reported complaint types near you</div>
+        <div id="topIssuesList"><div style="color:var(--text-3);font-size:0.82rem;padding:0.5rem 0">Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- Two column: Quick actions + Status breakdown -->
     <div class="two-col">
 
       <!-- Quick actions -->
@@ -309,9 +434,8 @@
       <div class="tc-hdr">
         <div>
           <div class="tc-title">Recent Complaints</div>
-          <div class="tc-sub">Your last 5 filed complaints</div>
+          <div class="tc-sub">Your last 5 filed complaints — <a href="/hydraa-my-complaints.html" style="color:var(--teal)">View all →</a></div>
         </div>
-        <a href="/hydraa-my-complaints.html">View All →</a>
       </div>
       <div id="recentTable"><div class="empty"><div class="empty-icon">⏳</div><p>Loading your complaints...</p></div></div>
     </div>
@@ -341,6 +465,12 @@
     document.getElementById('tp-av').textContent = init;
     document.getElementById('tp-nm').textContent = name;
     document.getElementById('wb-name').textContent = name + ' 👋';
+    // Last login info (stored from previous session login response)
+    if (user.last_login) {
+      const ll = new Date(user.last_login);
+      document.getElementById('lastLoginText').textContent =
+        'Last session: ' + ll.toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'}) + ' at ' + ll.toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'});
+    }
   }
   document.getElementById('tb-date').textContent = new Date().toLocaleDateString('en-IN', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
 
@@ -350,6 +480,33 @@
     return `<span class="badge ${m[status]||''}">${l[status]||status}</span>`;
   }
   function pb(p) { return `<span class="badge b-${p}">${p.toUpperCase()}</span>`; }
+
+  const STATUS_STEPS = [
+    { key: 'open',        label: 'Filed',       icon: '📝' },
+    { key: 'assigned',    label: 'Assigned',     icon: '📌' },
+    { key: 'in_progress', label: 'In Progress',  icon: '🔄' },
+    { key: 'resolved',    label: 'Resolved',     icon: '✅' },
+  ];
+
+  function renderTimeline(complaint) {
+    const order = ['open','assigned','in_progress','resolved'];
+    const curIdx = order.indexOf(complaint.status);
+    const card = document.getElementById('timelineCard');
+    if (!complaint || ['resolved','closed','rejected'].includes(complaint.status)) {
+      card.style.display = 'none'; return;
+    }
+    card.style.display = 'block';
+    document.getElementById('tlComplaintInfo').innerHTML =
+      `<strong>${complaint.complaint_no}</strong> — ${complaint.title||''} &nbsp;|&nbsp; Category: ${complaint.category_name||'N/A'}`;
+    document.getElementById('tlSteps').innerHTML = STATUS_STEPS.map((s, i) => {
+      const isDone   = i < curIdx;
+      const isActive = i === curIdx;
+      return `<div class="tl-step ${isDone?'done':''} ${isActive?'active':''}">
+        <div class="tl-step-dot">${isDone ? '✓' : s.icon}</div>
+        <div class="tl-step-lbl">${s.label}</div>
+      </div>`;
+    }).join('');
+  }
 
   async function loadDashboard() {
     try {
@@ -387,7 +544,11 @@
             <div class="si-count">${s.count}</div>
           </div>`).join('');
 
-      // Recent table
+      // Status timeline — show latest active complaint
+      const active = complaints.find(c => ['open','assigned','in_progress'].includes(c.status));
+      renderTimeline(active);
+
+      // Recent table (last 5)
       const recent = complaints.slice(0, 5);
       if (recent.length === 0) {
         document.getElementById('recentTable').innerHTML = `
@@ -396,23 +557,89 @@
             <h3>No complaints yet</h3>
             <p>You haven't filed any complaints. <a href="/hydraa-lodge-complaint.html">Lodge your first complaint →</a></p>
           </div>`;
-        return;
+      } else {
+        document.getElementById('recentTable').innerHTML = `
+          <table>
+            <thead><tr><th>Complaint No.</th><th>Title</th><th>Category</th><th>Priority</th><th>Status</th><th>Date Filed</th></tr></thead>
+            <tbody>${recent.map(c => `
+              <tr>
+                <td><span class="cno">${c.complaint_no}</span></td>
+                <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><strong>${c.title}</strong></td>
+                <td style="font-size:0.78rem">${c.category_name||'N/A'}</td>
+                <td>${pb(c.priority)}</td>
+                <td>${sb(c.status)}</td>
+                <td style="white-space:nowrap">${formatDate(c.created_at)}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>`;
       }
-      document.getElementById('recentTable').innerHTML = `
-        <table>
-          <thead><tr><th>Complaint No.</th><th>Title</th><th>Category</th><th>Priority</th><th>Status</th><th>Date Filed</th></tr></thead>
-          <tbody>${recent.map(c => `
-            <tr>
-              <td><span class="cno">${c.complaint_no}</span></td>
-              <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><strong>${c.title}</strong></td>
-              <td style="font-size:0.78rem">${c.category_name||'N/A'}</td>
-              <td>${pb(c.priority)}</td>
-              <td>${sb(c.status)}</td>
-              <td style="white-space:nowrap">${formatDate(c.created_at)}</td>
-            </tr>`).join('')}
-          </tbody>
-        </table>`;
     } catch(err) { console.error(err); }
+  }
+
+  async function loadDistrictStats() {
+    try {
+      const res = await http.get('/api/complaints/district-stats');
+      if (!res.success) return;
+      const d = res.data;
+      if (d.avg_days !== null && d.avg_days !== undefined) {
+        document.getElementById('avgDays').textContent = d.avg_days + ' days';
+        if (d.district_name) document.getElementById('avgDaysDistrict').textContent = 'in ' + d.district_name;
+      } else {
+        document.getElementById('avgDays').textContent = 'N/A';
+        document.getElementById('avgDaysDistrict').textContent = 'no data yet';
+      }
+      if (d.top_categories && d.top_categories.length > 0) {
+        document.getElementById('topIssuesSub').textContent =
+          (d.district_name ? 'Most reported in ' + d.district_name : 'Most reported in your area');
+        document.getElementById('topIssuesList').innerHTML = d.top_categories.map((c, i) => `
+          <div class="issue-row">
+            <div class="issue-rank">${i+1}</div>
+            <div class="issue-name">${c.category}</div>
+            <div class="issue-count">${c.count} complaints</div>
+          </div>`).join('');
+      } else {
+        document.getElementById('topIssuesList').innerHTML =
+          '<div style="color:var(--text-3);font-size:0.82rem;padding:0.5rem 0">No data yet — file your first complaint to see trends</div>';
+      }
+    } catch(err) { /* silently ignore */ }
+  }
+
+  async function loadUserProfile() {
+    try {
+      const res = await http.get('/api/complaints/user-profile');
+      if (!res.success) return;
+      const u = res.data;
+      // Profile completion banner
+      if (!u.phone || !u.address) {
+        document.getElementById('profileBanner').style.display = 'flex';
+      }
+      // Satisfaction score
+      if (u.avg_rating && u.rating_count > 0) {
+        const stars = Math.round(u.avg_rating);
+        document.getElementById('satisfactionScore').innerHTML =
+          '⭐ ' + parseFloat(u.avg_rating).toFixed(1) + ' / 5';
+        document.getElementById('satisfactionSub').textContent = 'from ' + u.rating_count + ' rating' + (u.rating_count>1?'s':'') + ' you gave';
+      } else {
+        document.getElementById('satisfactionScore').textContent = 'No ratings yet';
+        document.getElementById('satisfactionSub').textContent = 'rate resolved complaints to see your score';
+      }
+    } catch(err) { /* silently ignore */ }
+  }
+
+  async function loadAnnouncements() {
+    try {
+      const res = await http.get('/api/admin/announcements');
+      if (!res.success) return;
+      const active = (res.data || []).filter(a => a.is_active);
+      if (active.length === 0) return;
+      document.getElementById('announceSection').style.display = 'block';
+      document.getElementById('announceList').innerHTML = active.map(a => `
+        <div class="announce-card">
+          <div class="announce-card-title">📣 ${a.title}</div>
+          <div class="announce-card-msg">${a.message}</div>
+          <div class="announce-card-date">${formatDate(a.created_at)}</div>
+        </div>`).join('');
+    } catch(err) { /* silently ignore */ }
   }
 
   function goToMyComplaints(status) {
@@ -422,7 +649,17 @@
     window.location.href = url;
   }
 
+  function quickTrack() {
+    const val = document.getElementById('quickTrackInput').value.trim();
+    if (!val) return;
+    window.location.href = '/hydraa-my-complaints.html?search=' + encodeURIComponent(val);
+  }
+
+  // Load all sections in parallel on startup
   loadDashboard();
+  loadDistrictStats();
+  loadUserProfile();
+  loadAnnouncements();
 
   // Background refresh every 15s — skip if user is typing
   setInterval(() => {

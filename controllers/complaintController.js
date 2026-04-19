@@ -944,6 +944,77 @@ const checkDuplicate = async (req, res) => {
   }
 };
 
+// ────────────────────────────────────────────────────
+//  DISTRICT STATS (avg resolution + top categories)
+// ────────────────────────────────────────────────────
+const getDistrictStats = async (req, res) => {
+  const user_id = req.user.id;
+  try {
+    // Find district from user's most recent complaint
+    const [[latestComp]] = await db.query(
+      `SELECT district_id FROM complaints WHERE user_id = ? AND district_id IS NOT NULL ORDER BY created_at DESC LIMIT 1`,
+      [user_id]
+    );
+    const district_id = req.query.district_id || (latestComp ? latestComp.district_id : null);
+
+    if (!district_id) {
+      return res.json({ success: true, data: { avg_days: null, district_name: null, top_categories: [] } });
+    }
+
+    const [[avgData]] = await db.query(
+      `SELECT d.name AS district_name,
+              ROUND(AVG(DATEDIFF(c.resolved_at, c.created_at)), 0) AS avg_days
+       FROM complaints c JOIN districts d ON d.id = c.district_id
+       WHERE c.district_id = ? AND c.resolved_at IS NOT NULL`,
+      [district_id]
+    );
+
+    const [topCats] = await db.query(
+      `SELECT cat.name AS category, COUNT(c.id) AS count
+       FROM complaints c JOIN categories cat ON cat.id = c.category_id
+       WHERE c.district_id = ?
+       GROUP BY cat.id, cat.name ORDER BY count DESC LIMIT 3`,
+      [district_id]
+    );
+
+    res.json({
+      success: true,
+      data: {
+        avg_days: avgData ? avgData.avg_days : null,
+        district_name: avgData ? avgData.district_name : null,
+        top_categories: topCats,
+      }
+    });
+  } catch (err) {
+    console.error('getDistrictStats error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+// ────────────────────────────────────────────────────
+//  USER PROFILE (phone, address, last_login, avg_rating)
+// ────────────────────────────────────────────────────
+const getUserProfile = async (req, res) => {
+  const user_id = req.user.id;
+  try {
+    const [[user]] = await db.query(
+      `SELECT u.full_name, u.email, u.phone, u.address, u.last_login,
+              ROUND(AVG(cr.rating), 1) AS avg_rating,
+              COUNT(cr.id) AS rating_count
+       FROM users u
+       LEFT JOIN complaint_ratings cr ON cr.user_id = u.id
+       WHERE u.id = ?
+       GROUP BY u.id`,
+      [user_id]
+    );
+    if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
+    res.json({ success: true, data: user });
+  } catch (err) {
+    console.error('getUserProfile error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
 module.exports = {
   lodgeComplaint,
   trackComplaint,
@@ -961,4 +1032,6 @@ module.exports = {
   uploadPhoto,
   getPhotos,
   checkDuplicate,
+  getDistrictStats,
+  getUserProfile,
 };

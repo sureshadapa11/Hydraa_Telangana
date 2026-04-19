@@ -7,6 +7,10 @@ const express = require('express');
 const router = express.Router();
 const {
   deleteOfficial,
+  getAnnouncements,
+  createAnnouncement,
+  deleteAnnouncement,
+  toggleAnnouncement,
   getCategories,
   createCategory,
   deleteCategory,
@@ -114,5 +118,11 @@ router.put('/duplicates/:id/resolve', verifyToken, resolveDuplicate);
 
 // ── Overdue ──
 router.get('/overdue', verifyToken, getOverdueComplaints);
+
+// ── Announcements ──
+router.get('/announcements', verifyToken, getAnnouncements);
+router.post('/announcements', verifyToken, createAnnouncement);
+router.delete('/announcements/:id', verifyToken, deleteAnnouncement);
+router.put('/announcements/:id/toggle', verifyToken, toggleAnnouncement);
 
 module.exports = router;
