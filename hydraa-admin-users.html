@@ -70,8 +70,9 @@
     .search-input:focus{border-color:var(--teal);}
     .filter-sel{padding:0.38rem 0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.8rem;font-family:'Plus Jakarta Sans',sans-serif;background:var(--white);cursor:pointer;}
     table{width:100%;border-collapse:collapse;}
-    th{background:var(--bg);padding:0.6rem 0.5rem;text-align:left;font-size:0.7rem;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid var(--border);}
-    td{padding:0.6rem 0.5rem;font-size:0.8rem;border-bottom:1px solid var(--border);color:var(--text);}
+    th{background:var(--bg);padding:0.5rem 0.3rem;text-align:left;font-size:0.68rem;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:0.03em;border-bottom:1px solid var(--border);}
+    td{padding:0.5rem 0.3rem;font-size:0.78rem;border-bottom:1px solid var(--border);color:var(--text);}
+    table{table-layout:auto;}
     tr:last-child td{border-bottom:none;}
     tr:hover td{background:#fafcff;}
 
@@ -338,7 +339,7 @@
       return `<tr>
         <td style="color:var(--text-3);font-size:0.75rem">${i + 1}</td>
         <td>
-          <div style="display:flex;align-items:center;gap:0.6rem">
+          <div style="display:flex;align-items:center;gap:0.35rem">
             <div class="av" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">${u.full_name[0].toUpperCase()}</div>
             <strong>${u.full_name}</strong>
           </div>
@@ -355,7 +356,7 @@
     }).join('');
     document.getElementById('usersTable').innerHTML = `
       <div style="overflow-x:auto">
-        <table style="min-width:750px;width:100%">
+        <table style="width:100%">
           <thead><tr>
             <th>#</th><th>Citizen</th><th>Email</th><th>Phone</th>
             <th>Complaints</th><th>Resolved</th><th>Registered</th><th>Actions</th>
