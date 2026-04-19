@@ -1132,39 +1132,75 @@ async function loadComplaints() {
     document.getElementById('cUrgent').textContent = data.filter(c=>c.priority==='urgent').length;
 
     document.getElementById('complaintsTable').innerHTML = `
-      <div style="padding:0.5rem 0 0.75rem;display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
-        <label style="font-size:0.78rem;font-weight:700;color:var(--text-2);display:flex;align-items:center;gap:0.4rem;cursor:pointer;">
+      <div style="padding:0.6rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;background:rgba(0,151,167,0.02);">
+        <label style="font-size:0.76rem;font-weight:700;color:var(--text-2);display:flex;align-items:center;gap:0.4rem;cursor:pointer;">
           <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)"/> Select All
         </label>
-        <button id="bulkAssignBtn" onclick="openBulkAssign()" style="display:none;padding:0.4rem 0.9rem;background:var(--teal);color:#fff;border:none;border-radius:6px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;">
-          👷 Bulk Assign Selected (<span id="selectedCount">0</span>)
+        <button id="bulkAssignBtn" onclick="openBulkAssign()" style="display:none;padding:0.32rem 0.8rem;background:var(--teal);color:#fff;border:none;border-radius:6px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;">
+          👷 Bulk Assign (<span id="selectedCount">0</span>)
         </button>
+        <span style="margin-left:auto;font-size:0.72rem;color:var(--text-3)">${data.length} complaints</span>
       </div>
-      <table style="min-width:950px;width:100%">
-        <thead><tr><th style="width:36px"></th><th>No.</th><th>Title</th><th>Citizen</th><th>Category</th><th>District</th><th>Priority</th><th>Status</th><th>Assigned To</th><th>Date</th><th>Actions</th></tr></thead>
-        <tbody>${data.map(c=>`
-          <tr>
-            <td><input type="checkbox" class="row-check" value="${c.id}" onchange="updateBulkBtn()"/></td>
-            <td><span class="cno">${c.complaint_no}</span></td>
-            <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.title}"><strong>${c.title}</strong></td>
-            <td>${c.user_name}</td>
-            <td style="font-size:0.78rem">${c.category_name||'—'}</td>
-            <td style="font-size:0.78rem;white-space:nowrap">
-              ${c.district_name ? `<span style="color:var(--teal);font-weight:600">📍 ${c.district_name}</span>` : '<span style="color:var(--text-3)">—</span>'}
-              ${c.mandal_name ? `<br><span style="color:var(--text-3);font-size:0.7rem">${c.mandal_name}</span>` : ''}
+      <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
+        <colgroup>
+          <col style="width:36px"/>
+          <col style="width:110px"/>
+          <col style="width:200px"/>
+          <col style="width:110px"/>
+          <col style="width:140px"/>
+          <col style="width:110px"/>
+          <col style="width:80px"/>
+          <col style="width:100px"/>
+          <col style="width:130px"/>
+          <col style="width:85px"/>
+          <col style="width:130px"/>
+        </colgroup>
+        <thead>
+          <tr style="background:#f8fafc;border-bottom:2px solid var(--border);">
+            <th style="padding:0.55rem 0.5rem;text-align:center;font-size:0.65rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;"></th>
+            <th style="padding:0.55rem 0.6rem;text-align:left;font-size:0.65rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;">Comp. No.</th>
+            <th style="padding:0.55rem 0.6rem;text-align:left;font-size:0.65rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;">Title</th>
+            <th style="padding:0.55rem 0.6rem;text-align:left;font-size:0.65rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;">Citizen</th>
+            <th style="padding:0.55rem 0.6rem;text-align:left;font-size:0.65rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;">Category</th>
+            <th style="padding:0.55rem 0.6rem;text-align:left;font-size:0.65rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;">District</th>
+            <th style="padding:0.55rem 0.6rem;text-align:left;font-size:0.65rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;">Priority</th>
+            <th style="padding:0.55rem 0.6rem;text-align:left;font-size:0.65rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;">Status</th>
+            <th style="padding:0.55rem 0.6rem;text-align:left;font-size:0.65rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;">Assigned To</th>
+            <th style="padding:0.55rem 0.6rem;text-align:left;font-size:0.65rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;">Date</th>
+            <th style="padding:0.55rem 0.6rem;text-align:left;font-size:0.65rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>${data.map((c,i)=>`
+          <tr style="border-bottom:1px solid rgba(208,228,236,0.5);background:${i%2===0?'#fff':'#fafcfd'};transition:background 0.15s;" onmouseover="this.style.background='rgba(0,151,167,0.04)'" onmouseout="this.style.background='${i%2===0?'#fff':'#fafcfd'}'">
+            <td style="padding:0.45rem 0.5rem;text-align:center;"><input type="checkbox" class="row-check" value="${c.id}" onchange="updateBulkBtn()"/></td>
+            <td style="padding:0.45rem 0.6rem;"><span class="cno" style="font-size:0.72rem;">${c.complaint_no}</span></td>
+            <td style="padding:0.45rem 0.6rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${c.title}"><strong style="color:var(--navy);font-size:0.8rem;">${c.title}</strong></td>
+            <td style="padding:0.45rem 0.6rem;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px;" title="${c.user_name}">${c.user_name}</td>
+            <td style="padding:0.45rem 0.6rem;font-size:0.74rem;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px;" title="${c.category_name||''}">${c.category_name||'—'}</td>
+            <td style="padding:0.45rem 0.6rem;">
+              ${c.district_name ? `<span style="font-size:0.74rem;color:var(--teal);font-weight:600;">📍 ${c.district_name}</span>` : '<span style="color:var(--text-3);font-size:0.74rem;">—</span>'}
+              ${c.mandal_name ? `<br><span style="color:var(--text-3);font-size:0.68rem;">${c.mandal_name}</span>` : ''}
             </td>
-            <td>${pb(c.priority)}</td>
-            <td>${sb(c.status)}</td>
-            <td style="white-space:nowrap">${c.official_name ? `<span class="assigned-yes">✓ ${c.official_name}</span>` : `<span class="assigned-no">⚠ Unassigned</span>`}</td>
-            <td style="white-space:nowrap">${formatDate(c.created_at)}</td>
-            <td><div class="act-wrap">
-              ${c.official_name ? `<button class="act-btn ab-assign" onclick="openReassign(${c.id},'${(c.official_name||'').replace(/'/g,"\\'")}')">🔄 Change</button>` : `<button class="act-btn ab-assign" onclick="openAssign(${c.id})">👷 Assign</button>`}
-              <button class="act-btn ab-status" onclick="openStatus(${c.id},'${c.status}')">🔄 Status</button>
-              <button class="act-btn" style="background:rgba(139,92,246,0.08);color:#8b5cf6;border-color:rgba(139,92,246,0.2)" onclick="openTimeline('${c.complaint_no}')">📋</button>
-            </div></td>
+            <td style="padding:0.45rem 0.6rem;">${pb(c.priority)}</td>
+            <td style="padding:0.45rem 0.6rem;">${sb(c.status)}</td>
+            <td style="padding:0.45rem 0.6rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;" title="${c.official_name||''}">
+              ${c.official_name ? `<span style="color:var(--green);font-size:0.74rem;font-weight:600;">✓ ${c.official_name}</span>` : `<span style="color:var(--orange);font-size:0.74rem;font-weight:600;">⚠ Unassigned</span>`}
+            </td>
+            <td style="padding:0.45rem 0.6rem;white-space:nowrap;font-size:0.74rem;color:var(--text-3);">${formatDate(c.created_at)}</td>
+            <td style="padding:0.45rem 0.6rem;">
+              <div style="display:flex;gap:0.25rem;align-items:center;flex-wrap:nowrap;">
+                ${c.official_name
+                  ? `<button onclick="openReassign(${c.id},'${(c.official_name||'').replace(/'/g,"\\'")}') " style="padding:3px 7px;font-size:0.68rem;font-weight:700;background:rgba(59,130,246,0.1);color:#1d4ed8;border:1px solid rgba(59,130,246,0.25);border-radius:5px;cursor:pointer;white-space:nowrap;">🔄</button>`
+                  : `<button onclick="openAssign(${c.id})" style="padding:3px 7px;font-size:0.68rem;font-weight:700;background:rgba(0,151,167,0.1);color:var(--teal-dark);border:1px solid rgba(0,151,167,0.25);border-radius:5px;cursor:pointer;white-space:nowrap;">👷 Assign</button>`}
+                <button onclick="openStatus(${c.id},'${c.status}')" style="padding:3px 7px;font-size:0.68rem;font-weight:700;background:rgba(245,158,11,0.1);color:#b45309;border:1px solid rgba(245,158,11,0.25);border-radius:5px;cursor:pointer;white-space:nowrap;">Status</button>
+                <button onclick="openTimeline('${c.complaint_no}')" style="padding:3px 7px;font-size:0.68rem;font-weight:700;background:rgba(139,92,246,0.08);color:#7c3aed;border:1px solid rgba(139,92,246,0.2);border-radius:5px;cursor:pointer;">📋</button>
+              </div>
+            </td>
           </tr>`).join('')}
         </tbody>
-      </table>`;
+      </table>
+      </div>`;
   } catch(err) {
     document.getElementById('complaintsTable').innerHTML = `<div class="empty"><div class="empty-icon">❌</div><h3>Failed to load</h3><p>Please try again</p></div>`;
   }
