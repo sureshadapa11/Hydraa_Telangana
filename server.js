@@ -15,16 +15,18 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // ── Serve static files (HTML, CSS, JS, images) ──
-// HTML files: never cache — always fetch fresh so deployments are instant
-app.use((req, res, next) => {
-  if (req.path.endsWith('.html')) {
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
+// HTML files: never cache — always fetch fresh so deployments show immediately
+app.use(express.static(__dirname, {
+  etag: false,
+  lastModified: false,
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    }
   }
-  next();
-});
-app.use(express.static(__dirname));
+}));
 
 // ── Root Route — serve your main HTML page ──
 app.get('/', (req, res) => {
