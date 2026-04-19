@@ -1093,7 +1093,9 @@ async function init() {
   loadDashboard();
 }
 
-async function loadComplaints() {
+async function loadComplaints({ silent = false } = {}) {
+  const tbl = document.getElementById('complaintsTable');
+  const savedScroll = silent ? tbl.scrollTop : 0;
   const status    = document.getElementById('filterStatus').value;
   const cat       = document.getElementById('filterCategory').value;
   const district  = document.getElementById('filterDistrict').value;
@@ -1111,7 +1113,7 @@ async function loadComplaints() {
   if (dateFrom) url += '&date_from='+dateFrom;
   if (dateTo)   url += '&date_to='+dateTo;
 
-  document.getElementById('complaintsTable').innerHTML = `<div class="empty"><div class="empty-icon">⏳</div><p>Loading complaints...</p></div>`;
+  if (!silent) tbl.innerHTML = `<div class="empty"><div class="empty-icon">⏳</div><p>Loading complaints...</p></div>`;
   try {
     const res = await http.get(url);
     if (!res.success||res.data.length===0) {
@@ -1198,6 +1200,7 @@ async function loadComplaints() {
           </tr>`).join('')}
         </tbody>
       </table>`;
+    if (silent) tbl.scrollTop = savedScroll;
   } catch(err) {
     document.getElementById('complaintsTable').innerHTML = `<div class="empty"><div class="empty-icon">❌</div><h3>Failed to load</h3><p>Please try again</p></div>`;
   }
@@ -1521,7 +1524,7 @@ function _isBusy() {
 setInterval(() => {
   if (_isBusy()) return;
   const onComplaints = document.getElementById('view-complaints').classList.contains('active');
-  if (onComplaints) loadComplaints();
+  if (onComplaints) loadComplaints({ silent: true });
   else loadDashboard();
 }, 15000);
 </script>
