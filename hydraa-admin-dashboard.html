@@ -73,6 +73,8 @@
     /* Stats grid */
     .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
     .stat-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:1.3rem 1.4rem;box-shadow:var(--shadow);display:flex;align-items:center;gap:1rem;transition:all 0.22s;cursor:default;}
+    .sc-clickable{cursor:pointer;}
+    .sc-clickable:hover{border-color:var(--teal);box-shadow:0 4px 16px rgba(0,151,167,0.15);transform:translateY(-2px);}
     .stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
     .sc-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
     .ic-blue{background:rgba(59,130,246,0.1);} .ic-orange{background:rgba(245,158,11,0.1);} .ic-purple{background:rgba(139,92,246,0.1);} .ic-green{background:rgba(16,185,129,0.1);} .ic-red{background:rgba(239,68,68,0.1);} .ic-teal{background:rgba(0,151,167,0.1);}
@@ -305,15 +307,15 @@
 
       <!-- Stats -->
       <div class="stats-grid">
-        <div class="stat-card"><div class="sc-icon ic-blue">📋</div><div class="sc-info"><div class="sc-val" id="s-total">—</div><div class="sc-lbl">Total Complaints</div></div></div>
-        <div class="stat-card"><div class="sc-icon ic-orange">⏳</div><div class="sc-info"><div class="sc-val" id="s-pending">—</div><div class="sc-lbl">Pending</div></div></div>
-        <div class="stat-card"><div class="sc-icon ic-purple">🔄</div><div class="sc-info"><div class="sc-val" id="s-progress">—</div><div class="sc-lbl">In Progress</div></div></div>
-        <div class="stat-card"><div class="sc-icon ic-green">✅</div><div class="sc-info"><div class="sc-val" id="s-resolved">—</div><div class="sc-lbl">Resolved</div></div></div>
-        <div class="stat-card"><div class="sc-icon ic-teal">📅</div><div class="sc-info"><div class="sc-val" id="s-today">—</div><div class="sc-lbl">Today's Complaints</div></div></div>
-        <div class="stat-card"><div class="sc-icon ic-green">📆</div><div class="sc-info"><div class="sc-val" id="s-week">—</div><div class="sc-lbl">Resolved This Week</div></div></div>
-        <div class="stat-card"><div class="sc-icon ic-teal">👥</div><div class="sc-info"><div class="sc-val" id="s-users">—</div><div class="sc-lbl">Registered Citizens</div></div></div>
-        <div class="stat-card"><div class="sc-icon ic-orange">👷</div><div class="sc-info"><div class="sc-val" id="s-officials">—</div><div class="sc-lbl">Field Officials</div></div></div>
-        <div class="stat-card" onclick="openOverdueModal()" style="cursor:pointer;" title="Click to view overdue complaints"><div class="sc-icon ic-red">⚠️</div><div class="sc-info"><div class="sc-val" id="s-overdue" style="color:#ef4444">—</div><div class="sc-lbl">Overdue <span style="font-size:0.6rem;color:#ef4444">▶ View</span></div></div></div>
+        <div class="stat-card sc-clickable" onclick="goToComplaints()" title="View all complaints"><div class="sc-icon ic-blue">📋</div><div class="sc-info"><div class="sc-val" id="s-total">—</div><div class="sc-lbl">Total Complaints</div></div></div>
+        <div class="stat-card sc-clickable" onclick="goToComplaints('open')" title="View pending complaints"><div class="sc-icon ic-orange">⏳</div><div class="sc-info"><div class="sc-val" id="s-pending">—</div><div class="sc-lbl">Pending</div></div></div>
+        <div class="stat-card sc-clickable" onclick="goToComplaints('in_progress')" title="View in-progress complaints"><div class="sc-icon ic-purple">🔄</div><div class="sc-info"><div class="sc-val" id="s-progress">—</div><div class="sc-lbl">In Progress</div></div></div>
+        <div class="stat-card sc-clickable" onclick="goToComplaints('resolved')" title="View resolved complaints"><div class="sc-icon ic-green">✅</div><div class="sc-info"><div class="sc-val" id="s-resolved">—</div><div class="sc-lbl">Resolved</div></div></div>
+        <div class="stat-card sc-clickable" onclick="goToComplaints('','today')" title="View today's complaints"><div class="sc-icon ic-teal">📅</div><div class="sc-info"><div class="sc-val" id="s-today">—</div><div class="sc-lbl">Today's Complaints</div></div></div>
+        <div class="stat-card sc-clickable" onclick="goToComplaints('resolved','week')" title="View complaints resolved this week"><div class="sc-icon ic-green">📆</div><div class="sc-info"><div class="sc-val" id="s-week">—</div><div class="sc-lbl">Resolved This Week</div></div></div>
+        <div class="stat-card sc-clickable" onclick="window.location.href='/hydraa-admin-users.html'" title="Manage citizens"><div class="sc-icon ic-teal">👥</div><div class="sc-info"><div class="sc-val" id="s-users">—</div><div class="sc-lbl">Registered Citizens</div></div></div>
+        <div class="stat-card sc-clickable" onclick="window.location.href='/hydraa-admin-officials.html'" title="Manage officials"><div class="sc-icon ic-orange">👷</div><div class="sc-info"><div class="sc-val" id="s-officials">—</div><div class="sc-lbl">Field Officials</div></div></div>
+        <div class="stat-card sc-clickable" onclick="openOverdueModal()" title="View overdue complaints"><div class="sc-icon ic-red">⚠️</div><div class="sc-info"><div class="sc-val" id="s-overdue" style="color:#ef4444">—</div><div class="sc-lbl">Overdue <span style="font-size:0.6rem;color:#ef4444">▶ View</span></div></div></div>
         <div class="stat-card"><div class="sc-icon ic-green">⭐</div><div class="sc-info"><div class="sc-val" id="s-rating">—</div><div class="sc-lbl">Avg Rating</div></div></div>
       </div>
 
@@ -575,6 +577,31 @@ function switchView(v) {
   document.getElementById('view-'+v).classList.add('active');
   document.getElementById('tb-title').textContent = v==='dashboard' ? 'Admin Dashboard' : 'All Complaints';
   if (v==='complaints') loadComplaints();
+}
+
+// Stat card click — go to complaints with filter pre-applied
+function goToComplaints(status, dateRange) {
+  // Reset all filters first
+  document.getElementById('filterStatus').value   = status || '';
+  document.getElementById('filterCategory').value = '';
+  document.getElementById('filterDistrict').value = '';
+  document.getElementById('filterPriority').value = '';
+  document.getElementById('filterSearch').value   = '';
+
+  const today = new Date().toISOString().split('T')[0];
+  if (dateRange === 'today') {
+    document.getElementById('filterDateFrom').value = today;
+    document.getElementById('filterDateTo').value   = today;
+  } else if (dateRange === 'week') {
+    const weekAgo = new Date(Date.now() - 7*24*60*60*1000).toISOString().split('T')[0];
+    document.getElementById('filterDateFrom').value = weekAgo;
+    document.getElementById('filterDateTo').value   = today;
+  } else {
+    document.getElementById('filterDateFrom').value = '';
+    document.getElementById('filterDateTo').value   = '';
+  }
+
+  switchView('complaints');
 }
 
 // Status badge helper
