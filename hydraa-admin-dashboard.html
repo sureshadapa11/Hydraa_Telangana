@@ -305,6 +305,16 @@
     <!-- ═══ DASHBOARD VIEW ═══ -->
     <div class="view active" id="view-dashboard">
 
+      <!-- SLA Breach Alert Banner -->
+      <div id="slaBanner" style="display:none;align-items:center;gap:1rem;background:linear-gradient(135deg,rgba(239,68,68,0.08),rgba(239,68,68,0.04));border:1.5px solid rgba(239,68,68,0.3);border-radius:var(--radius);padding:0.85rem 1.2rem;margin-bottom:1.2rem;flex-wrap:wrap;">
+        <span style="font-size:1.2rem">🚨</span>
+        <div style="flex:1">
+          <div style="font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:#dc2626;">SLA Breach Alert</div>
+          <div style="font-size:0.78rem;color:#b91c1c;margin-top:1px;"><span id="slaBannerCount">0</span> complaint(s) have exceeded <strong>45 days</strong> without resolution. Immediate action required.</div>
+        </div>
+        <button onclick="goToComplaints('','sla')" style="padding:0.5rem 1.1rem;background:#dc2626;color:#fff;border:none;border-radius:7px;font-size:0.82rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;">View Breached →</button>
+      </div>
+
       <!-- Stats -->
       <div class="stats-grid">
         <div class="stat-card sc-clickable" onclick="goToComplaints()" title="View all complaints"><div class="sc-icon ic-blue">📋</div><div class="sc-info"><div class="sc-val" id="s-total">—</div><div class="sc-lbl">Total Complaints</div></div></div>
@@ -413,6 +423,8 @@
         <input type="date" id="filterDateFrom" onchange="loadComplaints()" title="From date" style="padding:0.45rem 0.7rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:0.82rem;color:var(--text);background:var(--bg)"/>
         <input type="date" id="filterDateTo" onchange="loadComplaints()" title="To date" style="padding:0.45rem 0.7rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:0.82rem;color:var(--text);background:var(--bg)"/>
         <button class="btn-filter" onclick="loadComplaints()">🔍 Search</button>
+        <button class="btn-filter" onclick="adminExportCSV()" style="background:rgba(16,185,129,0.1);color:#065f46;border:1.5px solid rgba(16,185,129,0.3);">⬇ CSV</button>
+        <button class="btn-filter" onclick="adminExportPDF()" style="background:rgba(239,68,68,0.08);color:#b91c1c;border:1.5px solid rgba(239,68,68,0.25);">⬇ PDF</button>
       </div>
 
       <div class="inline-stats">
@@ -616,6 +628,12 @@ function goToComplaints(status, dateRange) {
     const weekAgo = new Date(Date.now() - 7*24*60*60*1000).toISOString().split('T')[0];
     document.getElementById('filterDateFrom').value = weekAgo;
     document.getElementById('filterDateTo').value   = today;
+  } else if (dateRange === 'sla') {
+    // SLA breach: complaints created more than 45 days ago, still unresolved
+    const slaDate = new Date(Date.now() - 45*24*60*60*1000).toISOString().split('T')[0];
+    document.getElementById('filterDateFrom').value = '';
+    document.getElementById('filterDateTo').value   = slaDate;
+    document.getElementById('filterStatus').value   = '';
   } else {
     document.getElementById('filterDateFrom').value = '';
     document.getElementById('filterDateTo').value   = '';
@@ -651,6 +669,16 @@ async function loadDashboard() {
     document.getElementById('s-officials').textContent= total_officials||0;
     document.getElementById('s-overdue').textContent  = s.overdue||0;
     document.getElementById('s-rating').textContent   = res.data.avg_rating ? res.data.avg_rating : '—';
+
+    // SLA breach banner
+    const slaBreach = s.sla_breach || 0;
+    const slaBanner = document.getElementById('slaBanner');
+    if (slaBreach > 0) {
+      document.getElementById('slaBannerCount').textContent = slaBreach;
+      slaBanner.style.display = 'flex';
+    } else {
+      slaBanner.style.display = 'none';
+    }
 
     // District breakdown table
     if (district_stats && district_stats.length > 0) {
@@ -1254,6 +1282,69 @@ async function doBulkAssign() {
 }
 
 init();
+
+// ── Admin Export helpers ──────────────────────────────
+function _adminCurrentData() {
+  // Returns whatever rows are in the current complaints table (re-filter from DOM)
+  const status   = document.getElementById('filterStatus').value;
+  const cat      = document.getElementById('filterCategory').value;
+  const district = document.getElementById('filterDistrict').value;
+  const prio     = document.getElementById('filterPriority').value;
+  const search   = document.getElementById('filterSearch').value.trim().toLowerCase();
+  const dateFrom = document.getElementById('filterDateFrom').value;
+  const dateTo   = document.getElementById('filterDateTo').value;
+  let data = allComplaints || [];
+  if (status)   data = data.filter(c => c.status === status);
+  if (cat)      data = data.filter(c => c.category_name === cat);
+  if (district) data = data.filter(c => c.district_name === district);
+  if (prio)     data = data.filter(c => c.priority === prio);
+  if (dateFrom) data = data.filter(c => c.created_at && c.created_at.slice(0,10) >= dateFrom);
+  if (dateTo)   data = data.filter(c => c.created_at && c.created_at.slice(0,10) <= dateTo);
+  if (search)   data = data.filter(c =>
+    (c.complaint_no||'').toLowerCase().includes(search)||
+    (c.title||'').toLowerCase().includes(search)||
+    (c.user_name||'').toLowerCase().includes(search)
+  );
+  return data;
+}
+
+function adminExportCSV() {
+  const data = _adminCurrentData();
+  const headers = ['Complaint No','Title','Citizen','Category','District','Priority','Status','Assigned To','Date'];
+  const rows = data.map(c => [
+    c.complaint_no, `"${(c.title||'').replace(/"/g,'""')}"`,
+    c.user_name||'', c.category_name||'', c.district_name||'',
+    c.priority||'', c.status||'', c.official_name||'Unassigned', (c.created_at||'').slice(0,10)
+  ]);
+  const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `hydraa_complaints_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
+function adminExportPDF() {
+  const data = _adminCurrentData();
+  const win = window.open('', '_blank');
+  const rows = data.map(c => `<tr>
+    <td>${c.complaint_no}</td><td>${c.title||''}</td><td>${c.user_name||''}</td>
+    <td>${c.category_name||''}</td><td>${c.district_name||''}</td>
+    <td>${c.priority||''}</td><td>${c.status||''}</td>
+    <td>${c.official_name||'Unassigned'}</td><td>${(c.created_at||'').slice(0,10)}</td>
+  </tr>`).join('');
+  win.document.write(`<!DOCTYPE html><html><head><title>HYDRAA Complaints Export</title>
+  <style>body{font-family:sans-serif;font-size:10px;padding:20px}h2{color:#0b1f3a;margin-bottom:8px}
+  table{width:100%;border-collapse:collapse}th,td{border:1px solid #d0e4ec;padding:4px 7px;text-align:left}
+  th{background:#0097a7;color:#fff;font-weight:700}tr:nth-child(even){background:#f2f6f9}
+  .footer{margin-top:10px;font-size:9px;color:#7a9baf}</style></head><body>
+  <h2>HYDRAA Telangana — Complaints Report</h2>
+  <p style="font-size:9px;color:#7a9baf">Exported: ${new Date().toLocaleString('en-IN')} · Total: ${data.length} complaints</p>
+  <table><thead><tr><th>No.</th><th>Title</th><th>Citizen</th><th>Category</th><th>District</th><th>Priority</th><th>Status</th><th>Assigned To</th><th>Date</th></tr></thead>
+  <tbody>${rows}</tbody></table>
+  <div class="footer">HYDRAA — Hyderabad Disaster Response &amp; Asset Protection Agency, Government of Telangana</div>
+  <script>window.onload=()=>{window.print();}<\/script></body></html>`);
+  win.document.close();
+}
 
 // ── Background refresh (15s) — skips if modal open or user is typing ──
 function _isBusy() {

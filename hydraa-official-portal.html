@@ -157,6 +157,18 @@
     .sc-val{font-family:'Rajdhani',sans-serif;font-size:1.7rem;font-weight:700;color:var(--navy);line-height:1;}
     .sc-lbl{font-size:0.72rem;color:var(--text-3);font-weight:600;line-height:1.4;}
 
+    /* Aging badges */
+    .age-badge{display:inline-flex;align-items:center;gap:3px;font-size:0.62rem;font-weight:700;padding:2px 6px;border-radius:4px;white-space:nowrap;vertical-align:middle;margin-left:4px;}
+    .age-overdue{background:rgba(239,68,68,0.12);color:#dc2626;border:1px solid rgba(239,68,68,0.25);}
+    .age-aging{background:rgba(245,158,11,0.12);color:#d97706;border:1px solid rgba(245,158,11,0.25);}
+
+    /* Daily work summary strip */
+    .daily-strip{display:flex;align-items:center;gap:1rem;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:0.75rem 1.2rem;margin-bottom:1rem;flex-wrap:wrap;box-shadow:var(--shadow);}
+    .ds-title{font-size:0.7rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.08em;margin-right:0.5rem;}
+    .ds-item{display:flex;align-items:center;gap:0.4rem;font-size:0.82rem;font-weight:600;color:var(--text-2);padding:0.3rem 0.8rem;border-radius:6px;background:var(--bg);}
+    .ds-num{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;}
+    .ds-updated .ds-num{color:#3b82f6;} .ds-resolved .ds-num{color:#10b981;} .ds-rejected .ds-num{color:#ef4444;} .ds-pending .ds-num{color:#f59e0b;}
+
     /* Priority task list */
     .urgency-row{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.5rem;}
     .urgency-card{background:#fff;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;}
@@ -577,6 +589,17 @@
           <!-- Reset + count -->
           <button class="fb-reset" onclick="resetFilters()">↺ Reset</button>
           <span class="fb-count" id="fbCount"></span>
+          <button class="fb-reset" onclick="exportCSV()" title="Export to CSV" style="background:rgba(16,185,129,0.1);color:#065f46;border-color:rgba(16,185,129,0.3);">⬇ CSV</button>
+          <button class="fb-reset" onclick="exportPDF()" title="Export to PDF" style="background:rgba(239,68,68,0.08);color:#b91c1c;border-color:rgba(239,68,68,0.25);">⬇ PDF</button>
+        </div>
+
+        <!-- Daily Work Summary strip -->
+        <div class="daily-strip" id="dailyStrip">
+          <span class="ds-title">📅 Today</span>
+          <div class="ds-item ds-updated"><span class="ds-num" id="ds-updated">0</span> Updated</div>
+          <div class="ds-item ds-resolved"><span class="ds-num" id="ds-resolved">0</span> Resolved</div>
+          <div class="ds-item ds-rejected"><span class="ds-num" id="ds-rejected">0</span> Rejected</div>
+          <div class="ds-item ds-pending"><span class="ds-num" id="ds-pending">0</span> Still Pending</div>
         </div>
 
         <div class="table-card">
@@ -792,6 +815,59 @@ function initDashboard() {
   }
 })();
 
+// ── Export helpers ───────────────────────────────────
+function _getFilteredData() {
+  const status   = document.getElementById('filterStatus').value;
+  const category = document.getElementById('filterCategory').value;
+  const district = document.getElementById('filterDistrict').value;
+  const prio     = document.getElementById('filterPriority').value;
+  const search   = document.getElementById('filterSearch').value.trim().toLowerCase();
+  let data = allComplaints;
+  if (status)   data = data.filter(c => c.status === status);
+  if (category) data = data.filter(c => c.category_name === category);
+  if (district) data = data.filter(c => c.district_name === district);
+  if (prio)     data = data.filter(c => c.priority === prio);
+  if (search)   data = data.filter(c => (c.complaint_no||'').toLowerCase().includes(search)||(c.title||'').toLowerCase().includes(search));
+  return data;
+}
+
+function exportCSV() {
+  const data = _getFilteredData();
+  const headers = ['Complaint No','Title','Category','District','Citizen','Priority','Status','Created'];
+  const rows = data.map(c => [
+    c.complaint_no, `"${(c.title||'').replace(/"/g,'""')}"`,
+    c.category_name||'', c.district_name||'', c.user_name||'',
+    c.priority||'', c.status||'', (c.created_at||'').slice(0,10)
+  ]);
+  const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `complaints_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
+function exportPDF() {
+  const data = _getFilteredData();
+  const win = window.open('', '_blank');
+  const rows = data.map(c => `<tr>
+    <td>${c.complaint_no}</td><td>${c.title||''}</td><td>${c.category_name||''}</td>
+    <td>${c.district_name||''}</td><td>${c.user_name||''}</td>
+    <td>${c.priority||''}</td><td>${c.status||''}</td><td>${(c.created_at||'').slice(0,10)}</td>
+  </tr>`).join('');
+  win.document.write(`<!DOCTYPE html><html><head><title>Complaints Export</title>
+  <style>body{font-family:sans-serif;font-size:11px;padding:20px}h2{color:#0b1f3a;margin-bottom:12px}
+  table{width:100%;border-collapse:collapse}th,td{border:1px solid #d0e4ec;padding:5px 8px;text-align:left}
+  th{background:#0097a7;color:#fff;font-weight:700}tr:nth-child(even){background:#f2f6f9}
+  .footer{margin-top:12px;font-size:10px;color:#7a9baf}</style></head><body>
+  <h2>HYDRAA Telangana — Assigned Complaints</h2>
+  <p style="font-size:10px;color:#7a9baf">Exported: ${new Date().toLocaleString('en-IN')} · Total: ${data.length}</p>
+  <table><thead><tr><th>No.</th><th>Title</th><th>Category</th><th>District</th><th>Citizen</th><th>Priority</th><th>Status</th><th>Date</th></tr></thead>
+  <tbody>${rows}</tbody></table>
+  <div class="footer">HYDRAA — Hyderabad Disaster Response &amp; Asset Protection Agency</div>
+  <script>window.onload=()=>{window.print();}<\/script></body></html>`);
+  win.document.close();
+}
+
 // ── Stat card click → jump to filtered complaints view ──
 function goToStatus(status) {
   switchView('complaints');
@@ -812,6 +888,29 @@ function switchView(v) {
   document.querySelectorAll('.ptab')[v==='dashboard'?0:1].classList.add('active');
   document.querySelectorAll('.sb-a')[v==='dashboard'?0:1].classList.add('active');
   document.getElementById('tb-title').textContent = v==='dashboard' ? 'Official Dashboard' : 'Assigned Complaints';
+}
+
+// ── Aging badge ──────────────────────────────────────
+function agingBadge(createdAt, status) {
+  if (status === 'resolved' || status === 'closed' || status === 'rejected') return '';
+  const days = Math.floor((Date.now() - new Date(createdAt)) / 86400000);
+  if (days > 30) return `<span class="age-badge age-overdue">🔴 ${days}d overdue</span>`;
+  if (days > 15) return `<span class="age-badge age-aging">🟡 ${days}d aging</span>`;
+  return '';
+}
+
+// ── Daily work summary ────────────────────────────────
+function updateDailySummary() {
+  const today = new Date().toISOString().slice(0, 10);
+  const c = allComplaints;
+  const updatedToday  = c.filter(x => x.updated_at && x.updated_at.slice(0, 10) === today).length;
+  const resolvedToday = c.filter(x => x.status === 'resolved' && x.updated_at && x.updated_at.slice(0, 10) === today).length;
+  const rejectedToday = c.filter(x => x.status === 'rejected' && x.updated_at && x.updated_at.slice(0, 10) === today).length;
+  const stillPending  = c.filter(x => x.status === 'assigned').length;
+  document.getElementById('ds-updated').textContent  = updatedToday;
+  document.getElementById('ds-resolved').textContent = resolvedToday;
+  document.getElementById('ds-rejected').textContent = rejectedToday;
+  document.getElementById('ds-pending').textContent  = stillPending;
 }
 
 function sb(status) {
@@ -899,7 +998,7 @@ function updateDashboard() {
     ? '<div class="empty"><div class="empty-icon">📭</div><p>No complaints assigned yet</p></div>'
     : `<div style="overflow-x:auto"><table><thead><tr><th>No.</th><th>Title</th><th>Category</th><th>Citizen</th><th>Priority</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
        <tbody>${recent.map(x=>`<tr>
-         <td><span class="cno">${x.complaint_no}</span></td>
+         <td><span class="cno">${x.complaint_no}</span>${agingBadge(x.created_at,x.status)}</td>
          <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><strong>${x.title}</strong></td>
          <td style="font-size:0.78rem">${x.category_name||'—'}</td>
          <td>${x.user_name}</td>
@@ -965,7 +1064,7 @@ function filterComplaints() {
     ? '<div class="empty"><div class="empty-icon">📭</div><p>No complaints match your filters</p></div>'
     : `<div style="overflow-x:auto"><table><thead><tr><th>No.</th><th>Title</th><th>Category</th><th>District</th><th>Citizen</th><th>Priority</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
        <tbody>${data.map(c=>`<tr>
-         <td><span class="cno">${c.complaint_no}</span></td>
+         <td><span class="cno">${c.complaint_no}</span>${agingBadge(c.created_at,c.status)}</td>
          <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.title}"><strong>${c.title}</strong></td>
          <td style="font-size:0.78rem">${c.category_name||'—'}</td>
          <td style="font-size:0.78rem;white-space:nowrap">${c.district_name||'—'}</td>
@@ -976,6 +1075,7 @@ function filterComplaints() {
          <td style="white-space:nowrap;display:flex;gap:0.3rem;align-items:center">${(c.status!=='resolved'&&c.status!=='closed') ? `<button class="upd-btn" onclick="openUpdate(${c.id})">✏️ Update</button>` : '<span class="done-tag">✅ Done</span>'}<button class="upd-btn" style="background:rgba(139,92,246,0.1);color:#8b5cf6;border-color:rgba(139,92,246,0.2)" onclick="openTimeline('${c.complaint_no}')">📋</button></td>
        </tr>`).join('')}
        </tbody></table></div>`;
+  updateDailySummary();
 }
 
 // ═══ MODAL ═══

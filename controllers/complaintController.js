@@ -211,14 +211,18 @@ const getMyComplaints = async (req, res) => {
 
   try {
     const [complaints] = await db.query(
-      `SELECT 
+      `SELECT
         c.id, c.complaint_no, c.title, c.description, c.status, c.priority,
         c.category_id, cat.name as category_name,
-        c.created_at, c.resolved_at,
+        sc.name as subcategory_name,
+        c.created_at, c.resolved_at, c.updated_at,
         c.official_id, o.full_name as official_name,
+        c.official_remarks, c.admin_remarks,
+        c.attachment,
         c.land_district, c.land_mandal, c.land_village, c.land_address, c.land_survey_no, c.khata_no
       FROM complaints c
       LEFT JOIN categories cat ON c.category_id = cat.id
+      LEFT JOIN subcategories sc ON c.subcategory_id = sc.id
       LEFT JOIN officials o ON c.official_id = o.id
       WHERE c.user_id = ?
       ORDER BY c.created_at DESC`,
@@ -293,6 +297,11 @@ const getAdminDashboard = async (req, res) => {
       `SELECT COUNT(*) as overdue FROM complaints WHERE status NOT IN ('resolved','closed','rejected') AND created_at < DATE_SUB(NOW(), INTERVAL 30 DAY)`
     );
 
+    // SLA breach: unresolved complaints older than 45 days
+    const [[{ sla_breach }]] = await db.query(
+      `SELECT COUNT(*) as sla_breach FROM complaints WHERE status NOT IN ('resolved','closed','rejected') AND created_at < DATE_SUB(NOW(), INTERVAL 45 DAY)`
+    );
+
     // Today's complaints
     const [[{ today }]] = await db.query(
       `SELECT COUNT(*) as today FROM complaints WHERE DATE(created_at) = CURDATE()`
@@ -357,7 +366,8 @@ const getAdminDashboard = async (req, res) => {
           closed:      sc.closed      || 0,
           rejected:    sc.rejected    || 0,
           unassigned:  Number(unassigned) || 0,
-          overdue:     Number(overdue) || 0,
+          overdue:     Number(overdue)    || 0,
+          sla_breach:  Number(sla_breach) || 0,
           today:       Number(today)   || 0,
           this_week:   Number(this_week) || 0,
         },
