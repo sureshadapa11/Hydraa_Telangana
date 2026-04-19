@@ -139,15 +139,23 @@
     .ptab.active{background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;box-shadow:0 3px 12px rgba(0,151,167,0.35);}
 
     /* Stats */
-    .stats-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:1rem;margin-bottom:1.5rem;}
+    .stats-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:0.85rem;margin-bottom:1.5rem;}
     @media(max-width:1100px){.stats-grid{grid-template-columns:repeat(3,1fr);}}
     @media(max-width:700px){.stats-grid{grid-template-columns:repeat(2,1fr);}}
-    .stat-card{background:#fff;border-radius:var(--radius);border:1px solid var(--border);padding:0.9rem 0.8rem;box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;text-align:center;transition:all 0.22s;min-width:0;}
-    .stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
-    .sc-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
-    .ic-blue{background:rgba(59,130,246,0.1);} .ic-orange{background:rgba(245,158,11,0.1);} .ic-purple{background:rgba(139,92,246,0.1);} .ic-green{background:rgba(16,185,129,0.1);} .ic-red{background:rgba(239,68,68,0.1);} .ic-teal{background:rgba(0,151,167,0.1);}
-    .sc-val{font-family:'Rajdhani',sans-serif;font-size:1.6rem;font-weight:700;color:var(--text);line-height:1;}
-    .sc-lbl{font-size:0.67rem;color:var(--text-2);font-weight:500;line-height:1.3;}
+    .stat-card{background:#fff;border-radius:var(--radius);border:1.5px solid var(--border);padding:1.1rem 0.8rem 1rem;box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.45rem;text-align:center;transition:all 0.22s;min-width:0;cursor:pointer;position:relative;overflow:hidden;user-select:none;}
+    .stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--sc-color,var(--teal));transform:scaleX(0);transition:transform 0.22s;border-radius:0 0 2px 2px;}
+    .stat-card:hover{transform:translateY(-3px);box-shadow:0 8px 28px var(--sc-shadow,rgba(0,30,60,0.12));border-color:var(--sc-color,var(--border));}
+    .stat-card:hover::after{transform:scaleX(1);}
+    .stat-card.sc-active{border-color:var(--sc-color,var(--teal));background:var(--sc-bg,rgba(0,151,167,0.04));transform:translateY(-2px);box-shadow:0 6px 22px var(--sc-shadow,rgba(0,151,167,0.18));}
+    .stat-card.sc-active::after{transform:scaleX(1);}
+    .stat-card:active{transform:translateY(0);transition:transform 0.1s;}
+    .sc-hint{font-size:0.6rem;color:var(--sc-color,var(--text-3));opacity:0;transition:opacity 0.2s;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;}
+    .stat-card:hover .sc-hint{opacity:1;}
+    .sc-icon{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;transition:transform 0.22s;}
+    .stat-card:hover .sc-icon{transform:scale(1.1);}
+    .ic-blue{background:rgba(59,130,246,0.12);} .ic-orange{background:rgba(245,158,11,0.12);} .ic-purple{background:rgba(139,92,246,0.12);} .ic-green{background:rgba(16,185,129,0.12);} .ic-red{background:rgba(239,68,68,0.12);} .ic-teal{background:rgba(0,151,167,0.12);}
+    .sc-val{font-family:'Rajdhani',sans-serif;font-size:1.7rem;font-weight:700;color:var(--navy);line-height:1;}
+    .sc-lbl{font-size:0.72rem;color:var(--text-3);font-weight:600;line-height:1.4;}
 
     /* Priority task list */
     .urgency-row{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.5rem;}
@@ -463,12 +471,24 @@
       <!-- ═ DASHBOARD VIEW ═ -->
       <div class="view active" id="view-dashboard">
         <div class="stats-grid">
-          <div class="stat-card"><div class="sc-icon ic-blue">📋</div><div class="sc-val" id="s-total">—</div><div class="sc-lbl">Total<br>Assigned</div></div>
-          <div class="stat-card"><div class="sc-icon ic-orange">⏳</div><div class="sc-val" id="s-pending">—</div><div class="sc-lbl">Pending<br>Action</div></div>
-          <div class="stat-card"><div class="sc-icon ic-purple">🔄</div><div class="sc-val" id="s-progress">—</div><div class="sc-lbl">In<br>Progress</div></div>
-          <div class="stat-card"><div class="sc-icon ic-green">✅</div><div class="sc-val" id="s-resolved">—</div><div class="sc-lbl">Resolved</div></div>
-          <div class="stat-card"><div class="sc-icon ic-red">❌</div><div class="sc-val" id="s-rejected">—</div><div class="sc-lbl">Rejected</div></div>
-          <div class="stat-card"><div class="sc-icon ic-teal">🔒</div><div class="sc-val" id="s-closed">—</div><div class="sc-lbl">Closed</div></div>
+          <div class="stat-card" id="sc-total"    style="--sc-color:#3b82f6;--sc-bg:rgba(59,130,246,0.04);--sc-shadow:rgba(59,130,246,0.15)"    onclick="goToStatus('')"           title="View all assigned complaints">
+            <div class="sc-icon ic-blue">📋</div><div class="sc-val" id="s-total">—</div><div class="sc-lbl">Total Assigned</div><div class="sc-hint">View All ↗</div>
+          </div>
+          <div class="stat-card" id="sc-pending"  style="--sc-color:#f59e0b;--sc-bg:rgba(245,158,11,0.04);--sc-shadow:rgba(245,158,11,0.15)"  onclick="goToStatus('assigned')"    title="View pending complaints">
+            <div class="sc-icon ic-orange">⏳</div><div class="sc-val" id="s-pending">—</div><div class="sc-lbl">Pending Action</div><div class="sc-hint">View ↗</div>
+          </div>
+          <div class="stat-card" id="sc-progress" style="--sc-color:#8b5cf6;--sc-bg:rgba(139,92,246,0.04);--sc-shadow:rgba(139,92,246,0.15)" onclick="goToStatus('in_progress')" title="View in-progress complaints">
+            <div class="sc-icon ic-purple">🔄</div><div class="sc-val" id="s-progress">—</div><div class="sc-lbl">In Progress</div><div class="sc-hint">View ↗</div>
+          </div>
+          <div class="stat-card" id="sc-resolved" style="--sc-color:#10b981;--sc-bg:rgba(16,185,129,0.04);--sc-shadow:rgba(16,185,129,0.15)" onclick="goToStatus('resolved')"    title="View resolved complaints">
+            <div class="sc-icon ic-green">✅</div><div class="sc-val" id="s-resolved">—</div><div class="sc-lbl">Resolved</div><div class="sc-hint">View ↗</div>
+          </div>
+          <div class="stat-card" id="sc-rejected" style="--sc-color:#ef4444;--sc-bg:rgba(239,68,68,0.04);--sc-shadow:rgba(239,68,68,0.15)"    onclick="goToStatus('rejected')"    title="View rejected complaints">
+            <div class="sc-icon ic-red">❌</div><div class="sc-val" id="s-rejected">—</div><div class="sc-lbl">Rejected</div><div class="sc-hint">View ↗</div>
+          </div>
+          <div class="stat-card" id="sc-closed"   style="--sc-color:#0097a7;--sc-bg:rgba(0,151,167,0.04);--sc-shadow:rgba(0,151,167,0.15)"   onclick="goToStatus('closed')"      title="View closed complaints">
+            <div class="sc-icon ic-teal">🔒</div><div class="sc-val" id="s-closed">—</div><div class="sc-lbl">Closed</div><div class="sc-hint">View ↗</div>
+          </div>
         </div>
 
         <!-- Priority queue + Recent -->
@@ -771,6 +791,18 @@ function initDashboard() {
     initDashboard();
   }
 })();
+
+// ── Stat card click → jump to filtered complaints view ──
+function goToStatus(status) {
+  switchView('complaints');
+  document.getElementById('filterStatus').value = status;
+  filterComplaints();
+  // Highlight the active card on dashboard (visible if user navigates back)
+  const map = { '': 'sc-total', 'assigned': 'sc-pending', 'in_progress': 'sc-progress', 'resolved': 'sc-resolved', 'rejected': 'sc-rejected', 'closed': 'sc-closed' };
+  document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('sc-active'));
+  const activeCard = document.getElementById(map[status]);
+  if (activeCard) activeCard.classList.add('sc-active');
+}
 
 function switchView(v) {
   document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
