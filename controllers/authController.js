@@ -317,6 +317,24 @@ const verifySession = async (req, res) => {
   }
 };
 
+// ────────────────────────────────────────────────────
+//  USER: Update Profile (phone + address)
+// ────────────────────────────────────────────────────
+const updateProfile = async (req, res) => {
+  const { phone, address } = req.body;
+  const { id } = req.user;
+  try {
+    await db.query(
+      `UPDATE users SET phone = ?, address = ? WHERE id = ?`,
+      [phone || null, address || null, id]
+    );
+    res.json({ success: true, message: 'Profile updated successfully.' });
+  } catch (err) {
+    console.error('updateProfile error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -327,4 +345,5 @@ module.exports = {
   forgotPasswordRequest,
   forgotPasswordReset,
   verifySession,
+  updateProfile,
 };

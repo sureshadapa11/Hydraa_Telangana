@@ -16,6 +16,7 @@ const {
   forgotPasswordRequest,
   forgotPasswordReset,
   verifySession,
+  updateProfile,
 } = require('../controllers/authController');
 const { verifyToken } = require('../middleware/auth');
 
@@ -32,6 +33,9 @@ router.post('/official/login',   loginOfficial);
 
 // ── All roles: Change password (requires login) ──
 router.put('/change-password', verifyToken, changePassword);
+
+// ── Citizen: Update profile ──
+router.put('/profile', verifyToken, updateProfile);
 
 // ── Session validity check (frontend polls this to detect deleted accounts) ──
 router.get('/verify-session', verifyToken, verifySession);
