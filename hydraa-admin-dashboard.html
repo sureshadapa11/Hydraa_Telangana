@@ -290,7 +290,6 @@
       <div class="tb-sub">HYDRAA · <span id="tb-date"></span></div>
     </div>
     <div class="tb-right">
-<div class="tb-notif">🔔<span class="notif-dot"></span></div>
       <div class="tb-pill">
         <div class="tp-av" id="tp-av">A</div>
         <div class="tp-nm" id="tp-nm">Admin</div>
@@ -314,7 +313,7 @@
         <div class="stat-card"><div class="sc-icon ic-green">📆</div><div class="sc-info"><div class="sc-val" id="s-week">—</div><div class="sc-lbl">Resolved This Week</div></div></div>
         <div class="stat-card"><div class="sc-icon ic-teal">👥</div><div class="sc-info"><div class="sc-val" id="s-users">—</div><div class="sc-lbl">Registered Citizens</div></div></div>
         <div class="stat-card"><div class="sc-icon ic-orange">👷</div><div class="sc-info"><div class="sc-val" id="s-officials">—</div><div class="sc-lbl">Field Officials</div></div></div>
-        <div class="stat-card"><div class="sc-icon ic-red">⚠️</div><div class="sc-info"><div class="sc-val" id="s-overdue" style="color:#ef4444">—</div><div class="sc-lbl">Overdue</div></div></div>
+        <div class="stat-card" onclick="openOverdueModal()" style="cursor:pointer;" title="Click to view overdue complaints"><div class="sc-icon ic-red">⚠️</div><div class="sc-info"><div class="sc-val" id="s-overdue" style="color:#ef4444">—</div><div class="sc-lbl">Overdue <span style="font-size:0.6rem;color:#ef4444">▶ View</span></div></div></div>
         <div class="stat-card"><div class="sc-icon ic-green">⭐</div><div class="sc-info"><div class="sc-val" id="s-rating">—</div><div class="sc-lbl">Avg Rating</div></div></div>
       </div>
 
@@ -414,6 +413,22 @@
 
   </div><!-- /content -->
 </div><!-- /main -->
+
+<!-- OVERDUE MODAL -->
+<div id="overdueModal" class="modal">
+  <div class="modal-box" style="max-width:860px">
+    <div class="modal-hdr">
+      <div>
+        <div class="modal-title">⚠️ Overdue Complaints</div>
+        <div style="font-size:0.72rem;color:var(--text-3);margin-top:2px">Complaints unresolved for more than 30 days — sorted oldest first</div>
+      </div>
+      <button class="modal-close" onclick="closeOverdueModal()">✕</button>
+    </div>
+    <div class="modal-body" style="padding:0">
+      <div id="overdueList"><div class="empty"><div class="empty-icon">⏳</div><p>Loading...</p></div></div>
+    </div>
+  </div>
+</div>
 
 <!-- TIMELINE MODAL -->
 <div id="timelineModal" class="modal">
@@ -714,6 +729,68 @@ async function loadDuplicates() {
         </tbody>
       </table></div>`;
   } catch(e) { console.error('loadDuplicates error:', e); }
+}
+
+// ── OVERDUE MODAL ──
+async function openOverdueModal() {
+  document.getElementById('overdueModal').classList.add('open');
+  document.getElementById('overdueList').innerHTML =
+    '<div class="empty"><div class="empty-icon">⏳</div><p>Loading...</p></div>';
+  try {
+    const res = await http.get('/api/admin/overdue');
+    const list = (res.success && res.data) ? res.data : [];
+    if (!list.length) {
+      document.getElementById('overdueList').innerHTML =
+        '<div class="empty"><div class="empty-icon">✅</div><p>No overdue complaints — all complaints resolved within 30 days</p></div>';
+      return;
+    }
+    const priorityColor = { low:'#6b7280', medium:'#d97706', high:'#dc2626', urgent:'#7c3aed' };
+    const statusLabel   = { open:'Open', assigned:'Assigned', in_progress:'In Progress' };
+    document.getElementById('overdueList').innerHTML = `
+      <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="background:var(--bg)">
+            <th style="padding:0.6rem 0.8rem;font-size:0.68rem;font-weight:700;color:var(--text-2);text-transform:uppercase;border-bottom:1px solid var(--border);text-align:left">Complaint No.</th>
+            <th style="padding:0.6rem 0.8rem;font-size:0.68rem;font-weight:700;color:var(--text-2);text-transform:uppercase;border-bottom:1px solid var(--border);text-align:left">Title</th>
+            <th style="padding:0.6rem 0.8rem;font-size:0.68rem;font-weight:700;color:var(--text-2);text-transform:uppercase;border-bottom:1px solid var(--border);text-align:left">Category</th>
+            <th style="padding:0.6rem 0.8rem;font-size:0.68rem;font-weight:700;color:var(--text-2);text-transform:uppercase;border-bottom:1px solid var(--border);text-align:left">District</th>
+            <th style="padding:0.6rem 0.8rem;font-size:0.68rem;font-weight:700;color:var(--text-2);text-transform:uppercase;border-bottom:1px solid var(--border);text-align:left">Citizen</th>
+            <th style="padding:0.6rem 0.8rem;font-size:0.68rem;font-weight:700;color:var(--text-2);text-transform:uppercase;border-bottom:1px solid var(--border);text-align:left">Official</th>
+            <th style="padding:0.6rem 0.8rem;font-size:0.68rem;font-weight:700;color:var(--text-2);text-transform:uppercase;border-bottom:1px solid var(--border);text-align:left">Status</th>
+            <th style="padding:0.6rem 0.8rem;font-size:0.68rem;font-weight:700;color:var(--text-2);text-transform:uppercase;border-bottom:1px solid var(--border);text-align:left">Priority</th>
+            <th style="padding:0.6rem 0.8rem;font-size:0.68rem;font-weight:700;color:var(--text-2);text-transform:uppercase;border-bottom:1px solid var(--border);text-align:center">Days Old</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map((c, i) => `
+            <tr style="background:${i%2===0?'#fff':'#fafcff'}">
+              <td style="padding:0.55rem 0.8rem;font-size:0.78rem;font-weight:700;color:#0d2137;border-bottom:1px solid var(--border)">${c.complaint_no}</td>
+              <td style="padding:0.55rem 0.8rem;font-size:0.78rem;border-bottom:1px solid var(--border);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.title}">${c.title}</td>
+              <td style="padding:0.55rem 0.8rem;font-size:0.78rem;border-bottom:1px solid var(--border)">${c.category_name||'—'}</td>
+              <td style="padding:0.55rem 0.8rem;font-size:0.78rem;border-bottom:1px solid var(--border)">${c.district_name||'—'}</td>
+              <td style="padding:0.55rem 0.8rem;font-size:0.78rem;border-bottom:1px solid var(--border)">${c.citizen_name||'—'}</td>
+              <td style="padding:0.55rem 0.8rem;font-size:0.78rem;border-bottom:1px solid var(--border);color:${c.official_name?'var(--text)':'#9ca3af'}">${c.official_name||'Unassigned'}</td>
+              <td style="padding:0.55rem 0.8rem;border-bottom:1px solid var(--border)">
+                <span style="background:#fef3c7;color:#92400e;padding:0.15rem 0.6rem;border-radius:999px;font-size:0.7rem;font-weight:700">${statusLabel[c.status]||c.status}</span>
+              </td>
+              <td style="padding:0.55rem 0.8rem;border-bottom:1px solid var(--border)">
+                <span style="font-size:0.72rem;font-weight:700;color:${priorityColor[c.priority]||'#6b7280'}">${(c.priority||'—').toUpperCase()}</span>
+              </td>
+              <td style="padding:0.55rem 0.8rem;border-bottom:1px solid var(--border);text-align:center">
+                <span style="background:#fee2e2;color:#991b1b;padding:0.2rem 0.6rem;border-radius:999px;font-size:0.72rem;font-weight:700">${c.days_old} days</span>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table></div>`;
+  } catch(e) {
+    document.getElementById('overdueList').innerHTML =
+      '<div class="empty"><div class="empty-icon">❌</div><p>Failed to load overdue complaints</p></div>';
+  }
+}
+
+function closeOverdueModal() {
+  document.getElementById('overdueModal').classList.remove('open');
 }
 
 async function confirmDuplicate(id, no) {

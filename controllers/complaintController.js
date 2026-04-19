@@ -288,9 +288,9 @@ const getAdminDashboard = async (req, res) => {
     const sc = statusRows.reduce((acc, s) => ({ ...acc, [s.status]: Number(s.count) }), {});
     const total = statusRows.reduce((sum, s) => sum + Number(s.count), 0);
 
-    // Overdue: open/assigned complaints older than 7 days
+    // Overdue: open/assigned complaints older than 30 days
     const [[{ overdue }]] = await db.query(
-      `SELECT COUNT(*) as overdue FROM complaints WHERE status NOT IN ('resolved','closed','rejected') AND created_at < DATE_SUB(NOW(), INTERVAL 7 DAY)`
+      `SELECT COUNT(*) as overdue FROM complaints WHERE status NOT IN ('resolved','closed','rejected') AND created_at < DATE_SUB(NOW(), INTERVAL 30 DAY)`
     );
 
     // Today's complaints

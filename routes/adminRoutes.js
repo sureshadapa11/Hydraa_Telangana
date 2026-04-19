@@ -43,6 +43,7 @@ const {
   getMonthlyReport,
   getDuplicates,
   resolveDuplicate,
+  getOverdueComplaints,
 } = require('../controllers/adminController');
 const { verifyToken } = require('../middleware/auth');
 
@@ -110,5 +111,8 @@ router.get('/monthly-report', verifyToken, getMonthlyReport);
 // ── Duplicates ──
 router.get('/duplicates', verifyToken, getDuplicates);
 router.put('/duplicates/:id/resolve', verifyToken, resolveDuplicate);
+
+// ── Overdue ──
+router.get('/overdue', verifyToken, getOverdueComplaints);
 
 module.exports = router;

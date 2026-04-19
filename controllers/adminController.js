@@ -1188,6 +1188,34 @@ const permanentDeleteUser = async (req, res) => {
 };
 
 // ────────────────────────────────────────────────────
+//  GET OVERDUE COMPLAINTS (unresolved > 30 days)
+// ────────────────────────────────────────────────────
+const getOverdueComplaints = async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT c.id, c.complaint_no, c.title, c.status, c.priority, c.created_at,
+              cat.name  AS category_name,
+              d.name    AS district_name,
+              u.full_name AS citizen_name,
+              o.full_name AS official_name,
+              DATEDIFF(NOW(), c.created_at) AS days_old
+       FROM complaints c
+       LEFT JOIN categories cat ON cat.id = c.category_id
+       LEFT JOIN districts   d   ON d.id   = c.district_id
+       LEFT JOIN users       u   ON u.id   = c.user_id
+       LEFT JOIN officials   o   ON o.id   = c.official_id
+       WHERE c.status NOT IN ('resolved','closed','rejected')
+         AND c.created_at < DATE_SUB(NOW(), INTERVAL 30 DAY)
+       ORDER BY c.created_at ASC`
+    );
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    console.error('getOverdueComplaints error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+// ────────────────────────────────────────────────────
 //  GET DUPLICATE COMPLAINTS
 // ────────────────────────────────────────────────────
 const getDuplicates = async (req, res) => {
@@ -1277,4 +1305,5 @@ module.exports = {
   getMonthlyReport,
   getDuplicates,
   resolveDuplicate,
+  getOverdueComplaints,
 };
