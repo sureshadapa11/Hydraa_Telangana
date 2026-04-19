@@ -187,8 +187,19 @@
           </div>
           <div class="f-group">
             <label class="f-label">Address</label>
-            <input type="text" id="fAddress" class="f-input" placeholder="H.No / Flat No., Street, Colony, City, District, State – PIN"/>
-            <div class="f-hint">e.g. H.No 4-5/6, MG Road, Banjara Hills, Hyderabad, Telangana – 500034</div>
+            <div id="currentAddressWrap" style="display:none;margin-bottom:0.6rem;padding:0.6rem 0.8rem;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.8rem;color:var(--text-2);">
+              <span style="font-size:0.68rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.07em">Current Address</span><br/>
+              <span id="currentAddressText"></span>
+            </div>
+            <input type="text" id="fAddrHouse"   class="f-input" placeholder="House No. / Flat No. (e.g. H.No 4-5/6 or Flat 302)" style="margin-bottom:0.5rem"/>
+            <input type="text" id="fAddrStreet"  class="f-input" placeholder="Street / Road Name (e.g. MG Road)" style="margin-bottom:0.5rem"/>
+            <input type="text" id="fAddrColony"  class="f-input" placeholder="Colony / Area / Locality (e.g. Banjara Hills)" style="margin-bottom:0.5rem"/>
+            <input type="text" id="fAddrCity"    class="f-input" placeholder="City / Town (e.g. Hyderabad)" style="margin-bottom:0.5rem"/>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">
+              <input type="text" id="fAddrDistrict" class="f-input" placeholder="District (e.g. Rangareddy)"/>
+              <input type="text" id="fAddrPin"      class="f-input" placeholder="PIN Code (e.g. 500034)" maxlength="6"/>
+            </div>
+            <div class="f-hint" style="margin-top:0.4rem">State: Telangana (auto-filled) · All fields optional but recommended</div>
           </div>
 
           <button class="btn-save" id="saveBtn" onclick="saveProfile()">💾 Save Changes</button>
@@ -224,15 +235,29 @@
     try {
       const res = await http.get('/api/complaints/user-profile');
       if (res.success && res.data) {
-        document.getElementById('fPhone').value   = res.data.phone   || '';
-        document.getElementById('fAddress').value = res.data.address || '';
+        document.getElementById('fPhone').value = res.data.phone || '';
+        if (res.data.address) {
+          document.getElementById('currentAddressWrap').style.display = 'block';
+          document.getElementById('currentAddressText').textContent = res.data.address;
+        }
       }
     } catch(e) {}
   }
 
+  function buildAddress() {
+    const house    = document.getElementById('fAddrHouse').value.trim();
+    const street   = document.getElementById('fAddrStreet').value.trim();
+    const colony   = document.getElementById('fAddrColony').value.trim();
+    const city     = document.getElementById('fAddrCity').value.trim();
+    const district = document.getElementById('fAddrDistrict').value.trim();
+    const pin      = document.getElementById('fAddrPin').value.trim();
+    const parts = [house, street, colony, city, district, 'Telangana'].filter(Boolean);
+    return parts.join(', ') + (pin ? ' – ' + pin : '');
+  }
+
   async function saveProfile() {
     const phone   = document.getElementById('fPhone').value.trim();
-    const address = document.getElementById('fAddress').value.trim();
+    const address = buildAddress();
     const msgEl   = document.getElementById('formMsg');
     const btn     = document.getElementById('saveBtn');
 

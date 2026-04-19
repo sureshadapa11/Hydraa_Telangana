@@ -446,8 +446,15 @@
           </div>
           <div class="field">
             <label>Address</label>
-            <input type="text" id="reg-address" placeholder="H.No / Flat No., Street, Colony, City, District, State – PIN"/>
-            <small style="font-size:0.68rem;color:var(--text-3);margin-top:3px;display:block">e.g. H.No 4-5/6, MG Road, Banjara Hills, Hyderabad, Telangana – 500034</small>
+            <input type="text" id="reg-addr-house"   placeholder="House No. / Flat No. (e.g. H.No 4-5/6)" style="margin-bottom:0.4rem"/>
+            <input type="text" id="reg-addr-street"  placeholder="Street / Road Name (e.g. MG Road)" style="margin-bottom:0.4rem"/>
+            <input type="text" id="reg-addr-colony"  placeholder="Colony / Area / Locality (e.g. Banjara Hills)" style="margin-bottom:0.4rem"/>
+            <input type="text" id="reg-addr-city"    placeholder="City / Town (e.g. Hyderabad)" style="margin-bottom:0.4rem"/>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;margin-bottom:0.4rem">
+              <input type="text" id="reg-addr-district" placeholder="District (e.g. Rangareddy)"/>
+              <input type="text" id="reg-addr-pin"      placeholder="PIN Code (e.g. 500034)" maxlength="6"/>
+            </div>
+            <small style="font-size:0.68rem;color:var(--text-3)">State: Telangana (auto-filled) · All address fields optional</small>
           </div>
           <div class="field-row">
             <div class="field">
@@ -538,7 +545,18 @@
     const full_name = document.getElementById('reg-full-name').value.trim();
     const email = document.getElementById('reg-email').value.trim();
     const phone = document.getElementById('reg-phone').value.trim();
-    const address = document.getElementById('reg-address').value.trim();
+    const _addrParts = [
+      document.getElementById('reg-addr-house').value.trim(),
+      document.getElementById('reg-addr-street').value.trim(),
+      document.getElementById('reg-addr-colony').value.trim(),
+      document.getElementById('reg-addr-city').value.trim(),
+      document.getElementById('reg-addr-district').value.trim(),
+      'Telangana',
+    ].filter(Boolean);
+    const _addrPin = document.getElementById('reg-addr-pin').value.trim();
+    const address = _addrParts.length > 1
+      ? _addrParts.join(', ') + (_addrPin ? ' – ' + _addrPin : '')
+      : '';
     const password = document.getElementById('regPw').value;
     const confirmPassword = document.getElementById('regPw2').value;
     const btn = e.target.querySelector('button[type="submit"]');
