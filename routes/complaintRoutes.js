@@ -17,6 +17,10 @@ const {
   updateComplaintStatus,
   getOfficialComplaints,
   resolveComplaint,
+  bulkResolveComplaints,
+  requestReassignment,
+  getReassignmentRequests,
+  handleReassignmentRequest,
   getComments,
   addComment,
   uploadPhoto,
@@ -43,6 +47,11 @@ router.put('/admin/status/:id', verifyToken, updateComplaintStatus);
 // ── Official Routes ──
 router.get('/official/assigned', verifyToken, getOfficialComplaints);
 router.put('/official/resolve/:id', verifyToken, resolveComplaint);
+router.post('/official/reassign-request', verifyToken, requestReassignment);
+
+// ── Admin Reassignment Queue ──
+router.get('/admin/reassign-requests', verifyToken, getReassignmentRequests);
+router.put('/admin/reassign-requests/:id', verifyToken, handleReassignmentRequest);
 
 // ── Comments / Notes (all roles) ──
 router.get('/:id/comments', verifyToken, getComments);
@@ -58,5 +67,39 @@ router.get('/check-duplicate', verifyToken, checkDuplicate);
 // ── District stats & user profile (citizen dashboard) ──
 router.get('/district-stats', verifyToken, getDistrictStats);
 router.get('/user-profile', verifyToken, getUserProfile);
+
+// ── Push Notifications ──
+const { VAPID_PUBLIC } = require('../utils/pushService');
+const db = require('../utils/db');
+router.get('/push/vapid-key', (req, res) => res.json({ success: true, key: VAPID_PUBLIC }));
+router.post('/push/subscribe', verifyToken, async (req, res) => {
+  const { endpoint, keys } = req.body;
+  if (!endpoint || !keys?.p256dh || !keys?.auth) {
+    return res.status(400).json({ success: false, message: 'Invalid subscription object.' });
+  }
+  const user_id = req.user.id;
+  try {
+    // Upsert: avoid duplicates by endpoint
+    await db.query(
+      `INSERT INTO user_push_subscriptions (user_id, endpoint, p256dh, auth)
+       VALUES (?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE user_id = VALUES(user_id)`,
+      [user_id, endpoint, keys.p256dh, keys.auth]
+    );
+    res.json({ success: true, message: 'Subscribed to push notifications.' });
+  } catch (err) {
+    console.error('Push subscribe error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+router.delete('/push/unsubscribe', verifyToken, async (req, res) => {
+  const user_id = req.user.id;
+  try {
+    await db.query(`DELETE FROM user_push_subscriptions WHERE user_id = ?`, [user_id]);
+    res.json({ success: true, message: 'Unsubscribed.' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
 
 module.exports = router;

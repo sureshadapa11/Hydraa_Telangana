@@ -347,6 +347,35 @@
       </div>
 
       <!-- Recent complaints -->
+      <!-- Officials Performance Panel -->
+      <div class="table-card" id="officialsPerformanceCard" style="margin-bottom:1.4rem;border:2px solid rgba(139,92,246,0.2);">
+        <div class="tc-hdr" style="background:linear-gradient(to right,rgba(139,92,246,0.05),#fff);">
+          <div class="tc-hdr-left">
+            <div class="tc-title" style="color:#7c3aed;">🏆 Officials Performance</div>
+            <div class="tc-sub">Resolved counts, pending load, and citizen ratings per official</div>
+          </div>
+          <span id="perfRatingAvg" style="background:rgba(245,158,11,0.12);color:#b45309;padding:.25rem .9rem;border-radius:999px;font-size:.78rem;font-weight:700;">⭐ —</span>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="data-table" id="perfTable" style="min-width:620px;">
+            <thead>
+              <tr>
+                <th style="text-align:left">Official</th>
+                <th>Assigned</th>
+                <th>Resolved</th>
+                <th>Pending</th>
+                <th>Resolution %</th>
+                <th>Avg Rating</th>
+                <th>Ratings</th>
+              </tr>
+            </thead>
+            <tbody id="perfTableBody">
+              <tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-3)">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <div class="table-card">
         <div class="tc-hdr">
           <div class="tc-hdr-left">
@@ -368,6 +397,18 @@
           <span id="dupCount" style="background:#fed7aa;color:#9a3412;padding:.25rem .8rem;border-radius:999px;font-size:.75rem;font-weight:700;">0 flagged</span>
         </div>
         <div id="dupTable"><div class="empty"><div class="empty-icon">✅</div><p>No duplicate complaints found</p></div></div>
+      </div>
+
+      <!-- Reassignment Requests Queue -->
+      <div class="table-card" style="margin-top:1.4rem;border:2px solid rgba(245,158,11,0.35);" id="reassignQueueCard">
+        <div class="tc-hdr" style="background:linear-gradient(to right,#fffbeb,#fff);">
+          <div class="tc-hdr-left">
+            <div class="tc-title" style="color:#b45309;">🔄 Reassignment Requests</div>
+            <div class="tc-sub">Officials requesting to be reassigned from their complaints</div>
+          </div>
+          <span id="rrCount" style="background:rgba(245,158,11,0.15);color:#b45309;padding:.25rem .8rem;border-radius:999px;font-size:.75rem;font-weight:700;">0 pending</span>
+        </div>
+        <div id="rrTable"><div class="empty"><div class="empty-icon">✅</div><p>No pending reassignment requests</p></div></div>
       </div>
 
       <!-- Announcements Management -->
@@ -657,7 +698,7 @@ async function loadDashboard() {
   try {
     const res = await http.get('/api/complaints/admin/dashboard');
     if (!res.success) return;
-    const { complaints: s, total_users, total_officials, recent, district_stats } = res.data;
+    const { complaints: s, total_users, total_officials, recent, district_stats, officials_performance } = res.data;
 
     document.getElementById('s-total').textContent    = s.total||0;
     document.getElementById('s-pending').textContent  = s.pending||0;
@@ -726,6 +767,33 @@ async function loadDashboard() {
       </div>`;
     }).join('');
 
+    // Officials Performance table
+    if (officials_performance && officials_performance.length > 0) {
+      const overallAvg = officials_performance.reduce((s,o)=>s+(parseFloat(o.avg_rating)||0),0) / officials_performance.filter(o=>o.avg_rating).length || 0;
+      document.getElementById('perfRatingAvg').textContent = '⭐ ' + (overallAvg ? overallAvg.toFixed(1)+' avg' : '—');
+      document.getElementById('perfTableBody').innerHTML = officials_performance.map(o => {
+        const pct = o.total_assigned > 0 ? Math.round(o.resolved/o.total_assigned*100) : 0;
+        const stars = o.avg_rating ? '★'.repeat(Math.round(o.avg_rating))+'☆'.repeat(5-Math.round(o.avg_rating)) : '—';
+        const ratingColor = !o.avg_rating ? 'var(--text-3)' : o.avg_rating >= 4 ? '#10b981' : o.avg_rating >= 3 ? '#f59e0b' : '#ef4444';
+        return `<tr>
+          <td><div style="font-weight:600;color:var(--text)">${o.full_name}</div><div style="font-size:0.7rem;color:var(--text-3)">${o.email||''}</div></td>
+          <td style="text-align:center">${o.total_assigned||0}</td>
+          <td style="text-align:center;color:#10b981;font-weight:700">${o.resolved||0}</td>
+          <td style="text-align:center;color:#f59e0b;font-weight:700">${o.pending||0}</td>
+          <td style="text-align:center">
+            <div style="display:flex;align-items:center;gap:6px;justify-content:center">
+              <div style="width:64px;background:#e5e7eb;border-radius:4px;height:6px"><div style="width:${pct}%;background:#10b981;border-radius:4px;height:6px"></div></div>
+              <span style="font-size:0.75rem;font-weight:700;color:var(--text-2)">${pct}%</span>
+            </div>
+          </td>
+          <td style="text-align:center;color:${ratingColor};font-weight:700">${o.avg_rating ? o.avg_rating+'/5' : '—'}</td>
+          <td style="text-align:center;color:var(--text-3);font-size:0.78rem">${o.rating_count||0} ratings</td>
+        </tr>`;
+      }).join('');
+    } else {
+      document.getElementById('perfTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-3)">No officials data yet</td></tr>';
+    }
+
     // Keep allComplaints in sync for assign modal category lookup
     if (recent) recent.forEach(c => { if (!allComplaints.find(x => x.id === c.id)) allComplaints.push(c); });
 
@@ -755,6 +823,7 @@ async function loadDashboard() {
       </table>`;
   } catch(err) { console.error(err); }
   loadDuplicates();
+  loadReassignmentRequests();
   loadAnnouncements();
 }
 
@@ -805,6 +874,60 @@ async function loadDuplicates() {
         </tbody>
       </table></div>`;
   } catch(e) { console.error('loadDuplicates error:', e); }
+}
+
+// ═══ REASSIGNMENT REQUESTS ═══
+async function loadReassignmentRequests() {
+  try {
+    const res = await http.get('/api/complaints/admin/reassign-requests');
+    const list = (res.success && res.data) ? res.data : [];
+    const pending = list.filter(r => r.status === 'pending');
+    document.getElementById('rrCount').textContent = pending.length + ' pending';
+    if (!list.length) {
+      document.getElementById('rrTable').innerHTML =
+        `<div class="empty"><div class="empty-icon">✅</div><p>No reassignment requests</p></div>`;
+      return;
+    }
+    document.getElementById('rrTable').innerHTML = `
+      <table>
+        <thead><tr><th>Complaint</th><th>Official</th><th>Reason</th><th>Status</th><th>Submitted</th><th>Actions</th></tr></thead>
+        <tbody>${list.map(r => {
+          const isPending = r.status === 'pending';
+          const statusBadge = isPending
+            ? `<span style="background:rgba(245,158,11,0.12);color:#b45309;padding:2px 8px;border-radius:999px;font-size:0.72rem;font-weight:700">Pending</span>`
+            : r.status === 'approved'
+              ? `<span style="background:rgba(16,185,129,0.1);color:#065f46;padding:2px 8px;border-radius:999px;font-size:0.72rem;font-weight:700">Approved</span>`
+              : `<span style="background:rgba(239,68,68,0.1);color:#b91c1c;padding:2px 8px;border-radius:999px;font-size:0.72rem;font-weight:700">Rejected</span>`;
+          return `<tr>
+            <td><span class="cno">${r.complaint_no}</span><br><span style="font-size:0.75rem;color:var(--text-3)">${r.title}</span></td>
+            <td><strong>${r.official_name}</strong><br><span style="font-size:0.72rem;color:var(--text-3)">${r.official_email||''}</span></td>
+            <td style="max-width:200px;font-size:0.82rem;color:var(--text-2)">${r.reason}</td>
+            <td>${statusBadge}${r.admin_note?`<br><span style="font-size:0.7rem;color:var(--text-3)">${r.admin_note}</span>`:''}</td>
+            <td style="white-space:nowrap;font-size:0.78rem">${formatDate(r.created_at)}</td>
+            <td>
+              ${isPending ? `
+                <div style="display:flex;gap:0.4rem;flex-wrap:wrap">
+                  <button onclick="handleRR(${r.id},'approve')" style="background:rgba(16,185,129,0.1);color:#065f46;border:1px solid rgba(16,185,129,0.3);border-radius:6px;padding:4px 10px;font-size:0.75rem;font-weight:700;cursor:pointer;">✅ Approve</button>
+                  <button onclick="handleRR(${r.id},'reject')" style="background:rgba(239,68,68,0.08);color:#b91c1c;border:1px solid rgba(239,68,68,0.25);border-radius:6px;padding:4px 10px;font-size:0.75rem;font-weight:700;cursor:pointer;">✗ Reject</button>
+                </div>` : '—'}
+            </td>
+          </tr>`;
+        }).join('')}
+        </tbody>
+      </table>`;
+  } catch(e) { console.error('loadReassignmentRequests error:', e); }
+}
+
+async function handleRR(id, action) {
+  const note = action === 'approve'
+    ? prompt('Admin note (optional) — complaint will be unassigned for reassignment:')
+    : prompt('Rejection reason (optional):');
+  if (note === null) return; // cancelled
+  try {
+    const res = await http.put('/api/complaints/admin/reassign-requests/' + id, { action, admin_note: note });
+    if (res.success) { loadReassignmentRequests(); }
+    else { alert(res.message || 'Failed to process request.'); }
+  } catch(e) { alert('Server error.'); }
 }
 
 // ═══ ANNOUNCEMENTS ═══
@@ -1201,7 +1324,7 @@ async function openTimeline(complaint_no) {
       <div style="margin-bottom:1rem;padding:0.6rem 0.8rem;background:var(--bg);border-radius:8px;font-size:0.82rem">
         <strong>${complaint.complaint_no||''}</strong> — ${complaint.title||'—'}<br>
         <span style="color:var(--text-3);font-size:0.72rem">Status: ${complaint.status||'—'} · Priority: ${complaint.priority||'—'}</span>
-      </div>
+        ${(() => { const ac = allComplaints.find(x=>x.complaint_no===complaint_no); return (ac&&ac.internal_notes)?`<div style="margin-top:0.4rem;padding:0.4rem 0.6rem;background:rgba(139,92,246,0.07);border-left:3px solid #8b5cf6;border-radius:4px;font-size:0.75rem;color:#6d28d9">🔒 <strong>Internal Note:</strong> ${ac.internal_notes}</div>`:''; })()}
       <div class="tl-wrap">
         ${events.map(ev => {
           const dotCls = ev.type;

@@ -341,6 +341,22 @@ const getAdminDashboard = async (req, res) => {
       `SELECT COUNT(*) as unassigned FROM complaints WHERE official_id IS NULL`
     );
 
+    // Officials performance (for admin performance dashboard)
+    const [officials_performance] = await db.query(`
+      SELECT o.id, o.full_name, o.email,
+        COUNT(c.id) AS total_assigned,
+        SUM(CASE WHEN c.status IN ('resolved','closed') THEN 1 ELSE 0 END) AS resolved,
+        SUM(CASE WHEN c.status NOT IN ('resolved','closed','rejected') THEN 1 ELSE 0 END) AS pending,
+        ROUND(AVG(cr.rating), 1) AS avg_rating,
+        COUNT(cr.id) AS rating_count
+      FROM officials o
+      LEFT JOIN complaints c ON c.official_id = o.id
+      LEFT JOIN complaint_ratings cr ON cr.complaint_id = c.id
+      WHERE o.is_active = 1
+      GROUP BY o.id, o.full_name, o.email
+      ORDER BY resolved DESC
+    `);
+
     // Recent complaints
     const [recent] = await db.query(`
       SELECT c.id, c.complaint_no, c.title, c.status, c.priority, c.created_at,
@@ -376,6 +392,7 @@ const getAdminDashboard = async (req, res) => {
         avg_rating:     avg_rating || 0,
         district_stats,
         priority_stats,
+        officials_performance,
         recent,
       },
     });
@@ -639,11 +656,12 @@ const getOfficialComplaints = async (req, res) => {
 
   try {
     const [complaints] = await db.query(
-      `SELECT 
+      `SELECT
         c.id, c.complaint_no, c.title, c.description, c.status, c.priority,
         c.category_id, cat.name as category_name,
-        c.created_at, c.address,
-        u.full_name as user_name, u.email as user_email,
+        c.created_at, c.updated_at, c.address,
+        u.full_name as user_name, u.email as user_email, u.phone as user_phone,
+        c.official_remarks, c.internal_notes,
         c.land_district, c.land_mandal, c.land_village, c.land_address, c.land_survey_no, c.khata_no,
         d.name as district_name, m.name as mandal_name
       FROM complaints c
@@ -671,7 +689,7 @@ const getOfficialComplaints = async (req, res) => {
 // ────────────────────────────────────────────────────
 const resolveComplaint = async (req, res) => {
   const { id } = req.params;
-  const { status, remarks, priority } = req.body;
+  const { status, remarks, priority, internal_notes } = req.body;
   const official_id = req.user.id;
 
   const validStatuses = ['in_progress', 'resolved', 'rejected', 'closed'];
@@ -689,16 +707,16 @@ const resolveComplaint = async (req, res) => {
     const oldStatus = complaints[0].status;
     const resolved_at = (status === 'resolved') ? new Date() : null;
 
-    // Update complaint (with optional priority change)
+    // Update complaint (with optional priority change and internal notes)
     if (priority) {
       await db.query(
-        'UPDATE complaints SET status = ?, official_remarks = ?, resolved_at = ?, priority = ? WHERE id = ?',
-        [status, remarks || null, resolved_at, priority, id]
+        'UPDATE complaints SET status = ?, official_remarks = ?, internal_notes = ?, resolved_at = ?, priority = ? WHERE id = ?',
+        [status, remarks || null, internal_notes || null, resolved_at, priority, id]
       );
     } else {
       await db.query(
-        'UPDATE complaints SET status = ?, official_remarks = ?, resolved_at = ? WHERE id = ?',
-        [status, remarks || null, resolved_at, id]
+        'UPDATE complaints SET status = ?, official_remarks = ?, internal_notes = ?, resolved_at = ? WHERE id = ?',
+        [status, remarks || null, internal_notes || null, resolved_at, id]
       );
     }
 
@@ -740,6 +758,22 @@ const resolveComplaint = async (req, res) => {
       }
     } catch (e) { console.error('Official resolve email error:', e.message); }
 
+    // Push notification to citizen (non-blocking)
+    try {
+      const { sendPushToUser } = require('../utils/pushService');
+      const [[comp2]] = await db.query(
+        `SELECT c.user_id, c.complaint_no, c.title FROM complaints c WHERE c.id = ?`, [id]
+      );
+      if (comp2) {
+        const statusLabel = { in_progress:'In Progress', resolved:'Resolved', rejected:'Rejected', closed:'Closed' };
+        await sendPushToUser(comp2.user_id, {
+          title: `HYDRAA: Complaint ${statusLabel[status] || status}`,
+          body:  `Your complaint ${comp2.complaint_no} — "${comp2.title}" has been marked ${statusLabel[status] || status}.`,
+          url:   '/hydraa-my-complaints.html',
+        });
+      }
+    } catch (e) { console.error('Push notification error:', e.message); }
+
     res.json({
       success: true,
       message: 'Complaint updated successfully.',
@@ -775,7 +809,7 @@ const getAllComplaints = async (req, res) => {
         c.subcategory_id, subcat.name AS subcategory_name,
         c.address, c.created_at, c.resolved_at,
         c.official_id, o.full_name AS official_name,
-        c.admin_remarks, c.official_remarks,
+        c.admin_remarks, c.official_remarks, c.internal_notes,
         u.full_name AS user_name, u.email AS user_email,
         d.name AS district_name, m.name AS mandal_name,
         c.land_district, c.land_mandal, c.land_village, c.land_address, c.land_survey_no, c.khata_no
@@ -1025,6 +1059,163 @@ const getUserProfile = async (req, res) => {
   }
 };
 
+// ────────────────────────────────────────────────────
+//  REASSIGNMENT REQUEST (Official → Admin)
+// ────────────────────────────────────────────────────
+const requestReassignment = async (req, res) => {
+  const { complaint_id, reason } = req.body;
+  const official_id = req.user.id;
+
+  if (!complaint_id || !reason || !reason.trim()) {
+    return res.status(400).json({ success: false, message: 'Complaint ID and reason are required.' });
+  }
+
+  try {
+    // Ensure complaint is assigned to this official
+    const [rows] = await db.query(
+      'SELECT id FROM complaints WHERE id = ? AND official_id = ?',
+      [complaint_id, official_id]
+    );
+    if (rows.length === 0) {
+      return res.status(403).json({ success: false, message: 'Not authorized or complaint not found.' });
+    }
+
+    // Only one pending request per complaint
+    const [existing] = await db.query(
+      `SELECT id FROM reassignment_requests WHERE complaint_id = ? AND status = 'pending'`,
+      [complaint_id]
+    );
+    if (existing.length > 0) {
+      return res.status(400).json({ success: false, message: 'A pending reassignment request already exists for this complaint.' });
+    }
+
+    await db.query(
+      `INSERT INTO reassignment_requests (complaint_id, official_id, reason) VALUES (?, ?, ?)`,
+      [complaint_id, official_id, reason.trim()]
+    );
+
+    res.json({ success: true, message: 'Reassignment request submitted to admin.' });
+  } catch (err) {
+    console.error('Reassignment request error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+const getReassignmentRequests = async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT rr.id, rr.complaint_id, rr.reason, rr.status, rr.admin_note, rr.created_at,
+             c.complaint_no, c.title,
+             o.full_name AS official_name, o.email AS official_email
+      FROM reassignment_requests rr
+      JOIN complaints c ON c.id = rr.complaint_id
+      JOIN officials o ON o.id = rr.official_id
+      ORDER BY rr.created_at DESC
+      LIMIT 50
+    `);
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    console.error('Get reassignment requests error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+const handleReassignmentRequest = async (req, res) => {
+  const { id } = req.params;
+  const { action, admin_note, new_official_id } = req.body; // action: 'approve' | 'reject'
+  const admin_id = req.user.id;
+
+  if (!['approve', 'reject'].includes(action)) {
+    return res.status(400).json({ success: false, message: 'Action must be approve or reject.' });
+  }
+
+  try {
+    const [[rr]] = await db.query(
+      `SELECT * FROM reassignment_requests WHERE id = ? AND status = 'pending'`, [id]
+    );
+    if (!rr) {
+      return res.status(404).json({ success: false, message: 'Request not found or already handled.' });
+    }
+
+    if (action === 'approve') {
+      // Unassign complaint (set to unassigned so admin can assign fresh)
+      await db.query(
+        `UPDATE complaints SET official_id = ?, status = 'open', updated_at = NOW() WHERE id = ?`,
+        [new_official_id || null, rr.complaint_id]
+      );
+      await db.query(
+        `INSERT INTO complaint_history (complaint_id, old_status, new_status, changed_by_id, changed_by_role, remarks)
+         VALUES (?, 'assigned', 'open', ?, 'admin', ?)`,
+        [rr.complaint_id, admin_id, 'Reassignment approved: ' + (admin_note || '')]
+      );
+    }
+
+    await db.query(
+      `UPDATE reassignment_requests SET status = ?, admin_id = ?, admin_note = ?, resolved_at = NOW() WHERE id = ?`,
+      [action === 'approve' ? 'approved' : 'rejected', admin_id, admin_note || null, id]
+    );
+
+    res.json({ success: true, message: `Request ${action}d successfully.` });
+  } catch (err) {
+    console.error('Handle reassignment error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+// ────────────────────────────────────────────────────
+//  BULK STATUS UPDATE (Official)
+// ────────────────────────────────────────────────────
+const bulkResolveComplaints = async (req, res) => {
+  const { ids, status } = req.body;
+  const official_id = req.user.id;
+
+  const validStatuses = ['in_progress', 'resolved', 'rejected', 'closed'];
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ success: false, message: 'No complaint IDs provided.' });
+  }
+  if (!status || !validStatuses.includes(status)) {
+    return res.status(400).json({ success: false, message: 'Valid status required.' });
+  }
+
+  try {
+    // Verify all complaints belong to this official
+    const placeholders = ids.map(() => '?').join(',');
+    const [owned] = await db.query(
+      `SELECT id, status AS old_status FROM complaints WHERE id IN (${placeholders}) AND official_id = ?`,
+      [...ids, official_id]
+    );
+
+    if (owned.length === 0) {
+      return res.status(403).json({ success: false, message: 'No authorized complaints found.' });
+    }
+
+    const ownedIds = owned.map(r => r.id);
+    const ownedPlaceholders = ownedIds.map(() => '?').join(',');
+    const resolved_at = (status === 'resolved') ? new Date() : null;
+
+    await db.query(
+      `UPDATE complaints SET status = ?, resolved_at = ?, updated_at = NOW()
+       WHERE id IN (${ownedPlaceholders})`,
+      [status, resolved_at, ...ownedIds]
+    );
+
+    // Insert history for each
+    const historyValues = owned.map(r => [r.id, r.old_status, status, official_id, 'official', 'Bulk status update']);
+    for (const vals of historyValues) {
+      await db.query(
+        `INSERT INTO complaint_history (complaint_id, old_status, new_status, changed_by_id, changed_by_role, remarks)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        vals
+      );
+    }
+
+    res.json({ success: true, updated: ownedIds.length, message: `${ownedIds.length} complaint(s) updated to "${status}".` });
+  } catch (err) {
+    console.error('Bulk update error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
 module.exports = {
   lodgeComplaint,
   trackComplaint,
@@ -1037,6 +1228,10 @@ module.exports = {
   updateComplaintStatus,
   getOfficialComplaints,
   resolveComplaint,
+  bulkResolveComplaints,
+  requestReassignment,
+  getReassignmentRequests,
+  handleReassignmentRequest,
   getComments,
   addComment,
   uploadPhoto,

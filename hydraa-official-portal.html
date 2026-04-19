@@ -593,6 +593,21 @@
           <button class="fb-reset" onclick="exportPDF()" title="Export to PDF" style="background:rgba(239,68,68,0.08);color:#b91c1c;border-color:rgba(239,68,68,0.25);">⬇ PDF</button>
         </div>
 
+        <!-- Bulk action bar (shown when rows selected) -->
+        <div id="bulkBar" style="display:none;align-items:center;gap:0.8rem;background:#fff;border:1.5px solid var(--teal);border-radius:var(--radius);padding:0.6rem 1rem;margin-bottom:0.8rem;flex-wrap:wrap;box-shadow:0 2px 12px rgba(0,151,167,0.12);">
+          <span style="font-size:0.82rem;font-weight:700;color:var(--teal)"><span id="bulkCount">0</span> selected</span>
+          <select id="bulkStatus" class="m-select" style="width:auto;font-size:0.82rem;padding:0.38rem 0.7rem;">
+            <option value="">— Change Status To —</option>
+            <option value="in_progress">🔄 In Progress</option>
+            <option value="resolved">✅ Resolved</option>
+            <option value="rejected">❌ Rejected</option>
+            <option value="closed">🔒 Closed</option>
+          </select>
+          <button onclick="doBulkUpdate()" style="padding:0.4rem 1rem;background:var(--teal);color:#fff;border:none;border-radius:7px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;">Apply</button>
+          <button onclick="clearBulkSelection()" style="padding:0.4rem 0.8rem;background:none;border:1.5px solid var(--border);border-radius:7px;font-size:0.78rem;color:var(--text-3);cursor:pointer;font-family:inherit;">✕ Clear</button>
+          <div id="bulkMsg" style="font-size:0.78rem;color:#065f46;display:none"></div>
+        </div>
+
         <!-- Daily Work Summary strip -->
         <div class="daily-strip" id="dailyStrip">
           <span class="ds-title">📅 Today</span>
@@ -728,6 +743,27 @@
     <div class="modal-ftr">
       <button class="mb-ok" onclick="doUpdate()">✅ Save Update</button>
       <button class="mb-cancel" onclick="closeUpdate()">Cancel</button>
+      <button class="mb-cancel" onclick="openReassignRequest()" style="margin-left:auto;color:#f59e0b;border-color:rgba(245,158,11,0.35);" title="Ask admin to reassign this complaint">🔄 Request Reassign</button>
+    </div>
+  </div>
+</div>
+
+<!-- REASSIGNMENT REQUEST MODAL -->
+<div id="reassignReqModal" class="modal">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-hdr">
+      <div class="mh-icon" style="background:rgba(245,158,11,0.12)">🔄</div>
+      <div><div class="mh-title">Request Reassignment</div><div class="mh-sub">Ask admin to reassign this complaint to another official</div></div>
+    </div>
+    <div class="modal-body">
+      <div id="rrInfo" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:0.7rem 1rem;font-size:0.82rem;color:var(--text-2);margin-bottom:1rem"></div>
+      <label style="font-size:0.78rem;font-weight:700;color:var(--text);display:block;margin-bottom:0.35rem">Reason for Reassignment *</label>
+      <textarea id="rrReason" class="u-inp" placeholder="Explain why you need this complaint reassigned (e.g. jurisdiction conflict, workload, technical expertise required)..." rows="4" style="width:100%;min-height:100px;resize:vertical"></textarea>
+      <div id="rrMsg" style="font-size:0.8rem;margin-top:0.6rem"></div>
+    </div>
+    <div class="modal-ftr">
+      <button class="mb-ok" onclick="submitReassignRequest()" style="background:linear-gradient(135deg,#f59e0b,#d97706)">🔄 Submit Request</button>
+      <button class="mb-cancel" onclick="document.getElementById('reassignReqModal').classList.remove('open')">Cancel</button>
     </div>
   </div>
 </div>
@@ -814,6 +850,37 @@ function initDashboard() {
     initDashboard();
   }
 })();
+
+// ── Bulk status update ────────────────────────────────
+function toggleAllChecks(master) {
+  document.querySelectorAll('.row-chk').forEach(c => c.checked = master.checked);
+  updateBulkBar();
+}
+function updateBulkBar() {
+  const checked = document.querySelectorAll('.row-chk:checked');
+  const bar = document.getElementById('bulkBar');
+  document.getElementById('bulkCount').textContent = checked.length;
+  bar.style.display = checked.length > 0 ? 'flex' : 'none';
+}
+function clearBulkSelection() {
+  document.querySelectorAll('.row-chk, #chkAll').forEach(c => c.checked = false);
+  document.getElementById('bulkBar').style.display = 'none';
+}
+async function doBulkUpdate() {
+  const ids = [...document.querySelectorAll('.row-chk:checked')].map(c => Number(c.value));
+  const status = document.getElementById('bulkStatus').value;
+  const msg = document.getElementById('bulkMsg');
+  if (!status) { msg.textContent='Please select a status.'; msg.style.display='block'; msg.style.color='#b91c1c'; return; }
+  if (!ids.length) return;
+  msg.textContent='Updating...'; msg.style.display='block'; msg.style.color='#0097a7';
+  try {
+    const res = await http.put('/api/complaints/official/bulk-status', { ids, status });
+    if (res.success) {
+      msg.textContent = `✅ ${ids.length} complaint(s) updated!`; msg.style.color='#065f46';
+      setTimeout(() => { clearBulkSelection(); loadComplaints(); }, 1200);
+    } else { msg.textContent = res.message || 'Failed.'; msg.style.color='#b91c1c'; }
+  } catch(e) { msg.textContent='Server error.'; msg.style.color='#b91c1c'; }
+}
 
 // ── Export helpers ───────────────────────────────────
 function _getFilteredData() {
@@ -1062,8 +1129,11 @@ function filterComplaints() {
 
   document.getElementById('complaintsTable').innerHTML = data.length === 0
     ? '<div class="empty"><div class="empty-icon">📭</div><p>No complaints match your filters</p></div>'
-    : `<div style="overflow-x:auto"><table><thead><tr><th>No.</th><th>Title</th><th>Category</th><th>District</th><th>Citizen</th><th>Priority</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+    : `<div style="overflow-x:auto"><table><thead><tr>
+         <th style="width:32px"><input type="checkbox" id="chkAll" onchange="toggleAllChecks(this)" title="Select all"/></th>
+         <th>No.</th><th>Title</th><th>Category</th><th>District</th><th>Citizen</th><th>Priority</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
        <tbody>${data.map(c=>`<tr>
+         <td><input type="checkbox" class="row-chk" value="${c.id}" onchange="updateBulkBar()"/></td>
          <td><span class="cno">${c.complaint_no}</span>${agingBadge(c.created_at,c.status)}</td>
          <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.title}"><strong>${c.title}</strong></td>
          <td style="font-size:0.78rem">${c.category_name||'—'}</td>
@@ -1086,7 +1156,7 @@ function openUpdate(id) {
   document.getElementById('updateRemarks').value = c.official_remarks || '';
   document.getElementById('updateStatus').value = c.status === 'assigned' ? 'in_progress' : (c.status === 'in_progress' ? 'resolved' : 'in_progress');
   document.getElementById('updatePriority').value = '';
-  document.getElementById('updateNote').value = '';
+  document.getElementById('updateNote').value = c.internal_notes || '';
   document.getElementById('updateMsg').className = 'm-msg';
   document.getElementById('modalInfo').innerHTML = `<strong>${c.complaint_no}</strong> — ${c.title}<br><span style="color:var(--text-3);font-size:0.75rem">Citizen: ${c.user_name}${c.user_phone?' · '+c.user_phone:''} · ${c.category_name||'N/A'}</span>`;
 
@@ -1479,6 +1549,7 @@ async function doUpdate() {
     }
     const body = {status, remarks};
     if (priority) body.priority = priority;
+    if (note) body.internal_notes = note;
     const res = await http.put('/api/complaints/official/resolve/'+id, body);
     if (res.success) {
       // Post internal note as comment if provided
@@ -1489,6 +1560,33 @@ async function doUpdate() {
       setTimeout(() => { closeUpdate(); loadComplaints(); }, 1400);
     } else { msg.textContent=res.message; msg.className='m-msg err'; }
   } catch(e) { msg.textContent='Server error. Try again.'; msg.className='m-msg err'; }
+}
+
+// ═══ REASSIGNMENT REQUEST ═══
+function openReassignRequest() {
+  const id = parseInt(document.getElementById('updateId').value);
+  const c = allComplaints.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('rrInfo').innerHTML = `<strong>${c.complaint_no}</strong> — ${c.title}`;
+  document.getElementById('rrReason').value = '';
+  document.getElementById('rrMsg').textContent = '';
+  document.getElementById('rrMsg').style.color = '';
+  document.getElementById('reassignReqModal').classList.add('open');
+}
+
+async function submitReassignRequest() {
+  const id = parseInt(document.getElementById('updateId').value);
+  const reason = document.getElementById('rrReason').value.trim();
+  const msgEl = document.getElementById('rrMsg');
+  if (!reason) { msgEl.textContent = 'Please provide a reason.'; msgEl.style.color = 'var(--red)'; return; }
+  try {
+    const res = await http.post('/api/complaints/official/reassign-request', { complaint_id: id, reason });
+    if (res.success) {
+      msgEl.textContent = '✅ Request submitted. Admin will review and reassign.';
+      msgEl.style.color = 'var(--green)';
+      setTimeout(() => { document.getElementById('reassignReqModal').classList.remove('open'); closeUpdate(); }, 2000);
+    } else { msgEl.textContent = res.message; msgEl.style.color = 'var(--red)'; }
+  } catch(e) { msgEl.textContent = 'Server error.'; msgEl.style.color = 'var(--red)'; }
 }
 </script>
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js").catch(function(){});}</script>

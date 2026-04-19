@@ -435,6 +435,7 @@ async function fixComplaintsTable() {
       { name: 'khata_no',          def: 'VARCHAR(100) DEFAULT NULL' },
       { name: 'is_duplicate',      def: 'TINYINT DEFAULT 0' },
       { name: 'duplicate_of',      def: 'INT DEFAULT NULL' },
+      { name: 'internal_notes',    def: 'TEXT DEFAULT NULL' },
     ];
     const missing = required.filter(c => !colNames.includes(c.name));
     if (missing.length > 0) {
@@ -648,6 +649,53 @@ async function ensureAnnouncementsTable() {
   }
 }
 
+// ── Ensure Push Subscriptions Table ──
+async function ensurePushTable() {
+  try {
+    const db = require('./utils/db');
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS user_push_subscriptions (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        user_id INT NOT NULL,
+        endpoint TEXT NOT NULL,
+        p256dh TEXT NOT NULL,
+        auth TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_user (user_id)
+      )
+    `);
+    console.log('✅ user_push_subscriptions table OK');
+  } catch (err) {
+    console.warn('⚠️  user_push_subscriptions table skipped:', err.message);
+  }
+}
+
+// ── Ensure Reassignment Requests Table ──
+async function ensureReassignmentTable() {
+  try {
+    const db = require('./utils/db');
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS reassignment_requests (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        complaint_id INT NOT NULL,
+        official_id INT NOT NULL,
+        reason TEXT NOT NULL,
+        status VARCHAR(20) DEFAULT 'pending',
+        admin_id INT DEFAULT NULL,
+        admin_note TEXT DEFAULT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        resolved_at TIMESTAMP NULL,
+        INDEX idx_complaint (complaint_id),
+        INDEX idx_official (official_id),
+        INDEX idx_status (status)
+      )
+    `);
+    console.log('✅ reassignment_requests table OK');
+  } catch (err) {
+    console.warn('⚠️  reassignment_requests table skipped:', err.message);
+  }
+}
+
 // ── Ensure Deleted Users Audit Table ──
 async function ensureDeletedUsersTable() {
   try {
@@ -829,6 +877,8 @@ app.listen(PORT, async () => {
   await ensurePhotosTable();
   await ensureDeletedUsersTable();
   await ensureAnnouncementsTable();
+  await ensureReassignmentTable();
+  await ensurePushTable();
 });
 
 module.exports = app;

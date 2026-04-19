@@ -298,6 +298,7 @@
       <div class="tb-sub">HYDRAA Citizen Portal · <span id="tb-date"></span></div>
     </div>
     <div class="tb-right">
+      <button id="notifBtn" onclick="toggleNotifications()" title="Enable push notifications" style="display:none;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.3rem 0.8rem;font-size:0.78rem;font-weight:600;color:var(--text-2);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">🔔 Notify</button>
       <div class="tb-pill">
         <div class="tp-av" id="tp-av">U</div>
         <div class="tp-nm" id="tp-nm">Citizen</div>
@@ -669,6 +670,63 @@
     const busy = el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT');
     if (!busy) { loadDashboard(); loadDistrictStats(); loadAnnouncements(); }
   }, 15000);
+</script>
+<script>
+// ── Push Notifications ──
+(async function initPush() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  const btn = document.getElementById('notifBtn');
+  if (btn) btn.style.display = 'flex';
+
+  // Show correct label based on current permission
+  function updateBtn(state) {
+    if (!btn) return;
+    if (state === 'granted') {
+      btn.textContent = '🔔 On'; btn.style.color = 'var(--teal)'; btn.style.borderColor = 'var(--teal)';
+    } else if (state === 'denied') {
+      btn.textContent = '🔕 Blocked'; btn.style.color = 'var(--text-3)'; btn.disabled = true;
+    } else {
+      btn.textContent = '🔔 Notify'; btn.style.color = 'var(--text-2)';
+    }
+  }
+  updateBtn(Notification.permission);
+
+  window.toggleNotifications = async function() {
+    if (Notification.permission === 'denied') {
+      alert('Push notifications are blocked. Please allow them in your browser settings and reload.');
+      return;
+    }
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') { updateBtn(perm); return; }
+      updateBtn('granted');
+
+      const reg = await navigator.serviceWorker.ready;
+      const res = await fetch('/api/complaints/push/vapid-key');
+      const { key } = await res.json();
+
+      // Convert base64url to Uint8Array
+      const b64 = (key + '===').slice(0, key.length + (4 - key.length % 4) % 4);
+      const raw = atob(b64.replace(/-/g,'+').replace(/_/g,'/'));
+      const appKey = new Uint8Array(raw.split('').map(c => c.charCodeAt(0)));
+
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: appKey,
+      });
+
+      const token = localStorage.getItem('hydraa_token');
+      await fetch('/api/complaints/push/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify(sub.toJSON()),
+      });
+    } catch(e) {
+      console.warn('Push subscribe error:', e);
+      updateBtn(Notification.permission);
+    }
+  };
+})();
 </script>
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js").catch(function(){});}</script>
 
