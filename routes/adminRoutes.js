@@ -22,6 +22,7 @@ const {
   deleteUser,
   getDeletedUsers,
   restoreUser,
+  permanentDeleteUser,
   getUserLogs,
   getStates,
   createState,
@@ -65,6 +66,7 @@ router.delete('/officials/:id', verifyToken, deleteOfficial);
 router.get('/users', verifyToken, getUsers);
 router.get('/users/deleted', verifyToken, getDeletedUsers);
 router.post('/users/deleted/:id/restore', verifyToken, restoreUser);
+router.delete('/users/deleted/:id/permanent', verifyToken, permanentDeleteUser);
 router.get('/users/:id/logs', verifyToken, getUserLogs);
 router.put('/users/:id/deactivate', verifyToken, deactivateUser);
 router.put('/users/:id/activate', verifyToken, activateUser);

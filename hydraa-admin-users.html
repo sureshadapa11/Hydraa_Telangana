@@ -416,6 +416,7 @@
         <td style="white-space:nowrap;display:flex;gap:0.4rem;align-items:center">
           ${hasComplaints ? `<button onclick="toggleComplaints('dc-${i}')" style="font-size:0.7rem;background:#e0f7fa;color:#006978;border:1px solid #b2ebf2;border-radius:6px;padding:3px 10px;cursor:pointer;font-weight:700;">📋 View</button>` : '<span style="font-size:0.7rem;color:var(--text-3)">—</span>'}
           <button onclick="restoreUser(${u.id}, '${(u.full_name||'').replace(/'/g,"\\'")}', '${u.email}')" style="font-size:0.7rem;background:#d1fae5;color:#065f46;border:1px solid #6ee7b7;border-radius:6px;padding:3px 10px;cursor:pointer;font-weight:700;">♻️ Restore</button>
+          <button onclick="permanentDelete(${u.id}, '${(u.full_name||'').replace(/'/g,"\\'")}', '${u.email}', ${(u.complaints_data||[]).length})" style="font-size:0.7rem;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:6px;padding:3px 10px;cursor:pointer;font-weight:700;">🗑️ Delete Permanently</button>
         </td>
       </tr>
       <tr id="dc-${i}" style="display:none">
@@ -473,6 +474,25 @@
           loadUsers();
         } else {
           showToast(res.message || 'Restore failed.', 'error');
+        }
+      }
+    });
+  }
+
+  function permanentDelete(auditId, name, email, complaintsCount) {
+    showConfirm({
+      icon: '⛔',
+      title: 'Permanent Delete — Cannot Be Undone',
+      msg: `You are about to permanently erase:\n"${name}" (${email})\n\nThis will delete:\n✗ Their account\n✗ ${complaintsCount} complaint(s) and all history\n✗ All comments, ratings and this record\n\nThis action CANNOT be reversed.`,
+      btnLabel: 'Delete Permanently',
+      btnClass: 'danger',
+      action: async () => {
+        const res = await http.delete(`/api/admin/users/deleted/${auditId}/permanent`);
+        if (res.success) {
+          showToast(`🗑️ ${name} permanently deleted. All data erased.`, 'success');
+          loadDeletedUsers();
+        } else {
+          showToast(res.message || 'Permanent delete failed.', 'error');
         }
       }
     });
