@@ -6,7 +6,7 @@
   <title>My Profile — HYDRAA Telangana</title>
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
-    :root{--teal:#0097a7;--teal-dark:#006978;--navy:#0b1f3a;--navy-mid:#122944;
+    :root{--teal:#0097a7;--teal-dark:#006978;--navy:#0b1f3a;
       --white:#fff;--bg:#f2f6f9;--text:#0d1e2e;--text-2:#3d5a72;--text-3:#7a9baf;
       --border:#d0e4ec;--shadow:0 2px 16px rgba(0,30,60,0.08);
       --shadow-md:0 8px 36px rgba(0,30,60,0.13);--radius:12px;--radius-sm:8px;--sidebar-w:256px;}
@@ -45,43 +45,59 @@
     .tp-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;font-weight:700;font-size:0.72rem;display:flex;align-items:center;justify-content:center;}
     .tp-nm{font-size:0.78rem;font-weight:600;color:var(--text);}
     .ham-btn{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:1.1rem;flex-shrink:0;margin-right:0.7rem;}
-
     .content{padding:1.8rem 2rem;flex:1;}
 
     /* Profile card */
-    .profile-card{background:#fff;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);max-width:560px;}
+    .profile-card{background:#fff;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);max-width:580px;}
     .pc-hdr{padding:1.4rem 1.6rem;border-bottom:1px solid var(--border);background:linear-gradient(to right,rgba(0,151,167,0.04),transparent);}
     .pc-hdr-title{font-family:'Rajdhani',sans-serif;font-size:1.15rem;font-weight:700;color:var(--navy);}
     .pc-hdr-sub{font-size:0.73rem;color:var(--text-3);margin-top:2px;}
-    .pc-body{padding:1.4rem 1.6rem;}
+    .pc-body{padding:0;}
 
-    /* Read-only info row */
-    .info-row{display:flex;flex-direction:column;gap:0.2rem;margin-bottom:1.1rem;padding-bottom:1.1rem;border-bottom:1px solid rgba(208,228,236,0.5);}
-    .info-row:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0;}
-    .info-label{font-size:0.7rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.08em;}
-    .info-value{font-size:0.92rem;color:var(--text);font-weight:500;}
-    .info-value.empty{color:var(--text-3);font-style:italic;}
-
-    /* Form fields */
-    .f-group{margin-bottom:1rem;}
-    .f-label{display:block;font-size:0.78rem;font-weight:700;color:var(--text);margin-bottom:0.35rem;}
-    .f-label span{color:#e53935;}
-    .f-input{width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0.72rem 0.9rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--bg);outline:none;transition:all 0.2s;}
-    .f-input:focus{border-color:var(--teal);background:#fff;box-shadow:0 0 0 3px rgba(0,151,167,0.1);}
-    .f-hint{font-size:0.72rem;color:var(--text-3);margin-top:0.3rem;}
-
-    .btn-save{background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:var(--radius-sm);padding:0.78rem 2rem;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 3px 12px rgba(0,151,167,0.35);transition:all 0.2s;width:100%;}
-    .btn-save:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,151,167,0.45);}
-    .btn-save:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
-    .msg{padding:0.75rem 1rem;border-radius:var(--radius-sm);font-size:0.82rem;margin-bottom:1rem;display:none;}
-    .msg.ok{background:rgba(16,185,129,0.08);color:#065f46;border-left:3px solid #10b981;display:block;}
-    .msg.err{background:rgba(239,68,68,0.08);color:#b91c1c;border-left:3px solid #ef4444;display:block;}
-
-    /* Avatar */
-    .profile-avatar-wrap{display:flex;align-items:center;gap:1.2rem;margin-bottom:1.4rem;padding-bottom:1.4rem;border-bottom:1px solid var(--border);}
+    /* Avatar row */
+    .avatar-row{display:flex;align-items:center;gap:1.2rem;padding:1.4rem 1.6rem;border-bottom:1px solid var(--border);}
     .profile-avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00bcd4);display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.8rem;color:#fff;flex-shrink:0;}
-    .profile-avatar-info .name{font-family:'Rajdhani',sans-serif;font-size:1.2rem;font-weight:700;color:var(--navy);}
-    .profile-avatar-info .email{font-size:0.82rem;color:var(--text-3);margin-top:2px;}
+    .avatar-info .av-name{font-family:'Rajdhani',sans-serif;font-size:1.2rem;font-weight:700;color:var(--navy);}
+    .avatar-info .av-email{font-size:0.82rem;color:var(--text-3);margin-top:3px;}
+
+    /* Profile field row — view/edit pattern */
+    .pf-row{padding:1rem 1.6rem;border-bottom:1px solid rgba(208,228,236,0.5);}
+    .pf-row:last-child{border-bottom:none;}
+    .pf-view{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;}
+    .pf-view-left{}
+    .pf-label{font-size:0.68rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem;}
+    .pf-value{font-size:0.92rem;color:var(--text);font-weight:500;line-height:1.5;}
+    .pf-value.empty{color:var(--text-3);font-style:italic;font-size:0.85rem;}
+
+    /* Address display rows */
+    .addr-display{display:flex;flex-direction:column;gap:0.18rem;}
+    .addr-line{display:flex;gap:0.5rem;font-size:0.88rem;color:var(--text);line-height:1.5;}
+    .addr-line-lbl{font-size:0.7rem;color:var(--text-3);font-weight:600;min-width:80px;padding-top:2px;}
+    .addr-line-val{color:var(--text-2);font-weight:500;}
+
+    /* Edit button */
+    .btn-edit{display:flex;align-items:center;gap:4px;padding:5px 14px;border:1.5px solid var(--teal);border-radius:100px;font-size:0.75rem;font-weight:700;color:var(--teal);background:transparent;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.18s;white-space:nowrap;flex-shrink:0;}
+    .btn-edit:hover{background:var(--teal);color:#fff;}
+
+    /* Edit panel (hidden by default) */
+    .pf-edit{display:none;margin-top:0.8rem;}
+    .pf-edit.open{display:block;}
+    .f-input{width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0.68rem 0.9rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.86rem;color:var(--text);background:var(--bg);outline:none;transition:all 0.2s;margin-bottom:0.45rem;}
+    .f-input:last-of-type{margin-bottom:0;}
+    .f-input:focus{border-color:var(--teal);background:#fff;box-shadow:0 0 0 3px rgba(0,151,167,0.1);}
+    .f-hint{font-size:0.7rem;color:var(--text-3);margin-top:0.3rem;margin-bottom:0.7rem;line-height:1.5;}
+    .edit-actions{display:flex;gap:0.5rem;margin-top:0.8rem;}
+    .btn-save-inline{flex:1;padding:0.6rem 1rem;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:var(--radius-sm);font-size:0.85rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .btn-save-inline:hover{opacity:0.9;}
+    .btn-save-inline:disabled{opacity:0.6;cursor:not-allowed;}
+    .btn-cancel-inline{padding:0.6rem 1rem;background:none;color:var(--text-2);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:0.85rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.18s;}
+    .btn-cancel-inline:hover{border-color:var(--text-2);}
+    .inline-msg{font-size:0.78rem;margin-top:0.5rem;display:none;padding:0.5rem 0.8rem;border-radius:var(--radius-sm);}
+    .inline-msg.ok{background:rgba(16,185,129,0.08);color:#065f46;border-left:3px solid #10b981;display:block;}
+    .inline-msg.err{background:rgba(239,68,68,0.08);color:#b91c1c;border-left:3px solid #ef4444;display:block;}
+
+    /* Read-only rows (name, email) */
+    .ro-row{padding:1rem 1.6rem;border-bottom:1px solid rgba(208,228,236,0.5);}
 
     @media(max-width:768px){
       :root{--sidebar-w:0px;}
@@ -94,6 +110,7 @@
       .topbar{padding:0 1rem!important;}
       .content{padding:1rem!important;}
       .sidebar{height:100dvh!important;}
+      .addr-line-lbl{min-width:64px;}
     }
   </style>
   <link rel="manifest" href="/manifest.json">
@@ -137,7 +154,7 @@
     <button class="ham-btn" onclick="openSidebar()" aria-label="Open Menu">☰</button>
     <div class="tb-left">
       <div class="tb-title">My Profile</div>
-      <div class="tb-sub">Update your contact details</div>
+      <div class="tb-sub">View and update your contact details</div>
     </div>
     <div class="tb-right">
       <div class="tb-pill">
@@ -156,53 +173,67 @@
       <div class="pc-body">
 
         <!-- Avatar + name -->
-        <div class="profile-avatar-wrap">
+        <div class="avatar-row">
           <div class="profile-avatar" id="profAvatar">U</div>
-          <div class="profile-avatar-info">
-            <div class="name" id="profName">—</div>
-            <div class="email" id="profEmail">—</div>
+          <div class="avatar-info">
+            <div class="av-name" id="profName">—</div>
+            <div class="av-email" id="profEmail">—</div>
           </div>
         </div>
 
-        <!-- Read-only fields -->
-        <div class="info-row">
-          <div class="info-label">Full Name</div>
-          <div class="info-value" id="roName">—</div>
-        </div>
-        <div class="info-row">
-          <div class="info-label">Email Address</div>
-          <div class="info-value" id="roEmail">—</div>
+        <!-- Full Name (read-only) -->
+        <div class="ro-row">
+          <div class="pf-label">Full Name</div>
+          <div class="pf-value" id="roName">—</div>
         </div>
 
-        <!-- Editable fields -->
-        <div style="margin-top:1.2rem;padding-top:1.2rem;border-top:1px solid var(--border);">
-          <div style="font-family:'Rajdhani',sans-serif;font-size:0.95rem;font-weight:700;color:var(--navy);margin-bottom:1rem;">Edit Contact Details</div>
+        <!-- Email (read-only) -->
+        <div class="ro-row">
+          <div class="pf-label">Email Address</div>
+          <div class="pf-value" id="roEmail">—</div>
+        </div>
 
-          <div id="formMsg" class="msg"></div>
-
-          <div class="f-group">
-            <label class="f-label">Phone Number</label>
+        <!-- Phone (view + edit) -->
+        <div class="pf-row">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.4rem;">
+            <div class="pf-label" style="margin-bottom:0;">Mobile Number</div>
+            <button class="btn-edit" onclick="toggleEdit('phone')">✏️ Edit</button>
+          </div>
+          <div class="pf-value" id="viewPhone"><span class="empty">Not added yet</span></div>
+          <div class="pf-edit" id="editPhone">
             <input type="tel" id="fPhone" class="f-input" placeholder="e.g. 98765 43210" maxlength="15"/>
-            <div class="f-hint">10-digit mobile number · Do not include +91 or leading 0 · Officials will call you on this for complaint follow-up</div>
-          </div>
-          <div class="f-group">
-            <label class="f-label">Address</label>
-            <div id="currentAddressWrap" style="display:none;margin-bottom:0.6rem;padding:0.6rem 0.8rem;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.8rem;color:var(--text-2);">
-              <span style="font-size:0.68rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.07em">Current Address</span><br/>
-              <span id="currentAddressText"></span>
+            <div class="f-hint">10-digit mobile number · Do not include +91 or leading 0</div>
+            <div class="inline-msg" id="phoneMsg"></div>
+            <div class="edit-actions">
+              <button class="btn-save-inline" id="phoneSaveBtn" onclick="savePhone()">Save</button>
+              <button class="btn-cancel-inline" onclick="toggleEdit('phone')">Cancel</button>
             </div>
-            <input type="text" id="fAddrHouse"   class="f-input" placeholder="House No. / Flat No. (e.g. H.No 4-5/6 or Flat 302)" style="margin-bottom:0.5rem"/>
-            <input type="text" id="fAddrStreet"  class="f-input" placeholder="Street / Road Name (e.g. MG Road)" style="margin-bottom:0.5rem"/>
-            <input type="text" id="fAddrColony"  class="f-input" placeholder="Colony / Area / Locality (e.g. Banjara Hills)" style="margin-bottom:0.5rem"/>
-            <input type="text" id="fAddrCity"    class="f-input" placeholder="City / Town (e.g. Hyderabad)" style="margin-bottom:0.5rem"/>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">
-              <input type="text" id="fAddrDistrict" class="f-input" placeholder="District (e.g. Rangareddy)"/>
-              <input type="text" id="fAddrPin"      class="f-input" placeholder="PIN Code (e.g. 500034)" maxlength="6"/>
-            </div>
-            <div class="f-hint" style="margin-top:0.4rem">State: Telangana (auto-filled) · All fields optional but recommended</div>
           </div>
+        </div>
 
-          <button class="btn-save" id="saveBtn" onclick="saveProfile()">💾 Save Changes</button>
+        <!-- Address (view + edit) -->
+        <div class="pf-row">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.4rem;">
+            <div class="pf-label" style="margin-bottom:0;">Address</div>
+            <button class="btn-edit" onclick="toggleEdit('address')">✏️ Edit</button>
+          </div>
+          <div id="viewAddress"><span class="empty">Not added yet</span></div>
+          <div class="pf-edit" id="editAddress">
+            <input type="text" id="fAddrHouse"    class="f-input" placeholder="House No. / Flat No.  (e.g. H.No 4-5/6 or Flat 302)"/>
+            <input type="text" id="fAddrStreet"   class="f-input" placeholder="Street / Road Name  (e.g. MG Road)"/>
+            <input type="text" id="fAddrColony"   class="f-input" placeholder="Colony / Area / Locality  (e.g. Banjara Hills)"/>
+            <input type="text" id="fAddrCity"     class="f-input" placeholder="City / Town  (e.g. Hyderabad)"/>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.45rem;margin-bottom:0.45rem">
+              <input type="text" id="fAddrDistrict" class="f-input" style="margin-bottom:0" placeholder="District  (e.g. Rangareddy)"/>
+              <input type="text" id="fAddrPin"      class="f-input" style="margin-bottom:0" placeholder="PIN Code  (e.g. 500034)" maxlength="6"/>
+            </div>
+            <div class="f-hint">State: Telangana (auto-filled) · All fields optional but recommended</div>
+            <div class="inline-msg" id="addrMsg"></div>
+            <div class="edit-actions">
+              <button class="btn-save-inline" id="addrSaveBtn" onclick="saveAddress()">Save</button>
+              <button class="btn-cancel-inline" onclick="toggleEdit('address')">Cancel</button>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -219,70 +250,144 @@
   if (user) {
     const init = (user.full_name || 'U')[0].toUpperCase();
     const name = user.full_name || 'Citizen';
-    document.getElementById('sb-av').textContent = init;
-    document.getElementById('sb-un').textContent = name;
-    document.getElementById('tp-av').textContent = init;
-    document.getElementById('tp-nm').textContent = name;
-    document.getElementById('profAvatar').textContent = init;
-    document.getElementById('profName').textContent = name;
+    ['sb-av','tp-av','profAvatar'].forEach(id => document.getElementById(id).textContent = init);
+    ['sb-un','tp-nm','profName'].forEach(id => document.getElementById(id).textContent = name);
     document.getElementById('profEmail').textContent = user.email || '—';
-    document.getElementById('roName').textContent = name;
-    document.getElementById('roEmail').textContent = user.email || '—';
+    document.getElementById('roName').textContent    = name;
+    document.getElementById('roEmail').textContent   = user.email || '—';
   }
 
-  // Load current profile data
+  // Stored profile data
+  let _phone = '', _address = '';
+
+  function renderPhone(phone) {
+    const el = document.getElementById('viewPhone');
+    el.innerHTML = phone
+      ? `<strong>+91 ${phone}</strong>`
+      : '<span class="empty">Not added yet</span>';
+    document.getElementById('fPhone').value = phone || '';
+  }
+
+  // Address is stored as combined string — display it line by line
+  // Format: "House, Street, Colony, City, District, Telangana – PIN"
+  function renderAddress(address) {
+    const el = document.getElementById('viewAddress');
+    if (!address) {
+      el.innerHTML = '<span class="empty">Not added yet</span>';
+      return;
+    }
+    // Split on '–' to separate address from PIN
+    const [addrPart, pinPart] = address.split('–').map(s => s.trim());
+    const parts = addrPart ? addrPart.split(',').map(s => s.trim()).filter(Boolean) : [];
+    const labels = ['House / Flat', 'Street', 'Colony / Area', 'City', 'District', 'State'];
+    const rows = parts.map((p, i) =>
+      `<div class="addr-line">
+        <span class="addr-line-lbl">${labels[i] || ''}</span>
+        <span class="addr-line-val">${p}</span>
+      </div>`
+    );
+    if (pinPart) rows.push(
+      `<div class="addr-line">
+        <span class="addr-line-lbl">PIN Code</span>
+        <span class="addr-line-val">${pinPart}</span>
+      </div>`
+    );
+    el.innerHTML = `<div class="addr-display">${rows.join('')}</div>`;
+  }
+
   async function loadProfile() {
     try {
       const res = await http.get('/api/complaints/user-profile');
       if (res.success && res.data) {
-        document.getElementById('fPhone').value = res.data.phone || '';
-        if (res.data.address) {
-          document.getElementById('currentAddressWrap').style.display = 'block';
-          document.getElementById('currentAddressText').textContent = res.data.address;
-        }
+        _phone   = res.data.phone   || '';
+        _address = res.data.address || '';
+        renderPhone(_phone);
+        renderAddress(_address);
       }
     } catch(e) {}
   }
 
-  function buildAddress() {
+  function toggleEdit(section) {
+    const panel = document.getElementById('edit' + section.charAt(0).toUpperCase() + section.slice(1));
+    const isOpen = panel.classList.contains('open');
+    // Close all edit panels first
+    document.querySelectorAll('.pf-edit').forEach(p => p.classList.remove('open'));
+    // Clear messages
+    ['phoneMsg','addrMsg'].forEach(id => { const m = document.getElementById(id); m.className='inline-msg'; m.style.display='none'; });
+    if (!isOpen) {
+      panel.classList.add('open');
+      if (section === 'address') populateAddressEdit();
+    }
+  }
+
+  function populateAddressEdit() {
+    if (!_address) return;
+    const [addrPart, pinPart] = _address.split('–').map(s => s.trim());
+    const parts = addrPart ? addrPart.split(',').map(s => s.trim()) : [];
+    document.getElementById('fAddrHouse').value    = parts[0] || '';
+    document.getElementById('fAddrStreet').value   = parts[1] || '';
+    document.getElementById('fAddrColony').value   = parts[2] || '';
+    document.getElementById('fAddrCity').value     = parts[3] || '';
+    document.getElementById('fAddrDistrict').value = parts[4] || '';
+    // parts[5] is 'Telangana' — skip, auto-filled on save
+    document.getElementById('fAddrPin').value      = pinPart || '';
+  }
+
+  async function savePhone() {
+    const phone  = document.getElementById('fPhone').value.trim();
+    const msgEl  = document.getElementById('phoneMsg');
+    const btn    = document.getElementById('phoneSaveBtn');
+    btn.disabled = true; btn.textContent = 'Saving...';
+    msgEl.className = 'inline-msg'; msgEl.style.display = 'none';
+    try {
+      const res = await http.put('/api/auth/profile', { phone, address: _address });
+      if (res.success) {
+        _phone = phone;
+        renderPhone(_phone);
+        msgEl.textContent = '✅ Mobile number saved!';
+        msgEl.className = 'inline-msg ok';
+        setTimeout(() => toggleEdit('phone'), 1200);
+      } else {
+        msgEl.textContent = res.message || 'Failed to save.';
+        msgEl.className = 'inline-msg err';
+      }
+    } catch(e) {
+      msgEl.textContent = 'Server error. Try again.';
+      msgEl.className = 'inline-msg err';
+    }
+    btn.disabled = false; btn.textContent = 'Save';
+  }
+
+  async function saveAddress() {
     const house    = document.getElementById('fAddrHouse').value.trim();
     const street   = document.getElementById('fAddrStreet').value.trim();
     const colony   = document.getElementById('fAddrColony').value.trim();
     const city     = document.getElementById('fAddrCity').value.trim();
     const district = document.getElementById('fAddrDistrict').value.trim();
     const pin      = document.getElementById('fAddrPin').value.trim();
-    const parts = [house, street, colony, city, district, 'Telangana'].filter(Boolean);
-    return parts.join(', ') + (pin ? ' – ' + pin : '');
-  }
-
-  async function saveProfile() {
-    const phone   = document.getElementById('fPhone').value.trim();
-    const address = buildAddress();
-    const msgEl   = document.getElementById('formMsg');
-    const btn     = document.getElementById('saveBtn');
-
-    btn.disabled = true;
-    btn.textContent = 'Saving...';
-    msgEl.className = 'msg';
-    msgEl.style.display = 'none';
-
+    const parts    = [house, street, colony, city, district, 'Telangana'].filter(Boolean);
+    const address  = parts.join(', ') + (pin ? ' – ' + pin : '');
+    const msgEl    = document.getElementById('addrMsg');
+    const btn      = document.getElementById('addrSaveBtn');
+    btn.disabled = true; btn.textContent = 'Saving...';
+    msgEl.className = 'inline-msg'; msgEl.style.display = 'none';
     try {
-      const res = await http.put('/api/auth/profile', { phone, address });
+      const res = await http.put('/api/auth/profile', { phone: _phone, address });
       if (res.success) {
-        msgEl.textContent = '✅ Profile updated successfully!';
-        msgEl.className = 'msg ok';
-        // Redirect back to dashboard after short delay
-        setTimeout(() => { window.location.href = '/hydraa-user-dashboard.html'; }, 1500);
+        _address = address;
+        renderAddress(_address);
+        msgEl.textContent = '✅ Address saved!';
+        msgEl.className = 'inline-msg ok';
+        setTimeout(() => toggleEdit('address'), 1200);
       } else {
         msgEl.textContent = res.message || 'Failed to save.';
-        msgEl.className = 'msg err';
+        msgEl.className = 'inline-msg err';
       }
     } catch(e) {
-      msgEl.textContent = 'Server error. Please try again.';
-      msgEl.className = 'msg err';
+      msgEl.textContent = 'Server error. Try again.';
+      msgEl.className = 'inline-msg err';
     }
-    btn.disabled = false;
-    btn.textContent = '💾 Save Changes';
+    btn.disabled = false; btn.textContent = 'Save';
   }
 
   function logout() { Auth.logout(); }
