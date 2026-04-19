@@ -3,11 +3,11 @@
 //   Cache static assets, network-first for API
 // =====================================================
 
-const CACHE_NAME   = 'hydraa-v3';
+const CACHE_NAME   = 'hydraa-v4';
 const OFFLINE_URL  = '/offline.html';
 
+// Only cache non-HTML static assets — HTML is always fetched fresh from network
 const STATIC_ASSETS = [
-  '/',
   '/offline.html',
   '/manifest.json',
   '/icon.svg',
@@ -15,27 +15,8 @@ const STATIC_ASSETS = [
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/icons/apple-touch-icon.png',
-  '/hydraa-admin-performance.html',
-  '/hydraa-admin-report.html',
   '/http-client.js',
   '/app.js',
-  '/hydraa-index.html',
-  '/hydraa-login.html',
-  '/hydraa-register.html',
-  '/hydraa-lodge-complaint.html',
-  '/hydraa-my-complaints.html',
-  '/hydraa-track-complaint.html',
-  '/hydraa-user-dashboard.html',
-  '/hydraa-change-password.html',
-  '/hydraa-admin-login.html',
-  '/hydraa-admin-dashboard.html',
-  '/hydraa-admin-analytics.html',
-  '/hydraa-admin-management.html',
-  '/hydraa-admin-users.html',
-  '/hydraa-admin-categories.html',
-  '/hydraa-admin-districts.html',
-  '/hydraa-admin-heatmap.html',
-  '/hydraa-official-portal.html',
 ];
 
 // ── Install: cache static assets ──
@@ -50,16 +31,15 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
-// ── Activate: clean up old caches ──
+// ── Activate: clean up old caches, claim clients, signal pages to reload ──
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
-      )
-    )
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
+      .then(() => self.clients.matchAll({ type: 'window', includeUncontrolled: true }))
+      .then(clients => clients.forEach(client => client.postMessage({ type: 'SW_UPDATED' })))
   );
-  self.clients.claim();
 });
 
 // ── Fetch: routing strategy ──

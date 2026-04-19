@@ -107,6 +107,18 @@ function copyToClipboard(text) {
 }
 
 /**
+ * Auto-reload when a new service worker activates so latest deployment loads immediately
+ * without requiring Ctrl+Shift+R from the user
+ */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'SW_UPDATED') {
+      window.location.reload();
+    }
+  });
+}
+
+/**
  * Add CSS animation for loading spinner
  */
 const style = document.createElement('style');
