@@ -658,8 +658,10 @@ function switchView(v) {
   document.querySelectorAll('.sb-a').forEach(el => el.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
   document.getElementById('tb-title').textContent = v==='dashboard' ? 'Admin Dashboard' : 'All Complaints';
+  localStorage.setItem('hydraa_admin_view', v);
   if (v==='complaints') loadComplaints();
 }
+
 
 // Stat card click — go to complaints with filter pre-applied
 function goToComplaints(status, dateRange) {
@@ -1090,7 +1092,9 @@ async function init() {
       distRes.data.forEach(d => document.getElementById('filterDistrict').innerHTML += `<option value="${d.id}">${d.name}</option>`);
     }
   } catch(e) { console.error(e); }
-  loadDashboard();
+  const saved = localStorage.getItem('hydraa_admin_view');
+  if (saved && document.getElementById('view-'+saved)) switchView(saved);
+  else { switchView('dashboard'); loadDashboard(); }
 }
 
 async function loadComplaints({ silent = false } = {}) {
