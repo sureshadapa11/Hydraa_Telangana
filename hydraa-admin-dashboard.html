@@ -826,6 +826,7 @@ async function loadDashboard() {
               ${c.official_name ? `<button class="act-btn ab-assign" onclick="openReassign(${c.id},'${(c.official_name||'').replace(/'/g,"\\'")}')">🔄 Change</button>` : `<button class="act-btn ab-assign" onclick="openAssign(${c.id})">👷 Assign</button>`}
               <button class="act-btn ab-status" onclick="openStatus(${c.id},'${c.status}')">🔄 Status</button>
               <button class="act-btn" style="background:rgba(139,92,246,0.08);color:#8b5cf6;border-color:rgba(139,92,246,0.2)" onclick="openTimeline('${c.complaint_no}')">📋</button>
+              ${c.latitude && c.longitude ? `<a href="https://www.google.com/maps?q=${c.latitude},${c.longitude}" target="_blank" class="act-btn" style="background:rgba(21,101,192,0.08);color:#1565c0;border-color:rgba(21,101,192,0.25);text-decoration:none;">🗺️</a>` : ''}
             </div></td>
           </tr>`).join('')}
         </tbody>
@@ -1202,6 +1203,7 @@ async function loadComplaints({ silent = false } = {}) {
                   : `<button class="act-btn ab-assign" onclick="openAssign(${c.id})">👷 Assign</button>`}
                 <button class="act-btn ab-status" onclick="openStatus(${c.id},'${c.status}')">🔄 Status</button>
                 <button class="act-btn" style="background:rgba(139,92,246,0.08);color:#8b5cf6;border-color:rgba(139,92,246,0.2)" onclick="openTimeline('${c.complaint_no}')">📋</button>
+                ${c.latitude && c.longitude ? `<a href="https://www.google.com/maps?q=${c.latitude},${c.longitude}" target="_blank" class="act-btn" style="background:rgba(21,101,192,0.08);color:#1565c0;border-color:rgba(21,101,192,0.25);text-decoration:none;">🗺️</a>` : ''}
               </div>
             </td>
           </tr>`).join('')}

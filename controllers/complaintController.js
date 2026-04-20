@@ -18,7 +18,7 @@ const {
 //  LODGE COMPLAINT
 // ────────────────────────────────────────────────────
 const lodgeComplaint = async (req, res) => {
-  const { title, description, category_id, subcategory_id, priority, address, district_id, mandal_id, land_district, land_mandal, land_village, land_address, land_survey_no, khata_no } = req.body;
+  const { title, description, category_id, subcategory_id, priority, address, district_id, mandal_id, land_district, land_mandal, land_village, land_address, land_survey_no, khata_no, latitude, longitude } = req.body;
   const user_id = req.user.id;
 
   const missing = [];
@@ -97,12 +97,14 @@ const lodgeComplaint = async (req, res) => {
         complaint_no, user_id, title, description, category_id, subcategory_id,
         priority, address, district_id, mandal_id, status,
         land_district, land_mandal, land_village, land_address, land_survey_no, khata_no,
+        latitude, longitude,
         is_duplicate, duplicate_of, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
       [complaint_no, user_id, title, description, category_id || null, subcategory_id || null,
        priority || 'medium', address, district_id || null, mandal_id || null, 'open',
        land_district || null, land_mandal || null, land_village || null,
        land_address || null, land_survey_no || null, khata_no || null,
+       latitude || null, longitude || null,
        isDup, dupOf]
     );
 
@@ -219,7 +221,8 @@ const getMyComplaints = async (req, res) => {
         c.official_id, o.full_name as official_name,
         c.official_remarks, c.admin_remarks,
         c.attachment,
-        c.land_district, c.land_mandal, c.land_village, c.land_address, c.land_survey_no, c.khata_no
+        c.land_district, c.land_mandal, c.land_village, c.land_address, c.land_survey_no, c.khata_no,
+        c.latitude, c.longitude
       FROM complaints c
       LEFT JOIN categories cat ON c.category_id = cat.id
       LEFT JOIN subcategories sc ON c.subcategory_id = sc.id
@@ -663,6 +666,7 @@ const getOfficialComplaints = async (req, res) => {
         u.full_name as user_name, u.email as user_email, u.phone as user_phone,
         c.official_remarks, c.internal_notes,
         c.land_district, c.land_mandal, c.land_village, c.land_address, c.land_survey_no, c.khata_no,
+        c.latitude, c.longitude,
         d.name as district_name, m.name as mandal_name
       FROM complaints c
       JOIN users u ON c.user_id = u.id
@@ -812,7 +816,8 @@ const getAllComplaints = async (req, res) => {
         c.admin_remarks, c.official_remarks, c.internal_notes,
         u.full_name AS user_name, u.email AS user_email,
         d.name AS district_name, m.name AS mandal_name,
-        c.land_district, c.land_mandal, c.land_village, c.land_address, c.land_survey_no, c.khata_no
+        c.land_district, c.land_mandal, c.land_village, c.land_address, c.land_survey_no, c.khata_no,
+        c.latitude, c.longitude
       FROM complaints c
       JOIN users u ON c.user_id = u.id
       LEFT JOIN categories cat ON c.category_id = cat.id

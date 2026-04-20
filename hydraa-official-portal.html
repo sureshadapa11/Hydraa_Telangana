@@ -653,6 +653,13 @@
       <div><div class="mh-title">Update Complaint Status</div><div class="mh-sub">Record the action taken in the field</div></div>
     </div>
     <div class="modal-info" id="modalInfo"></div>
+    <div id="modalMapLink" style="display:none;padding:0.5rem 1.5rem;background:rgba(21,101,192,0.06);border-bottom:1px solid var(--border);">
+      <a id="modalMapAnchor" href="#" target="_blank"
+         style="display:inline-flex;align-items:center;gap:0.45rem;font-size:0.82rem;font-weight:700;color:#1565c0;text-decoration:none;">
+        🗺️ Open Site Location in Google Maps ↗
+      </a>
+      <span style="font-size:0.72rem;color:var(--text-3);margin-left:0.6rem;">GPS pin from citizen</span>
+    </div>
     <div class="modal-body">
       <input type="hidden" id="updateId"/>
       <div class="m-field">
@@ -1159,6 +1166,16 @@ function openUpdate(id) {
   document.getElementById('updateNote').value = c.internal_notes || '';
   document.getElementById('updateMsg').className = 'm-msg';
   document.getElementById('modalInfo').innerHTML = `<strong>${c.complaint_no}</strong> — ${c.title}<br><span style="color:var(--text-3);font-size:0.75rem">Citizen: ${c.user_name}${c.user_phone?' · '+c.user_phone:''} · ${c.category_name||'N/A'}</span>`;
+
+  // Google Maps link — show only if GPS coordinates were captured by citizen
+  const mapLink = document.getElementById('modalMapLink');
+  if (c.latitude && c.longitude) {
+    document.getElementById('modalMapAnchor').href =
+      `https://www.google.com/maps?q=${c.latitude},${c.longitude}`;
+    mapLink.style.display = 'block';
+  } else {
+    mapLink.style.display = 'none';
+  }
 
   // Pre-fill land search form from complaint data
   populateLandSearch(c);

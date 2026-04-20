@@ -433,6 +433,8 @@ async function fixComplaintsTable() {
       { name: 'land_address',      def: 'VARCHAR(255) DEFAULT NULL' },
       { name: 'land_survey_no',    def: 'VARCHAR(100) DEFAULT NULL' },
       { name: 'khata_no',          def: 'VARCHAR(100) DEFAULT NULL' },
+      { name: 'latitude',          def: 'DECIMAL(10,7) DEFAULT NULL' },
+      { name: 'longitude',         def: 'DECIMAL(10,7) DEFAULT NULL' },
       { name: 'is_duplicate',      def: 'TINYINT DEFAULT 0' },
       { name: 'duplicate_of',      def: 'INT DEFAULT NULL' },
       { name: 'internal_notes',    def: 'TEXT DEFAULT NULL' },
