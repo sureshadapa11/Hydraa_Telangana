@@ -918,7 +918,14 @@ async function loadReassignmentRequests() {
                 <div style="display:flex;gap:0.4rem;flex-wrap:wrap">
                   <button onclick="handleRR(${r.id},'approve')" style="background:rgba(16,185,129,0.1);color:#065f46;border:1px solid rgba(16,185,129,0.3);border-radius:6px;padding:4px 10px;font-size:0.75rem;font-weight:700;cursor:pointer;">✅ Approve</button>
                   <button onclick="handleRR(${r.id},'reject')" style="background:rgba(239,68,68,0.08);color:#b91c1c;border:1px solid rgba(239,68,68,0.25);border-radius:6px;padding:4px 10px;font-size:0.75rem;font-weight:700;cursor:pointer;">✗ Reject</button>
-                </div>` : '—'}
+                </div>`
+              : r.status === 'approved' ? `
+                <div class="act-wrap">
+                  <button class="act-btn ab-assign" onclick="openAssign(${r.complaint_id})">👷 Assign</button>
+                  <button class="act-btn ab-status" onclick="openStatus(${r.complaint_id},'open')">🔄 Status</button>
+                  <button class="act-btn" style="background:rgba(139,92,246,0.08);color:#8b5cf6;border:1px solid rgba(139,92,246,0.2)" onclick="openTimeline('${r.complaint_no}')">📋 Timeline</button>
+                </div>`
+              : '—'}
             </td>
           </tr>`;
         }).join('')}
