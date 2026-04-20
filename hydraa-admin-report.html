@@ -189,7 +189,7 @@
   </div>
 </div>
 
-<script>window.HYDRAA_TOKEN_KEY="hydraa_admin_token";window.HYDRAA_USER_KEY="hydraa_admin_user";</script><script src="http-client.js"></script>
+<script>window.HYDRAA_TOKEN_KEY="hydraa_admin_token";window.HYDRAA_USER_KEY="hydraa_admin_user";</script><script src="http-client.js"></script><script>Auth.requireLogin('admin');</script>
 <script src="app.js"></script>
 <script>
   const user = Auth.getUser();

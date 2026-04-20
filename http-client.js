@@ -167,15 +167,21 @@ const Auth = {
 
   requireLogin(role) {
     if (!http.getToken()) {
-      window.location.href = role === 'admin' ? '/hydraa-admin-login.html' : '/hydraa-login.html';
+      if (role === 'admin')    window.location.href = '/hydraa-admin-login.html';
+      else if (role === 'official') window.location.href = '/hydraa-official-portal.html';
+      else                     window.location.href = '/hydraa-login.html';
     }
   },
 
   logout() {
+    // Read role BEFORE clearing storage so redirect goes to the right login page
+    const storedUser = JSON.parse(localStorage.getItem(_USER_KEY) || 'null');
+    const role = storedUser?.role;
     localStorage.removeItem(_USER_KEY);
     http.clearToken();
-    const isAdmin = window.location.pathname.includes('admin');
-    window.location.href = isAdmin ? '/hydraa-admin-login.html' : '/hydraa-login.html';
+    if (role === 'admin')          window.location.href = '/hydraa-admin-login.html';
+    else if (role === 'official')  window.location.href = '/hydraa-official-portal.html';
+    else                           window.location.href = '/hydraa-login.html';
   },
 
   // Poll the server every intervalMs to detect if this account has been deleted/deactivated.
