@@ -706,7 +706,43 @@
 
           </div>
 
-          <!-- Section 5: Attachment -->
+          <!-- Section 5: Accused Person (Optional) -->
+          <div class="f-section" id="accusedSection">
+            <div class="f-section-title" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="toggleAccusedForm()">
+              <span>👤 Accused Person Details <span style="font-size:0.72rem;font-weight:400;color:var(--text-3)">(Optional — if you know who is responsible)</span></span>
+              <span id="accusedToggleIcon" style="font-size:0.8rem;color:var(--teal)">▼ Add</span>
+            </div>
+            <div id="accusedFormInner" style="display:none;margin-top:0.8rem;">
+              <div class="f-row">
+                <div class="f-group">
+                  <label class="f-label">Full Name of Accused</label>
+                  <input type="text" id="acc_name" class="f-input" placeholder="e.g. Raju Kumar"/>
+                </div>
+                <div class="f-group">
+                  <label class="f-label">Phone Number</label>
+                  <input type="tel" id="acc_phone" class="f-input" placeholder="e.g. 9876543210"/>
+                </div>
+              </div>
+              <div class="f-group">
+                <label class="f-label">Address of Accused</label>
+                <input type="text" id="acc_address" class="f-input" placeholder="House / Street / Village / Town"/>
+              </div>
+              <div class="f-group">
+                <label class="f-label">Relation / Connection to this complaint</label>
+                <select id="acc_relation" class="f-input">
+                  <option value="">— Select Relation —</option>
+                  <option value="Neighbour">Neighbour</option>
+                  <option value="Builder">Builder / Contractor</option>
+                  <option value="Land Grabber">Land Grabber / Encroacher</option>
+                  <option value="Property Owner">Property Owner</option>
+                  <option value="Government Official">Government Official</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 6: Attachment -->
           <div class="f-section" style="margin-bottom:0">
             <div class="f-section-title">📎 Supporting Evidence</div>
             <div class="f-group" style="margin-bottom:0">
@@ -891,6 +927,16 @@
     document.querySelectorAll('.pp').forEach(p => p.classList.remove('selected'));
     document.querySelector('.pp[data-val="medium"]').classList.add('selected');
     document.getElementById('priority').value = 'medium';
+    document.getElementById('accusedFormInner').style.display = 'none';
+    document.getElementById('accusedToggleIcon').textContent = '▼ Add';
+  }
+
+  function toggleAccusedForm() {
+    const inner = document.getElementById('accusedFormInner');
+    const icon  = document.getElementById('accusedToggleIcon');
+    const open  = inner.style.display !== 'none';
+    inner.style.display = open ? 'none' : 'block';
+    icon.textContent = open ? '▼ Add' : '▲ Hide';
   }
 
   // Submit
@@ -929,6 +975,21 @@
         _forceSubmit = false;
         closeDupModal();
         const complaintNo = (res.data && res.data.complaint_no) || res.complaint_no || '';
+        const complaintId = res.data && res.data.complaint_id;
+
+        // Save accused person if citizen provided one
+        const accName = document.getElementById('acc_name').value.trim();
+        if (accName && complaintId) {
+          try {
+            await http.post(`/api/casefile/complaints/${complaintId}/accused`, {
+              name:     accName,
+              phone:    document.getElementById('acc_phone').value.trim() || null,
+              address:  document.getElementById('acc_address').value.trim() || null,
+              relation: document.getElementById('acc_relation').value || null,
+            });
+          } catch(e) { /* non-fatal */ }
+        }
+
         showAlert('alertBox', 'success', `✅ Complaint submitted successfully! Complaint No: ${complaintNo}`);
         document.getElementById('complaintForm').reset();
         setTimeout(() => window.location.href = '/hydraa-my-complaints.html', 3000);

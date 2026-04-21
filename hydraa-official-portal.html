@@ -1079,7 +1079,7 @@ function updateDashboard() {
          <td>${pb(x.priority)}</td>
          <td>${sb(x.status)}</td>
          <td style="white-space:nowrap">${formatDate(x.created_at)}</td>
-         <td style="white-space:nowrap;display:flex;gap:0.3rem;align-items:center">${(x.status!=='resolved'&&x.status!=='closed') ? `<button class="upd-btn" onclick="openUpdate(${x.id})">✏️ Update</button>` : '<span class="done-tag">✅ Done</span>'}<button class="upd-btn" style="background:rgba(139,92,246,0.1);color:#8b5cf6;border-color:rgba(139,92,246,0.2)" onclick="openTimeline('${x.complaint_no}')">📋</button></td>
+         <td style="white-space:nowrap;display:flex;gap:0.3rem;align-items:center">${(x.status!=='resolved'&&x.status!=='closed') ? `<button class="upd-btn" onclick="openUpdate(${x.id})">✏️ Update</button>` : '<span class="done-tag">✅ Done</span>'}<button class="upd-btn" style="background:rgba(139,92,246,0.1);color:#8b5cf6;border-color:rgba(139,92,246,0.2)" onclick="openTimeline('${x.complaint_no}')">📋</button><button class="upd-btn" style="background:rgba(0,151,167,0.1);color:#006978;border-color:rgba(0,151,167,0.25)" onclick="openCaseFile(${x.id},'${(x.complaint_no||'').replace(/'/g,'')}')">🗂 Case File</button></td>
        </tr>`).join('')}
        </tbody></table></div>`;
 }
@@ -1149,7 +1149,7 @@ function filterComplaints() {
          <td>${pb(c.priority)}</td>
          <td>${sb(c.status)}</td>
          <td style="white-space:nowrap">${formatDate(c.created_at)}</td>
-         <td style="white-space:nowrap;display:flex;gap:0.3rem;align-items:center">${(c.status!=='resolved'&&c.status!=='closed') ? `<button class="upd-btn" onclick="openUpdate(${c.id})">✏️ Update</button>` : '<span class="done-tag">✅ Done</span>'}<button class="upd-btn" style="background:rgba(139,92,246,0.1);color:#8b5cf6;border-color:rgba(139,92,246,0.2)" onclick="openTimeline('${c.complaint_no}')">📋</button></td>
+         <td style="white-space:nowrap;display:flex;gap:0.3rem;align-items:center">${(c.status!=='resolved'&&c.status!=='closed') ? `<button class="upd-btn" onclick="openUpdate(${c.id})">✏️ Update</button>` : '<span class="done-tag">✅ Done</span>'}<button class="upd-btn" style="background:rgba(139,92,246,0.1);color:#8b5cf6;border-color:rgba(139,92,246,0.2)" onclick="openTimeline('${c.complaint_no}')">📋</button><button class="upd-btn" style="background:rgba(0,151,167,0.1);color:#006978;border-color:rgba(0,151,167,0.25)" onclick="openCaseFile(${c.id},'${(c.complaint_no||'').replace(/'/g,'')}')">🗂 Case File</button></td>
        </tr>`).join('')}
        </tbody></table></div>`;
   updateDailySummary();
@@ -1628,5 +1628,567 @@ document.addEventListener('DOMContentLoaded',function(){
 </script>
 <!-- Hidden container used only during print -->
 <div id="landPrintArea" style="display:none"></div>
+
+<!-- ═══════════════ CASE FILE MODAL ═══════════════ -->
+<div id="caseFileModal" class="modal">
+  <div class="modal-box" style="max-width:780px;max-height:92vh">
+    <div class="modal-hdr" style="background:linear-gradient(135deg,#0b2040,#006978);border-radius:var(--radius) var(--radius) 0 0">
+      <div class="mh-icon" style="background:rgba(0,188,212,0.2)">🗂</div>
+      <div>
+        <div class="mh-title" style="color:#fff">Case File</div>
+        <div class="mh-sub" style="color:rgba(0,188,212,0.8)" id="cfComplaintNo">—</div>
+      </div>
+      <button onclick="closeCaseFile()" style="margin-left:auto;background:rgba(255,255,255,0.12);border:none;color:#fff;border-radius:8px;padding:0.4rem 0.9rem;cursor:pointer;font-size:0.82rem;font-family:inherit;font-weight:600">✕ Close</button>
+    </div>
+
+    <!-- Case File Tabs -->
+    <div style="display:flex;gap:0;border-bottom:1px solid var(--border);background:#f8fcfd;">
+      <button class="cf-tab active" id="cft-visit" onclick="switchCfTab('visit')">🏕 Site Visit</button>
+      <button class="cf-tab" id="cft-accused" onclick="switchCfTab('accused')">👤 Accused</button>
+      <button class="cf-tab" id="cft-docs" onclick="switchCfTab('docs')">📁 Documents</button>
+      <button class="cf-tab" id="cft-notes" onclick="switchCfTab('notes')">💬 Notes</button>
+      <button class="cf-tab" id="cft-pdf" onclick="switchCfTab('pdf')">📄 Petition/Notice</button>
+    </div>
+
+    <div class="modal-body" style="max-height:calc(92vh - 170px);overflow-y:auto;padding:1.2rem 1.5rem">
+
+      <!-- ── SITE VISIT TAB ── -->
+      <div id="cfv-visit">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:0.8rem">📋 Site Visit Report</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem">
+          <div>
+            <label style="font-size:0.73rem;font-weight:700;color:var(--text);display:block;margin-bottom:0.3rem">Visit Date <span style="color:#e53935">*</span></label>
+            <input type="date" id="sv_date" class="m-select" style="width:100%"/>
+          </div>
+          <div>
+            <label style="font-size:0.73rem;font-weight:700;color:var(--text);display:block;margin-bottom:0.3rem">Visit Time</label>
+            <input type="time" id="sv_time" class="m-select" style="width:100%"/>
+          </div>
+          <div>
+            <label style="font-size:0.73rem;font-weight:700;color:var(--text);display:block;margin-bottom:0.3rem">Encroachment Area</label>
+            <input type="text" id="sv_area" class="m-select" style="width:100%" placeholder="e.g. 200 sq yards"/>
+          </div>
+          <div>
+            <label style="font-size:0.73rem;font-weight:700;color:var(--text);display:block;margin-bottom:0.3rem">Construction Type</label>
+            <input type="text" id="sv_construction" class="m-select" style="width:100%" placeholder="e.g. Concrete compound wall"/>
+          </div>
+          <div style="grid-column:1/-1">
+            <label style="font-size:0.73rem;font-weight:700;color:var(--text);display:block;margin-bottom:0.3rem">Current Status of Land/Property</label>
+            <input type="text" id="sv_status" class="m-select" style="width:100%" placeholder="e.g. Under active construction, Fenced off..."/>
+          </div>
+          <div style="grid-column:1/-1">
+            <label style="font-size:0.73rem;font-weight:700;color:var(--text);display:block;margin-bottom:0.3rem">Detailed Findings</label>
+            <textarea id="sv_findings" class="m-textarea" rows="4" placeholder="Describe what you observed on site: extent of encroachment, type of activity, number of persons present, evidence collected..."></textarea>
+          </div>
+        </div>
+        <div id="svMsg" style="font-size:0.8rem;margin-top:0.6rem"></div>
+        <button onclick="saveSiteVisit()" style="margin-top:0.8rem;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">💾 Save Site Visit Report</button>
+      </div>
+
+      <!-- ── ACCUSED TAB ── -->
+      <div id="cfv-accused" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem">
+          <div style="font-size:0.82rem;font-weight:700;color:var(--navy)">👤 Accused Person(s)</div>
+          <button onclick="showAddAccusedForm()" style="background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:8px;padding:0.45rem 1rem;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit">+ Add Accused</button>
+        </div>
+        <div id="accusedFormBox" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem">
+          <input type="hidden" id="acc_edit_id"/>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem">
+            <div>
+              <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Full Name <span style="color:#e53935">*</span></label>
+              <input type="text" id="cf_acc_name" class="m-select" style="width:100%" placeholder="Accused person's full name"/>
+            </div>
+            <div>
+              <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Phone</label>
+              <input type="tel" id="cf_acc_phone" class="m-select" style="width:100%" placeholder="Mobile number"/>
+            </div>
+            <div>
+              <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Email</label>
+              <input type="email" id="cf_acc_email" class="m-select" style="width:100%" placeholder="Email address"/>
+            </div>
+            <div>
+              <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Relation</label>
+              <select id="cf_acc_relation" class="m-select" style="width:100%">
+                <option value="">— Select —</option>
+                <option>Neighbour</option>
+                <option>Builder / Contractor</option>
+                <option>Land Grabber / Encroacher</option>
+                <option>Property Owner</option>
+                <option>Government Official</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Occupation</label>
+              <input type="text" id="cf_acc_occupation" class="m-select" style="width:100%" placeholder="e.g. Builder, Farmer"/>
+            </div>
+            <div>
+              <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Aadhaar / ID No.</label>
+              <input type="text" id="cf_acc_aadhaar" class="m-select" style="width:100%" placeholder="Optional"/>
+            </div>
+            <div style="grid-column:1/-1">
+              <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Address</label>
+              <input type="text" id="cf_acc_address" class="m-select" style="width:100%" placeholder="Full residential / business address"/>
+            </div>
+          </div>
+          <div style="display:flex;gap:0.6rem;margin-top:0.8rem">
+            <button onclick="saveAccused()" style="background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:8px;padding:0.55rem 1.2rem;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit">💾 Save</button>
+            <button onclick="cancelAccusedForm()" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:0.55rem 1rem;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text-2)">Cancel</button>
+          </div>
+          <div id="accMsg" style="font-size:0.8rem;margin-top:0.5rem"></div>
+        </div>
+        <div id="accusedList"></div>
+      </div>
+
+      <!-- ── DOCUMENTS TAB ── -->
+      <div id="cfv-docs" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem">
+          <div style="font-size:0.82rem;font-weight:700;color:var(--navy)">📁 Document Vault</div>
+          <span style="font-size:0.72rem;color:var(--text-3)">Max 25 files per complaint</span>
+        </div>
+        <div style="border:2px dashed var(--border);border-radius:10px;padding:1rem;background:var(--bg);margin-bottom:1rem">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;margin-bottom:0.7rem">
+            <div>
+              <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Document Type</label>
+              <select id="doc_type" class="m-select" style="width:100%">
+                <option value="Survey Map">Survey Map</option>
+                <option value="Ownership Proof">Ownership Proof</option>
+                <option value="Encroachment Photo">Encroachment Photo</option>
+                <option value="Site Visit Photo">Site Visit Photo</option>
+                <option value="Legal Document">Legal Document</option>
+                <option value="Notice Copy">Notice Copy</option>
+                <option value="Other" selected>Other</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Caption / Description</label>
+              <input type="text" id="doc_caption" class="m-select" style="width:100%" placeholder="Brief description (optional)"/>
+            </div>
+          </div>
+          <input type="file" id="docFileInput" accept="image/*,.pdf,.doc,.docx" style="display:none" onchange="handleDocFile(event)"/>
+          <button onclick="document.getElementById('docFileInput').click()" style="width:100%;padding:0.6rem;background:none;border:none;color:var(--teal);font-size:0.83rem;font-weight:700;cursor:pointer;font-family:inherit">📂 Click to select a file (Image / PDF)</button>
+          <div id="docFilePreview" style="font-size:0.8rem;color:var(--text-2);margin-top:0.4rem;text-align:center"></div>
+          <div id="docMsg" style="font-size:0.8rem;margin-top:0.4rem"></div>
+        </div>
+        <div id="documentList"></div>
+      </div>
+
+      <!-- ── NOTES TAB ── -->
+      <div id="cfv-notes" style="display:none">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:0.8rem">💬 Internal Notes — Official ↔ Admin</div>
+        <div id="notesList" style="display:flex;flex-direction:column;gap:0.6rem;margin-bottom:1rem;max-height:300px;overflow-y:auto"></div>
+        <div style="display:flex;gap:0.5rem">
+          <textarea id="noteInput" class="m-textarea" rows="2" placeholder="Write a note to admin or record an internal update..." style="flex:1;min-height:54px;resize:vertical"></textarea>
+          <button onclick="addCaseNote()" style="background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:8px;padding:0.5rem 1rem;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;align-self:flex-end">Send</button>
+        </div>
+      </div>
+
+      <!-- ── PDF TAB ── -->
+      <div id="cfv-pdf" style="display:none">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:1rem">📄 Generate & Send Documents</div>
+
+        <!-- Petition Card -->
+        <div style="border:1.5px solid rgba(0,151,167,0.3);border-radius:10px;padding:1.2rem;margin-bottom:1rem;background:rgba(0,151,167,0.03)">
+          <div style="font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:0.8rem">📨 Petition — Request for Action</div>
+          <div style="font-size:0.78rem;color:var(--text-2);margin-bottom:0.8rem">Send to: Police Station / Revenue Department / Collector</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;margin-bottom:0.7rem">
+            <div>
+              <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Send to Police Station</label>
+              <select id="pet_station" class="m-select" style="width:100%">
+                <option value="">— Select Station (optional) —</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Or: Custom Recipient Name</label>
+              <input type="text" id="pet_to_name" class="m-select" style="width:100%" placeholder="e.g. The District Collector"/>
+            </div>
+            <div style="grid-column:1/-1">
+              <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Recipient Address</label>
+              <input type="text" id="pet_to_address" class="m-select" style="width:100%" placeholder="Full address of the recipient"/>
+            </div>
+            <div style="grid-column:1/-1">
+              <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Action Requested (optional — leave blank for default text)</label>
+              <textarea id="pet_action" class="m-textarea" rows="2" placeholder="Specific action you are requesting..."></textarea>
+            </div>
+          </div>
+          <button onclick="generatePetition()" style="background:linear-gradient(135deg,#0b2040,#006978);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">⬇ Download Petition PDF</button>
+          <div id="petMsg" style="font-size:0.8rem;margin-top:0.5rem"></div>
+        </div>
+
+        <!-- Notice Card -->
+        <div style="border:1.5px solid rgba(239,68,68,0.3);border-radius:10px;padding:1.2rem;background:rgba(239,68,68,0.02)">
+          <div style="font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:0.8rem">⚠️ Show Cause Notice — To Accused</div>
+          <div style="font-size:0.78rem;color:var(--text-2);margin-bottom:0.8rem">Formal notice sent to the accused person to show cause or respond.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;margin-bottom:0.7rem">
+            <div>
+              <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Accused Person</label>
+              <select id="ntc_accused" class="m-select" style="width:100%">
+                <option value="">— First accused (default) —</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Response Deadline (days)</label>
+              <input type="number" id="ntc_days" class="m-select" style="width:100%" value="15" min="7" max="60"/>
+            </div>
+          </div>
+          <button onclick="generateNotice()" style="background:linear-gradient(135deg,#b91c1c,#ef4444);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">⬇ Download Show Cause Notice</button>
+          <div id="ntcMsg" style="font-size:0.8rem;margin-top:0.5rem"></div>
+        </div>
+
+        <!-- History -->
+        <div style="margin-top:1rem">
+          <div style="font-size:0.78rem;font-weight:700;color:var(--text-2);margin-bottom:0.5rem">📋 Generated Documents History</div>
+          <div id="petitionHistory" style="font-size:0.78rem;color:var(--text-2)">Loading...</div>
+        </div>
+      </div>
+
+    </div><!-- /modal-body -->
+  </div>
+</div>
+
+<style>
+  .cf-tab{padding:0.6rem 1.1rem;border:none;background:transparent;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;color:var(--text-2);border-bottom:2px solid transparent;transition:all 0.18s;}
+  .cf-tab.active{color:var(--teal);border-bottom-color:var(--teal);background:rgba(0,151,167,0.05);}
+  .cf-tab:hover:not(.active){color:var(--navy);}
+</style>
+
+<script>
+let _cfComplaintId = null;
+let _cfAccusedList = [];
+let _docFileData = null;
+let _docFileName = null;
+let _docFileMime = null;
+
+function closeCaseFile() {
+  document.getElementById('caseFileModal').classList.remove('open');
+  _cfComplaintId = null;
+}
+
+async function openCaseFile(id, complaint_no) {
+  _cfComplaintId = id;
+  document.getElementById('cfComplaintNo').textContent = complaint_no;
+  document.getElementById('caseFileModal').classList.add('open');
+  switchCfTab('visit');
+  loadPoliceStationsForPdf();
+}
+
+function switchCfTab(tab) {
+  ['visit','accused','docs','notes','pdf'].forEach(t => {
+    document.getElementById('cfv-'+t).style.display = t === tab ? 'block' : 'none';
+    document.getElementById('cft-'+t).classList.toggle('active', t === tab);
+  });
+  if (tab === 'visit')   loadSiteVisit();
+  if (tab === 'accused') loadAccused();
+  if (tab === 'docs')    loadDocuments();
+  if (tab === 'notes')   loadNotes();
+  if (tab === 'pdf')     { loadAccusedForNotice(); loadPetitionHistory(); }
+}
+
+// ── SITE VISIT ──
+async function loadSiteVisit() {
+  try {
+    const res = await http.get(`/api/casefile/complaints/${_cfComplaintId}/site-visit`);
+    if (res.data) {
+      const r = res.data;
+      document.getElementById('sv_date').value = r.visit_date ? r.visit_date.slice(0,10) : '';
+      document.getElementById('sv_time').value = r.visit_time || '';
+      document.getElementById('sv_area').value = r.encroachment_area || '';
+      document.getElementById('sv_construction').value = r.construction_type || '';
+      document.getElementById('sv_status').value = r.current_status || '';
+      document.getElementById('sv_findings').value = r.findings || '';
+    }
+  } catch(e) {}
+}
+
+async function saveSiteVisit() {
+  const d = document.getElementById('sv_date').value;
+  if (!d) { document.getElementById('svMsg').textContent = 'Visit date is required.'; document.getElementById('svMsg').style.color='#e53935'; return; }
+  try {
+    const res = await http.post(`/api/casefile/complaints/${_cfComplaintId}/site-visit`, {
+      visit_date: d,
+      visit_time: document.getElementById('sv_time').value || null,
+      encroachment_area: document.getElementById('sv_area').value.trim() || null,
+      construction_type: document.getElementById('sv_construction').value.trim() || null,
+      current_status: document.getElementById('sv_status').value.trim() || null,
+      findings: document.getElementById('sv_findings').value.trim() || null,
+    });
+    const msg = document.getElementById('svMsg');
+    msg.textContent = res.success ? '✅ Site visit report saved.' : (res.message || 'Error saving.');
+    msg.style.color = res.success ? '#065f46' : '#e53935';
+  } catch(e) { document.getElementById('svMsg').textContent = 'Error: ' + e.message; document.getElementById('svMsg').style.color='#e53935'; }
+}
+
+// ── ACCUSED ──
+async function loadAccused() {
+  try {
+    const res = await http.get(`/api/casefile/complaints/${_cfComplaintId}/accused`);
+    _cfAccusedList = res.data || [];
+    renderAccusedList();
+  } catch(e) {}
+}
+
+function renderAccusedList() {
+  const el = document.getElementById('accusedList');
+  if (_cfAccusedList.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:0.83rem">No accused persons recorded yet.</div>';
+    return;
+  }
+  el.innerHTML = _cfAccusedList.map((a,i) => `
+    <div style="border:1px solid var(--border);border-radius:10px;padding:0.9rem 1rem;margin-bottom:0.6rem;background:#fff">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.5rem">
+        <div>
+          <div style="font-weight:700;font-size:0.9rem;color:var(--navy)">${i+1}. ${a.name}</div>
+          <div style="font-size:0.78rem;color:var(--text-2);margin-top:3px">
+            ${a.phone?'📞 '+a.phone+' ':''}${a.relation?'· '+a.relation+' ':''}${a.occupation?'· '+a.occupation:''}
+          </div>
+          ${a.address?`<div style="font-size:0.75rem;color:var(--text-3);margin-top:2px">📍 ${a.address}</div>`:''}
+          <div style="font-size:0.68rem;color:var(--text-3);margin-top:3px">Added by: ${a.added_by}</div>
+        </div>
+        <div style="display:flex;gap:0.4rem;flex-shrink:0">
+          <button onclick="editAccused(${JSON.stringify(a).replace(/"/g,'&quot;')})" style="padding:4px 10px;border-radius:6px;border:1px solid rgba(59,130,246,0.3);background:rgba(59,130,246,0.08);color:#1d4ed8;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit">✏️ Edit</button>
+          <button onclick="deleteAccused(${a.id})" style="padding:4px 10px;border-radius:6px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#b91c1c;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit">🗑</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function showAddAccusedForm() {
+  document.getElementById('accusedFormBox').style.display = 'block';
+  document.getElementById('acc_edit_id').value = '';
+  ['cf_acc_name','cf_acc_phone','cf_acc_email','cf_acc_relation','cf_acc_occupation','cf_acc_aadhaar','cf_acc_address'].forEach(id => document.getElementById(id).value = '');
+}
+
+function cancelAccusedForm() {
+  document.getElementById('accusedFormBox').style.display = 'none';
+}
+
+function editAccused(a) {
+  document.getElementById('accusedFormBox').style.display = 'block';
+  document.getElementById('acc_edit_id').value = a.id;
+  document.getElementById('cf_acc_name').value = a.name || '';
+  document.getElementById('cf_acc_phone').value = a.phone || '';
+  document.getElementById('cf_acc_email').value = a.email || '';
+  document.getElementById('cf_acc_relation').value = a.relation || '';
+  document.getElementById('cf_acc_occupation').value = a.occupation || '';
+  document.getElementById('cf_acc_aadhaar').value = a.aadhaar_no || '';
+  document.getElementById('cf_acc_address').value = a.address || '';
+}
+
+async function saveAccused() {
+  const name = document.getElementById('cf_acc_name').value.trim();
+  const editId = document.getElementById('acc_edit_id').value;
+  if (!name) { document.getElementById('accMsg').textContent = 'Name is required.'; document.getElementById('accMsg').style.color='#e53935'; return; }
+  const payload = {
+    name,
+    phone:      document.getElementById('cf_acc_phone').value.trim() || null,
+    email:      document.getElementById('cf_acc_email').value.trim() || null,
+    relation:   document.getElementById('cf_acc_relation').value || null,
+    occupation: document.getElementById('cf_acc_occupation').value.trim() || null,
+    aadhaar_no: document.getElementById('cf_acc_aadhaar').value.trim() || null,
+    address:    document.getElementById('cf_acc_address').value.trim() || null,
+  };
+  try {
+    const res = editId
+      ? await http.put(`/api/casefile/accused/${editId}`, payload)
+      : await http.post(`/api/casefile/complaints/${_cfComplaintId}/accused`, payload);
+    if (res.success) { cancelAccusedForm(); loadAccused(); }
+    else { document.getElementById('accMsg').textContent = res.message; document.getElementById('accMsg').style.color='#e53935'; }
+  } catch(e) { document.getElementById('accMsg').textContent = e.message; document.getElementById('accMsg').style.color='#e53935'; }
+}
+
+async function deleteAccused(id) {
+  if (!confirm('Remove this accused person?')) return;
+  await http.delete(`/api/casefile/accused/${id}`);
+  loadAccused();
+}
+
+// ── DOCUMENTS ──
+function handleDocFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  _docFileName = file.name;
+  _docFileMime = file.type;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    _docFileData = e.target.result.split(',')[1]; // base64
+    document.getElementById('docFilePreview').textContent = '📎 ' + file.name + ' (' + (file.size/1024).toFixed(1) + ' KB)';
+  };
+  reader.readAsDataURL(file);
+  // Upload immediately on file select
+  setTimeout(uploadDocument, 300);
+}
+
+async function uploadDocument() {
+  if (!_docFileData || !_docFileName) { document.getElementById('docMsg').textContent = 'Please select a file first.'; return; }
+  document.getElementById('docMsg').textContent = 'Uploading...';
+  document.getElementById('docMsg').style.color = 'var(--teal)';
+  try {
+    const res = await http.post(`/api/casefile/complaints/${_cfComplaintId}/documents`, {
+      doc_type:  document.getElementById('doc_type').value,
+      file_name: _docFileName,
+      file_data: _docFileData,
+      file_mime: _docFileMime,
+      caption:   document.getElementById('doc_caption').value.trim() || null,
+    });
+    if (res.success) {
+      document.getElementById('docMsg').textContent = '✅ Document uploaded.';
+      document.getElementById('docMsg').style.color = '#065f46';
+      document.getElementById('docFilePreview').textContent = '';
+      document.getElementById('doc_caption').value = '';
+      document.getElementById('docFileInput').value = '';
+      _docFileData = null; _docFileName = null; _docFileMime = null;
+      loadDocuments();
+    } else {
+      document.getElementById('docMsg').textContent = res.message || 'Upload failed.';
+      document.getElementById('docMsg').style.color = '#e53935';
+    }
+  } catch(e) { document.getElementById('docMsg').textContent = 'Error: ' + e.message; document.getElementById('docMsg').style.color='#e53935'; }
+}
+
+async function loadDocuments() {
+  try {
+    const res = await http.get(`/api/casefile/complaints/${_cfComplaintId}/documents`);
+    const docs = res.data || [];
+    const el = document.getElementById('documentList');
+    if (docs.length === 0) { el.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--text-3);font-size:0.83rem">No documents uploaded yet.</div>'; return; }
+    el.innerHTML = docs.map(d => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0.8rem;border:1px solid var(--border);border-radius:8px;margin-bottom:0.4rem;background:#fff;font-size:0.8rem">
+        <div>
+          <span style="background:rgba(0,151,167,0.1);color:#006978;border-radius:5px;padding:2px 8px;font-size:0.68rem;font-weight:700;margin-right:0.5rem">${d.doc_type}</span>
+          <strong>${d.file_name}</strong>${d.caption?' — '+d.caption:''}
+          <span style="color:var(--text-3);margin-left:0.5rem;font-size:0.72rem">by ${d.uploaded_by_role}</span>
+        </div>
+        <div style="display:flex;gap:0.4rem">
+          <a href="/api/casefile/documents/${d.id}/file" target="_blank" style="padding:4px 10px;border-radius:6px;border:1px solid rgba(59,130,246,0.3);background:rgba(59,130,246,0.08);color:#1d4ed8;font-size:0.72rem;font-weight:700;text-decoration:none">👁 View</a>
+          <button onclick="deleteDocument(${d.id})" style="padding:4px 10px;border-radius:6px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#b91c1c;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit">🗑</button>
+        </div>
+      </div>`).join('');
+  } catch(e) {}
+}
+
+async function deleteDocument(id) {
+  if (!confirm('Delete this document?')) return;
+  await http.delete(`/api/casefile/documents/${id}`);
+  loadDocuments();
+}
+
+// ── NOTES ──
+async function loadNotes() {
+  try {
+    const res = await http.get(`/api/casefile/complaints/${_cfComplaintId}/case-notes`);
+    const notes = res.data || [];
+    const el = document.getElementById('notesList');
+    if (notes.length === 0) { el.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--text-3);font-size:0.83rem">No notes yet. Start the conversation with admin.</div>'; return; }
+    el.innerHTML = notes.map(n => {
+      const isMe = n.author_role === 'official';
+      return `<div style="display:flex;flex-direction:column;${isMe?'align-items:flex-end':'align-items:flex-start'}">
+        <div style="max-width:80%;background:${isMe?'linear-gradient(135deg,var(--teal),#00bcd4)':'#f1f5f9'};color:${isMe?'#fff':'var(--text)'};border-radius:${isMe?'12px 12px 2px 12px':'12px 12px 12px 2px'};padding:0.6rem 0.9rem;font-size:0.83rem">
+          ${n.message}
+        </div>
+        <div style="font-size:0.65rem;color:var(--text-3);margin-top:3px">${n.author_name} (${n.author_role}) · ${new Date(n.created_at).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+      </div>`;
+    }).join('');
+    el.scrollTop = el.scrollHeight;
+  } catch(e) {}
+}
+
+async function addCaseNote() {
+  const msg = document.getElementById('noteInput').value.trim();
+  if (!msg) return;
+  try {
+    await http.post(`/api/casefile/complaints/${_cfComplaintId}/case-notes`, { message: msg });
+    document.getElementById('noteInput').value = '';
+    loadNotes();
+  } catch(e) {}
+}
+
+// ── PDF ──
+async function loadPoliceStationsForPdf() {
+  try {
+    const res = await http.get('/api/casefile/police-stations');
+    const stations = res.data || [];
+    const sel = document.getElementById('pet_station');
+    sel.innerHTML = '<option value="">— Select Station (optional) —</option>' + stations.map(s => `<option value="${s.id}">${s.name}${s.district_name?' ('+s.district_name+')':''}</option>`).join('');
+  } catch(e) {}
+}
+
+async function loadAccusedForNotice() {
+  try {
+    const res = await http.get(`/api/casefile/complaints/${_cfComplaintId}/accused`);
+    _cfAccusedList = res.data || [];
+    const sel = document.getElementById('ntc_accused');
+    sel.innerHTML = '<option value="">— First accused (default) —</option>' + _cfAccusedList.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+  } catch(e) {}
+}
+
+async function loadPetitionHistory() {
+  try {
+    const res = await http.get(`/api/casefile/complaints/${_cfComplaintId}/petitions`);
+    const rows = res.data || [];
+    const el = document.getElementById('petitionHistory');
+    if (rows.length === 0) { el.textContent = 'No documents generated yet.'; return; }
+    el.innerHTML = rows.map(r => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0.45rem 0.7rem;border:1px solid var(--border);border-radius:7px;margin-bottom:0.35rem;background:#fff">
+        <div>
+          <span style="font-size:0.7rem;font-weight:700;background:${r.doc_type==='petition'?'rgba(0,151,167,0.12)':'rgba(239,68,68,0.12)'};color:${r.doc_type==='petition'?'#006978':'#b91c1c'};border-radius:5px;padding:2px 8px;margin-right:0.5rem">${r.doc_type.toUpperCase()}</span>
+          To: ${r.sent_to_name||'—'} · ${new Date(r.created_at).toLocaleDateString('en-IN')} · <span style="color:${r.send_status==='sent'?'#065f46':'var(--text-3)'}">${r.send_status}</span>
+        </div>
+      </div>`).join('');
+  } catch(e) {}
+}
+
+async function generatePetition() {
+  const msg = document.getElementById('petMsg');
+  msg.textContent = 'Generating petition PDF...'; msg.style.color = 'var(--teal)';
+  try {
+    const stationId = document.getElementById('pet_station').value;
+    const payload = {
+      police_station_id: stationId || null,
+      to_name:          document.getElementById('pet_to_name').value.trim() || null,
+      to_address:       document.getElementById('pet_to_address').value.trim() || null,
+      action_requested: document.getElementById('pet_action').value.trim() || null,
+    };
+    const token = localStorage.getItem('hydraa_official_token');
+    const resp = await fetch(`/api/casefile/complaints/${_cfComplaintId}/generate-petition`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok) { msg.textContent = 'Failed to generate PDF.'; msg.style.color='#e53935'; return; }
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `Petition_${_cfComplaintId}.pdf`; a.click();
+    URL.revokeObjectURL(url);
+    msg.textContent = '✅ Petition PDF downloaded.'; msg.style.color='#065f46';
+    loadPetitionHistory();
+  } catch(e) { msg.textContent = 'Error: ' + e.message; msg.style.color='#e53935'; }
+}
+
+async function generateNotice() {
+  const msg = document.getElementById('ntcMsg');
+  msg.textContent = 'Generating notice PDF...'; msg.style.color = 'var(--teal)';
+  try {
+    const payload = {
+      accused_id:    document.getElementById('ntc_accused').value || null,
+      response_days: document.getElementById('ntc_days').value || 15,
+    };
+    const token = localStorage.getItem('hydraa_official_token');
+    const resp = await fetch(`/api/casefile/complaints/${_cfComplaintId}/generate-notice`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok) { msg.textContent = 'Failed to generate PDF.'; msg.style.color='#e53935'; return; }
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `Notice_${_cfComplaintId}.pdf`; a.click();
+    URL.revokeObjectURL(url);
+    msg.textContent = '✅ Show Cause Notice downloaded.'; msg.style.color='#065f46';
+    loadPetitionHistory();
+  } catch(e) { msg.textContent = 'Error: ' + e.message; msg.style.color='#e53935'; }
+}
+</script>
 </body>
 </html>

@@ -300,6 +300,12 @@
   </div>
 
   <div class="content">
+    <!-- Page tabs -->
+    <div class="page-tabs">
+      <button class="ptab active" id="tab-officials" onclick="switchMgmtTab('officials')">👷 Officials</button>
+      <button class="ptab" id="tab-police" onclick="switchMgmtTab('police')">🚔 Police Stations</button>
+    </div>
+
     <!-- ═══ OFFICIALS VIEW ═══ -->
     <div class="view active" id="view-officials">
 
@@ -494,7 +500,261 @@
   }
 
   loadOfficials();
+
+  function switchMgmtTab(tab) {
+    ['officials','police'].forEach(t => {
+      document.getElementById('view-'+t).classList.toggle('active', t === tab);
+      document.getElementById('tab-'+t).classList.toggle('active', t === tab);
+    });
+    if (tab === 'police') loadPoliceStations();
+  }
 </script>
+
+<!-- ═══ POLICE STATIONS VIEW ═══ -->
+<div class="view" id="view-police" style="display:none">
+  <div class="sec-hdr">
+    <div class="sh-left">
+      <div class="sh-tag">Directory</div>
+      <div class="sh-title">🚔 Police Stations</div>
+      <div class="sh-sub">Manage police station directory for petition dispatch</div>
+    </div>
+    <button class="btn-add" onclick="toggleAddForm('ps')">+ Add Station</button>
+  </div>
+
+  <!-- Filters -->
+  <div style="display:flex;gap:0.7rem;margin-bottom:1rem;flex-wrap:wrap;">
+    <select id="ps_filter_district" class="f-select" style="max-width:220px" onchange="onPsDistrictFilter(this.value)">
+      <option value="">— All Districts —</option>
+    </select>
+    <select id="ps_filter_mandal" class="f-select" style="max-width:220px" onchange="loadPoliceStations()">
+      <option value="">— All Mandals —</option>
+    </select>
+  </div>
+
+  <!-- Add/Edit form -->
+  <div class="add-card" id="add-ps">
+    <div class="add-card-title">🚔 <span id="ps-form-title">Add Police Station</span></div>
+    <input type="hidden" id="ps_edit_id"/>
+    <div class="f-row">
+      <div class="f-group">
+        <label class="f-label">Station Name <span>*</span></label>
+        <input type="text" id="ps_name" class="f-input" placeholder="e.g. PS Kukatpally"/>
+      </div>
+      <div class="f-group">
+        <label class="f-label">Officer In Charge</label>
+        <input type="text" id="ps_officer" class="f-input" placeholder="Inspector name"/>
+      </div>
+    </div>
+    <div class="f-row">
+      <div class="f-group">
+        <label class="f-label">District</label>
+        <select id="ps_district" class="f-select" onchange="loadPsMandalDropdown(this.value)">
+          <option value="">— Select District —</option>
+        </select>
+      </div>
+      <div class="f-group">
+        <label class="f-label">Mandal / Town</label>
+        <select id="ps_mandal" class="f-select">
+          <option value="">— Select Mandal —</option>
+        </select>
+      </div>
+    </div>
+    <div class="f-row">
+      <div class="f-group">
+        <label class="f-label">Phone</label>
+        <input type="tel" id="ps_phone" class="f-input" placeholder="e.g. 040-23456789"/>
+      </div>
+      <div class="f-group">
+        <label class="f-label">Email (for petition dispatch)</label>
+        <input type="email" id="ps_email" class="f-input" placeholder="ps.kukatpally@tspolice.gov.in"/>
+      </div>
+    </div>
+    <div class="f-group" style="margin-bottom:0.9rem">
+      <label class="f-label">Address</label>
+      <input type="text" id="ps_address" class="f-input" placeholder="Full station address"/>
+    </div>
+    <div class="add-actions">
+      <button class="btn-save" onclick="savePoliceStation()">💾 Save Station</button>
+      <button class="btn-cancel-sm" onclick="cancelPsForm()">Cancel</button>
+    </div>
+    <div class="add-alert" id="psAlert"></div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-card">
+    <div class="tc-hdr">
+      <div class="tc-title">All Police Stations</div>
+      <div class="tc-count" id="ps-count">Loading...</div>
+    </div>
+    <div id="psTable"><div class="empty"><div class="empty-icon">⏳</div><p>Loading...</p></div></div>
+  </div>
+</div>
+
+<script>
+  let _psDistricts = [];
+
+  async function loadPsDistrictDropdowns() {
+    try {
+      const res = await http.get('/api/admin/districts');
+      if (!res.success) return;
+      _psDistricts = res.data;
+      const opts = res.data.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+      document.getElementById('ps_district').innerHTML = '<option value="">— Select District —</option>' + opts;
+      document.getElementById('ps_filter_district').innerHTML = '<option value="">— All Districts —</option>' + opts;
+    } catch(e) {}
+  }
+  loadPsDistrictDropdowns();
+
+  async function loadPsMandalDropdown(districtId, targetId = 'ps_mandal') {
+    const el = document.getElementById(targetId);
+    if (!districtId) { el.innerHTML = '<option value="">— Select Mandal —</option>'; return; }
+    try {
+      const res = await http.get(`/api/admin/mandals?district_id=${districtId}`);
+      const opts = (res.data || []).map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+      el.innerHTML = '<option value="">— Select Mandal —</option>' + opts;
+    } catch(e) {}
+  }
+
+  async function onPsDistrictFilter(did) {
+    await loadPsMandalDropdown(did, 'ps_filter_mandal');
+    loadPoliceStations();
+  }
+
+  async function loadPoliceStations() {
+    const did = document.getElementById('ps_filter_district').value;
+    const mid = document.getElementById('ps_filter_mandal').value;
+    let url = '/api/casefile/police-stations?';
+    if (did) url += `district_id=${did}&`;
+    if (mid) url += `mandal_id=${mid}`;
+    try {
+      const res = await http.get(url);
+      const stations = res.data || [];
+      document.getElementById('ps-count').textContent = stations.length + ' station' + (stations.length !== 1 ? 's' : '');
+      if (stations.length === 0) {
+        document.getElementById('psTable').innerHTML = `<div class="empty"><div class="empty-icon">🚔</div><p>No police stations added yet.</p></div>`;
+        return;
+      }
+      document.getElementById('psTable').innerHTML = `
+        <div style="overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th>Station Name</th><th>District</th><th>Mandal</th>
+            <th>Officer in Charge</th><th>Phone</th><th>Email</th><th>Actions</th>
+          </tr></thead>
+          <tbody>${stations.map(s => `
+            <tr>
+              <td><strong>${s.name}</strong></td>
+              <td>${s.district_name || '—'}</td>
+              <td>${s.mandal_name || '—'}</td>
+              <td>${s.officer_in_charge || '—'}</td>
+              <td>${s.phone || '—'}</td>
+              <td style="font-size:0.75rem">${s.email || '—'}</td>
+              <td>
+                <button class="act-btn" style="background:rgba(59,130,246,0.08);color:#1d4ed8;border-color:rgba(59,130,246,0.25);margin-right:4px" onclick="editPoliceStation(${s.id},'${escHtml(s.name)}','${s.district_id||''}','${s.mandal_id||''}','${escHtml(s.phone||'')}','${escHtml(s.email||'')}','${escHtml(s.address||'')}','${escHtml(s.officer_in_charge||'')}')">✏️ Edit</button>
+                <button class="act-btn ab-delete" onclick="deletePoliceStation(${s.id})">🗑 Delete</button>
+              </td>
+            </tr>`).join('')}
+          </tbody>
+        </table></div>`;
+    } catch(e) {
+      document.getElementById('psTable').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><p>Error: ${e.message}</p></div>`;
+    }
+  }
+
+  function escHtml(s) { return String(s).replace(/'/g,"&#39;").replace(/"/g,'&quot;'); }
+
+  function cancelPsForm() {
+    document.getElementById('add-ps').classList.remove('open');
+    document.getElementById('ps_edit_id').value = '';
+    ['ps_name','ps_officer','ps_phone','ps_email','ps_address'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('ps_district').value = '';
+    document.getElementById('ps_mandal').innerHTML = '<option value="">— Select Mandal —</option>';
+    document.getElementById('psAlert').className = 'add-alert';
+    document.getElementById('ps-form-title').textContent = 'Add Police Station';
+  }
+
+  function editPoliceStation(id, name, districtId, mandalId, phone, email, address, officer) {
+    document.getElementById('ps_edit_id').value = id;
+    document.getElementById('ps_name').value = name;
+    document.getElementById('ps_phone').value = phone;
+    document.getElementById('ps_email').value = email;
+    document.getElementById('ps_address').value = address;
+    document.getElementById('ps_officer').value = officer;
+    document.getElementById('ps_district').value = districtId;
+    document.getElementById('ps-form-title').textContent = 'Edit Police Station';
+    loadPsMandalDropdown(districtId).then(() => {
+      document.getElementById('ps_mandal').value = mandalId;
+    });
+    document.getElementById('add-ps').classList.add('open');
+    document.getElementById('add-ps').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  async function savePoliceStation() {
+    const editId = document.getElementById('ps_edit_id').value;
+    const name   = document.getElementById('ps_name').value.trim();
+    const alert_el = document.getElementById('psAlert');
+    if (!name) { alert_el.textContent = 'Station name is required.'; alert_el.className = 'add-alert err'; return; }
+
+    const payload = {
+      name,
+      district_id:      document.getElementById('ps_district').value || null,
+      mandal_id:        document.getElementById('ps_mandal').value || null,
+      phone:            document.getElementById('ps_phone').value.trim() || null,
+      email:            document.getElementById('ps_email').value.trim() || null,
+      address:          document.getElementById('ps_address').value.trim() || null,
+      officer_in_charge: document.getElementById('ps_officer').value.trim() || null,
+    };
+
+    try {
+      const res = editId
+        ? await http.put(`/api/casefile/police-stations/${editId}`, payload)
+        : await http.post('/api/casefile/police-stations', payload);
+
+      if (res.success) {
+        alert_el.textContent = editId ? 'Station updated.' : 'Station added.';
+        alert_el.className = 'add-alert ok';
+        setTimeout(() => { cancelPsForm(); loadPoliceStations(); }, 1000);
+      } else {
+        alert_el.textContent = res.message || 'Error saving station.';
+        alert_el.className = 'add-alert err';
+      }
+    } catch(e) {
+      alert_el.textContent = 'Server error.';
+      alert_el.className = 'add-alert err';
+    }
+  }
+
+  async function deletePoliceStation(id) {
+    if (!confirm('Delete this police station?')) return;
+    const res = await http.delete(`/api/casefile/police-stations/${id}`);
+    if (res.success) loadPoliceStations(); else alert(res.message);
+  }
+
+  // Fix view toggling since we added tabs after the fact
+  const _origToggle = window.toggleAddForm;
+  window.toggleAddForm = function(view) {
+    if (view === 'ps') {
+      const el = document.getElementById('add-ps');
+      if (el.classList.contains('open')) { cancelPsForm(); } else { el.classList.add('open'); }
+      return;
+    }
+    if (_origToggle) _origToggle(view);
+  };
+
+  // Override switchMgmtTab to properly show/hide views
+  window.switchMgmtTab = function(tab) {
+    ['officials','police'].forEach(t => {
+      const v = document.getElementById('view-'+t);
+      const b = document.getElementById('tab-'+t);
+      if (v) v.style.display = t === tab ? 'block' : 'none';
+      if (b) b.classList.toggle('active', t === tab);
+    });
+    if (tab === 'police') loadPoliceStations();
+  };
+  // Ensure officials view is visible by default (display:block override)
+  document.getElementById('view-officials').style.display = 'block';
+</script>
+
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js").catch(function(){});}</script>
 
 <script>

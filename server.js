@@ -43,11 +43,13 @@ const authRoutes = require('./routes/authRoutes');
 const complaintRoutes = require('./routes/complaintRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const landRoutes = require('./routes/landRoutes');
+const caseFileRoutes = require('./routes/caseFileRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/land', landRoutes);
+app.use('/api/casefile', caseFileRoutes);
 
 // ── Health Check ──
 app.get('/api/health', (req, res) => {
