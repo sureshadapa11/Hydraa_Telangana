@@ -587,6 +587,7 @@ const sendAccountRestored = async ({ to, name, tempPassword, complaintsRestored 
 };
 
 module.exports = {
+  sendMail,
   sendWelcomeEmail,
   sendComplaintConfirmation,
   sendComplaintAssigned,

@@ -1811,7 +1811,10 @@ document.addEventListener('DOMContentLoaded',function(){
               <textarea id="pet_action" class="m-textarea" rows="2" placeholder="Specific action you are requesting..."></textarea>
             </div>
           </div>
-          <button onclick="generatePetition()" style="background:linear-gradient(135deg,#0b2040,#006978);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">⬇ Download Petition PDF</button>
+          <div style="display:flex;gap:0.6rem;flex-wrap:wrap">
+            <button onclick="generatePetition()" style="background:linear-gradient(135deg,#0b2040,#006978);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">⬇ Download PDF</button>
+            <button onclick="sendPetition()" style="background:linear-gradient(135deg,#0097a7,#00bcd4);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">📧 Send to Station</button>
+          </div>
           <div id="petMsg" style="font-size:0.8rem;margin-top:0.5rem"></div>
         </div>
 
@@ -1831,7 +1834,10 @@ document.addEventListener('DOMContentLoaded',function(){
               <input type="number" id="ntc_days" class="m-select" style="width:100%" value="15" min="7" max="60"/>
             </div>
           </div>
-          <button onclick="generateNotice()" style="background:linear-gradient(135deg,#b91c1c,#ef4444);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">⬇ Download Show Cause Notice</button>
+          <div style="display:flex;gap:0.6rem;flex-wrap:wrap">
+            <button onclick="generateNotice()" style="background:linear-gradient(135deg,#b91c1c,#ef4444);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">⬇ Download Notice PDF</button>
+            <button onclick="sendNotice()" style="background:linear-gradient(135deg,#7c3aed,#9f1b1b);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">📧 Send to Accused</button>
+          </div>
           <div id="ntcMsg" style="font-size:0.8rem;margin-top:0.5rem"></div>
         </div>
 
@@ -2188,6 +2194,46 @@ async function generateNotice() {
     msg.textContent = '✅ Show Cause Notice downloaded.'; msg.style.color='#065f46';
     loadPetitionHistory();
   } catch(e) { msg.textContent = 'Error: ' + e.message; msg.style.color='#e53935'; }
+}
+
+async function sendPetition() {
+  const msg = document.getElementById('petMsg');
+  msg.textContent = 'Sending petition email...'; msg.style.color = 'var(--teal)';
+  try {
+    const res = await http.post(`/api/casefile/complaints/${_cfComplaintId}/send-petition`, {
+      police_station_id: document.getElementById('pet_station').value || null,
+      to_name:           document.getElementById('pet_to_name').value.trim() || null,
+      to_address:        document.getElementById('pet_to_address').value.trim() || null,
+      action_requested:  document.getElementById('pet_action').value.trim() || null,
+    });
+    if (res.noEmail) {
+      msg.textContent = '⚠️ ' + res.message; msg.style.color = '#b45309';
+    } else if (res.success) {
+      msg.textContent = '✅ ' + res.message; msg.style.color = '#065f46';
+      loadPetitionHistory();
+    } else {
+      msg.textContent = res.message || 'Failed to send.'; msg.style.color = '#e53935';
+    }
+  } catch(e) { msg.textContent = 'Error: ' + (e.message || 'Send failed'); msg.style.color='#e53935'; }
+}
+
+async function sendNotice() {
+  const msg = document.getElementById('ntcMsg');
+  msg.textContent = 'Sending notice email...'; msg.style.color = 'var(--teal)';
+  try {
+    const res = await http.post(`/api/casefile/complaints/${_cfComplaintId}/send-notice`, {
+      accused_id:    document.getElementById('ntc_accused').value || null,
+      response_days: document.getElementById('ntc_days').value || 15,
+    });
+    if (res.noEmail) {
+      msg.textContent = '⚠️ ' + res.message; msg.style.color = '#b45309';
+    } else if (res.success) {
+      msg.textContent = '✅ ' + res.message; msg.style.color = '#065f46';
+      loadPetitionHistory();
+    } else {
+      msg.textContent = res.message || 'Failed to send.'; msg.style.color = '#e53935';
+    }
+  } catch(e) { msg.textContent = 'Error: ' + (e.message || 'Send failed'); msg.style.color='#e53935'; }
 }
 </script>
 </body>

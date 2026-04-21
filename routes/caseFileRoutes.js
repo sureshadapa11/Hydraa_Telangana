@@ -13,6 +13,7 @@ const {
   getPoliceStations, createPoliceStation, updatePoliceStation, deletePoliceStation,
   getPetitionHistory,
   generatePetition, generateNotice,
+  sendPetitionEmail, sendNoticeEmail,
 } = require('../controllers/caseFileController');
 
 // ── Accused Persons ──
@@ -44,8 +45,12 @@ router.delete('/police-stations/:id',                verifyToken, deletePoliceSt
 // ── Petition / Notice history ──
 router.get('/complaints/:complaint_id/petitions',    verifyToken, getPetitionHistory);
 
-// ── PDF Generation ──
+// ── PDF Generation (download) ──
 router.post('/complaints/:complaint_id/generate-petition', verifyToken, generatePetition);
 router.post('/complaints/:complaint_id/generate-notice',   verifyToken, generateNotice);
+
+// ── PDF Send via Email ──
+router.post('/complaints/:complaint_id/send-petition', verifyToken, sendPetitionEmail);
+router.post('/complaints/:complaint_id/send-notice',   verifyToken, sendNoticeEmail);
 
 module.exports = router;

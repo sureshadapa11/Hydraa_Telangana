@@ -7,6 +7,8 @@
 
 const db = require('../utils/db');
 const PDFDocument = require('pdfkit');
+const { PassThrough } = require('stream');
+const { sendMail, sendSafe } = require('../utils/emailService');
 
 // ────────────────────────────────────────────────────
 //  ACCUSED PERSONS
@@ -722,6 +724,303 @@ const generateNotice = async (req, res) => {
   }
 };
 
+// ────────────────────────────────────────────────────
+//  HELPER — generate PDF to Buffer (for email attachment)
+// ────────────────────────────────────────────────────
+function generatePdfToBuffer(buildFn) {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ margin: 40, size: 'A4' });
+    const chunks = [];
+    const pass = new PassThrough();
+    pass.on('data', chunk => chunks.push(chunk));
+    pass.on('end', () => resolve(Buffer.concat(chunks)));
+    pass.on('error', reject);
+    doc.pipe(pass);
+    buildFn(doc);
+    doc.end();
+  });
+}
+
+// ────────────────────────────────────────────────────
+//  SEND PETITION EMAIL
+// ────────────────────────────────────────────────────
+const sendPetitionEmail = async (req, res) => {
+  const { complaint_id } = req.params;
+  const { to_name, to_address, police_station_id, action_requested } = req.body;
+  const generated_by_id   = req.user.id;
+  const generated_by_role = req.user.role;
+
+  try {
+    const { complaint, accused, visitReport, history, documents } = await fetchComplaintFull(complaint_id);
+    if (!complaint) return res.status(404).json({ success: false, message: 'Complaint not found.' });
+
+    let stationName = to_name || '';
+    let stationEmail = null;
+    if (police_station_id) {
+      const [[ps]] = await db.query('SELECT name, email FROM police_stations WHERE id = ?', [police_station_id]);
+      if (ps) { stationName = ps.name; stationEmail = ps.email; }
+    }
+
+    if (!stationEmail) {
+      return res.json({ success: false, noEmail: true, message: 'No email address on record for the selected station. Please download and send manually.' });
+    }
+
+    const pdfBuffer = await generatePdfToBuffer((doc) => {
+      drawPdfHeader(doc, 'PETITION — Request for Action');
+      doc.moveDown(0.5);
+      doc.font('Helvetica').fontSize(10);
+      doc.text(`Ref No: ${complaint.complaint_no}`, { align: 'right' });
+      doc.text(`Date: ${fmtDate(new Date())}`, { align: 'right' });
+      doc.moveDown(0.5);
+      doc.font('Helvetica-Bold').fontSize(10).text('To,');
+      doc.font('Helvetica').fontSize(10)
+         .text(stationName || 'The Station House Officer')
+         .text(to_address || '');
+      doc.moveDown(0.5);
+      doc.font('Helvetica-Bold').text('Sub: ', { continued: true });
+      doc.font('Helvetica').text(`Request for action regarding complaint ${complaint.complaint_no} — ${complaint.title}`);
+      doc.font('Helvetica-Bold').text('Ref: ', { continued: true });
+      doc.font('Helvetica').text(`HYDRAA Complaint No. ${complaint.complaint_no} dated ${fmtDate(complaint.created_at)}`);
+      doc.moveDown(0.5);
+      doc.font('Helvetica').fontSize(10)
+         .text('Sir/Madam,', { indent: 20 }).moveDown(0.3)
+         .text('This is to bring to your kind attention the following complaint registered with this office. The details are as follows:', { indent: 20 });
+
+      sectionHead(doc, '1. COMPLAINANT DETAILS');
+      kvRow(doc, 'Name', complaint.citizen_name);
+      kvRow(doc, 'Phone', complaint.citizen_phone);
+      kvRow(doc, 'Email', complaint.citizen_email);
+
+      sectionHead(doc, '2. COMPLAINT DETAILS');
+      kvRow(doc, 'Complaint No', complaint.complaint_no);
+      kvRow(doc, 'Date Filed', fmtDate(complaint.created_at));
+      kvRow(doc, 'Category', complaint.category_name);
+      kvRow(doc, 'Sub-Category', complaint.subcategory_name);
+      kvRow(doc, 'Priority', (complaint.priority || '').toUpperCase());
+      kvRow(doc, 'Status', (complaint.status || '').toUpperCase());
+      kvRow(doc, 'Address of Complaint', complaint.address);
+      doc.moveDown(0.3);
+      doc.font('Helvetica-Bold').fontSize(9).text('Description:');
+      doc.font('Helvetica').fontSize(9).text(complaint.description || '—', { indent: 10 });
+
+      if (complaint.land_survey_no || complaint.khata_no) {
+        sectionHead(doc, '3. LAND / PROPERTY DETAILS');
+        kvRow(doc, 'District', complaint.land_district || complaint.district_name);
+        kvRow(doc, 'Mandal', complaint.land_mandal || complaint.mandal_name);
+        kvRow(doc, 'Village', complaint.land_village);
+        kvRow(doc, 'Survey No', complaint.land_survey_no);
+        kvRow(doc, 'Khata No', complaint.khata_no);
+        kvRow(doc, 'Land Address', complaint.land_address);
+      }
+
+      if (accused.length > 0) {
+        sectionHead(doc, `4. ACCUSED PERSON(S) — ${accused.length} person(s)`);
+        accused.forEach((a, i) => {
+          doc.font('Helvetica-Bold').fontSize(9).text(`Accused ${i + 1}:`);
+          kvRow(doc, 'Name', a.name);
+          kvRow(doc, 'Phone', a.phone);
+          kvRow(doc, 'Address', a.address);
+          kvRow(doc, 'Relation', a.relation);
+          kvRow(doc, 'Occupation', a.occupation);
+          if (i < accused.length - 1) doc.moveDown(0.3);
+        });
+      }
+
+      if (visitReport) {
+        sectionHead(doc, '5. SITE VISIT REPORT');
+        kvRow(doc, 'Visited On', fmtDate(visitReport.visit_date));
+        kvRow(doc, 'Time', visitReport.visit_time || '—');
+        kvRow(doc, 'Inspecting Official', visitReport.official_name);
+        kvRow(doc, 'Encroachment Area', visitReport.encroachment_area);
+        kvRow(doc, 'Construction Type', visitReport.construction_type);
+        kvRow(doc, 'Current Status of Land', visitReport.current_status);
+        if (visitReport.findings) {
+          doc.moveDown(0.2);
+          doc.font('Helvetica-Bold').fontSize(9).text('Findings:');
+          doc.font('Helvetica').fontSize(9).text(visitReport.findings, { indent: 10 });
+        }
+      }
+
+      if (documents.length > 0) {
+        sectionHead(doc, '6. EVIDENCE & DOCUMENTS COLLECTED');
+        documents.forEach((d, i) => {
+          doc.font('Helvetica').fontSize(9)
+             .text(`${i + 1}. [${d.doc_type}] ${d.file_name}${d.caption ? ' — ' + d.caption : ''} (uploaded by ${d.uploaded_by_role} on ${fmtDate(d.created_at)})`);
+        });
+      }
+
+      if (history.length > 0) {
+        sectionHead(doc, '7. COMPLAINT HISTORY');
+        history.forEach(h => {
+          doc.font('Helvetica').fontSize(8)
+             .text(`${fmtDate(h.changed_at)} — ${(h.old_status || 'new').toUpperCase()} → ${h.new_status.toUpperCase()} (by ${h.changed_by_role})${h.remarks ? ': ' + h.remarks : ''}`);
+        });
+      }
+
+      sectionHead(doc, '8. ACTION REQUESTED');
+      doc.font('Helvetica').fontSize(10)
+         .text(action_requested || 'You are requested to take necessary action as per applicable laws and regulations and inform this office of the action taken at the earliest.', { indent: 10 });
+
+      doc.moveDown(1.5);
+      doc.font('Helvetica').fontSize(10)
+         .text('Yours faithfully,', { indent: 20 }).moveDown(1.5);
+      doc.font('Helvetica-Bold').fontSize(10)
+         .text('________________________________', { align: 'right' });
+      doc.font('Helvetica').fontSize(9)
+         .text('Authorized Signatory', { align: 'right' })
+         .text('HYDRAA — Government of Telangana', { align: 'right' })
+         .text(`Date: ${fmtDate(new Date())}`, { align: 'right' });
+    });
+
+    await sendMail({
+      to: stationEmail,
+      subject: `HYDRAA Petition — Complaint ${complaint.complaint_no}`,
+      html: `<p>Dear Sir/Madam,</p><p>Please find the attached petition from HYDRAA regarding complaint <strong>${complaint.complaint_no}</strong> — ${complaint.title}.</p><p>Please take necessary action as requested in the petition and inform this office at the earliest.</p><br/><p>Regards,<br/><strong>HYDRAA — Government of Telangana</strong></p>`,
+      attachments: [{ name: `Petition_${complaint.complaint_no}.pdf`, content: pdfBuffer.toString('base64') }],
+    });
+
+    await db.query(
+      `INSERT INTO petition_notices (complaint_id, doc_type, generated_by_id, generated_by_role, sent_to_name, sent_to_email, sent_to_type, police_station_id, send_status, sent_at)
+       VALUES (?, 'petition', ?, ?, ?, ?, 'police_station', ?, 'sent', NOW())`,
+      [complaint_id, generated_by_id, generated_by_role, stationName, stationEmail, police_station_id || null]
+    );
+
+    res.json({ success: true, message: `Petition sent to ${stationEmail}` });
+  } catch (err) {
+    console.error('sendPetitionEmail error:', err);
+    res.status(500).json({ success: false, message: 'Failed to send petition email. ' + err.message });
+  }
+};
+
+// ────────────────────────────────────────────────────
+//  SEND NOTICE EMAIL
+// ────────────────────────────────────────────────────
+const sendNoticeEmail = async (req, res) => {
+  const { complaint_id } = req.params;
+  const { accused_id, response_days } = req.body;
+  const generated_by_id   = req.user.id;
+  const generated_by_role = req.user.role;
+
+  try {
+    const { complaint, accused, visitReport } = await fetchComplaintFull(complaint_id);
+    if (!complaint) return res.status(404).json({ success: false, message: 'Complaint not found.' });
+
+    let targetAccused = accused[0] || null;
+    if (accused_id) {
+      targetAccused = accused.find(a => a.id === parseInt(accused_id)) || targetAccused;
+    }
+
+    if (!targetAccused?.email) {
+      return res.json({ success: false, noEmail: true, message: 'No email address found for the selected accused person. Please download and deliver manually.' });
+    }
+
+    const deadline = new Date();
+    deadline.setDate(deadline.getDate() + (parseInt(response_days) || 15));
+    const noticeNo = `HYD-NOTICE-${complaint.complaint_no}-${Date.now().toString().slice(-5)}`;
+
+    const pdfBuffer = await generatePdfToBuffer((doc) => {
+      drawPdfHeader(doc, 'SHOW CAUSE NOTICE');
+      doc.moveDown(0.5);
+      doc.font('Helvetica').fontSize(10);
+      doc.text(`Notice No: ${noticeNo}`, { align: 'right' });
+      doc.text(`Date: ${fmtDate(new Date())}`, { align: 'right' });
+      doc.moveDown(0.5);
+
+      doc.font('Helvetica-Bold').fontSize(10).text('To,');
+      doc.font('Helvetica').fontSize(10)
+         .text(targetAccused.name)
+         .text(targetAccused.address || 'Address not on record');
+
+      doc.moveDown(0.5);
+      doc.font('Helvetica-Bold').text('Sub: ', { continued: true });
+      doc.font('Helvetica').text('Show Cause Notice — Action under HYDRAA Act');
+      doc.font('Helvetica-Bold').text('Ref: ', { continued: true });
+      doc.font('Helvetica').text(`Complaint No. ${complaint.complaint_no} dated ${fmtDate(complaint.created_at)}`);
+
+      doc.moveDown(0.5);
+      doc.font('Helvetica').fontSize(10).text('Sir/Madam,', { indent: 20 }).moveDown(0.3);
+      doc.text('It has been brought to the notice of this office that you have been involved in the following violation/encroachment within the jurisdiction of HYDRAA. You are hereby called upon to show cause why action should not be initiated against you under the provisions of applicable laws.', { indent: 20 });
+
+      sectionHead(doc, '1. NATURE OF VIOLATION / COMPLAINT');
+      kvRow(doc, 'Complaint No', complaint.complaint_no);
+      kvRow(doc, 'Date of Complaint', fmtDate(complaint.created_at));
+      kvRow(doc, 'Category', complaint.category_name);
+      kvRow(doc, 'Location', complaint.address);
+      doc.moveDown(0.3);
+      doc.font('Helvetica-Bold').fontSize(9).text('Details of Violation:');
+      doc.font('Helvetica').fontSize(9).text(complaint.description || '—', { indent: 10 });
+
+      if (complaint.land_survey_no || complaint.khata_no) {
+        sectionHead(doc, '2. PROPERTY / LAND DETAILS');
+        kvRow(doc, 'Survey No', complaint.land_survey_no);
+        kvRow(doc, 'Khata No', complaint.khata_no);
+        kvRow(doc, 'Village', complaint.land_village);
+        kvRow(doc, 'Mandal', complaint.land_mandal || complaint.mandal_name);
+        kvRow(doc, 'District', complaint.land_district || complaint.district_name);
+      }
+
+      if (visitReport) {
+        sectionHead(doc, '3. INSPECTION FINDINGS');
+        kvRow(doc, 'Inspected On', fmtDate(visitReport.visit_date));
+        kvRow(doc, 'Encroachment Area', visitReport.encroachment_area);
+        kvRow(doc, 'Construction Type', visitReport.construction_type);
+        if (visitReport.findings) {
+          doc.moveDown(0.2);
+          doc.font('Helvetica').fontSize(9).text(visitReport.findings, { indent: 10 });
+        }
+      }
+
+      sectionHead(doc, '4. RESPONSE REQUIRED');
+      doc.font('Helvetica').fontSize(10).text(
+        `You are hereby directed to appear before this office or submit a written explanation within ${response_days || 15} days from the date of this notice (i.e., on or before ${fmtDate(deadline)}).`,
+        { indent: 10 }
+      ).moveDown(0.3);
+      doc.text('Failure to respond within the stipulated time will result in ex-parte action being taken against you as per applicable laws, including but not limited to demolition of unauthorized structures, legal proceedings, and/or penalty under HYDRAA Act.', { indent: 10 });
+
+      sectionHead(doc, '5. CONSEQUENCES OF NON-COMPLIANCE');
+      ['Demolition of unauthorized constructions at your cost',
+       'Recovery of encroached government/public land',
+       'Legal proceedings under applicable acts',
+       'Penalty and fine as per HYDRAA regulations'].forEach((c, i) => {
+        doc.font('Helvetica').fontSize(9).text(`${i + 1}. ${c}`, { indent: 10 });
+      });
+
+      doc.moveDown(1.5);
+      doc.font('Helvetica').fontSize(10).text('Issued by authority of:', { indent: 20 }).moveDown(1.5);
+      doc.font('Helvetica-Bold').fontSize(10)
+         .text('________________________________', { align: 'right' });
+      doc.font('Helvetica').fontSize(9)
+         .text('Authorized Signatory', { align: 'right' })
+         .text('HYDRAA — Government of Telangana', { align: 'right' })
+         .text(`Date: ${fmtDate(new Date())}`, { align: 'right' });
+
+      doc.moveDown(1);
+      doc.rect(40, doc.y, doc.page.width - 80, 1).fill('#cccccc');
+      doc.moveDown(0.3);
+      doc.font('Helvetica').fontSize(8).fill('#666666')
+         .text('This is an official notice issued by HYDRAA. For queries contact HYDRAA office, Hyderabad, Telangana.', { align: 'center' });
+    });
+
+    await sendMail({
+      to: targetAccused.email,
+      subject: `Show Cause Notice — HYDRAA Complaint ${complaint.complaint_no}`,
+      html: `<p>Dear ${targetAccused.name},</p><p>Please find the attached Show Cause Notice issued by HYDRAA regarding complaint <strong>${complaint.complaint_no}</strong>.</p><p>You are required to respond within <strong>${response_days || 15} days</strong>. Failure to respond will result in ex-parte action as per applicable laws.</p><br/><p>Regards,<br/><strong>HYDRAA — Government of Telangana</strong></p>`,
+      attachments: [{ name: `Notice_${complaint.complaint_no}.pdf`, content: pdfBuffer.toString('base64') }],
+    });
+
+    await db.query(
+      `INSERT INTO petition_notices (complaint_id, doc_type, generated_by_id, generated_by_role, sent_to_name, sent_to_email, sent_to_type, send_status, sent_at)
+       VALUES (?, 'notice', ?, ?, ?, ?, 'accused', 'sent', NOW())`,
+      [complaint_id, generated_by_id, generated_by_role, targetAccused.name, targetAccused.email]
+    );
+
+    res.json({ success: true, message: `Notice sent to ${targetAccused.email}` });
+  } catch (err) {
+    console.error('sendNoticeEmail error:', err);
+    res.status(500).json({ success: false, message: 'Failed to send notice email. ' + err.message });
+  }
+};
+
 module.exports = {
   getAccused,
   addAccused,
@@ -742,4 +1041,6 @@ module.exports = {
   getPetitionHistory,
   generatePetition,
   generateNotice,
+  sendPetitionEmail,
+  sendNoticeEmail,
 };
