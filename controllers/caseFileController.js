@@ -90,14 +90,15 @@ const deleteAccused = async (req, res) => {
 const getSiteVisitReport = async (req, res) => {
   const { complaint_id } = req.params;
   try {
-    const [[report]] = await db.query(
+    const [reports] = await db.query(
       `SELECT svr.*, o.full_name AS official_name
        FROM site_visit_reports svr
        JOIN officials o ON o.id = svr.official_id
-       WHERE svr.complaint_id = ?`,
+       WHERE svr.complaint_id = ?
+       ORDER BY svr.visit_date DESC, svr.created_at DESC`,
       [complaint_id]
     );
-    res.json({ success: true, data: report || null });
+    res.json({ success: true, data: reports });
   } catch (err) {
     console.error('getSiteVisitReport error:', err);
     res.status(500).json({ success: false, message: 'Server error.' });
@@ -117,20 +118,25 @@ const saveSiteVisitReport = async (req, res) => {
     await db.query(
       `INSERT INTO site_visit_reports
          (complaint_id, official_id, visit_date, visit_time, encroachment_area, construction_type, current_status, findings, geo_lat, geo_lng)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-       ON DUPLICATE KEY UPDATE
-         visit_date=VALUES(visit_date), visit_time=VALUES(visit_time),
-         encroachment_area=VALUES(encroachment_area), construction_type=VALUES(construction_type),
-         current_status=VALUES(current_status), findings=VALUES(findings),
-         geo_lat=VALUES(geo_lat), geo_lng=VALUES(geo_lng), updated_at=NOW()`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [complaint_id, official_id, visit_date, visit_time || null,
        encroachment_area || null, construction_type || null,
        current_status || null, findings || null,
        geo_lat || null, geo_lng || null]
     );
-    res.json({ success: true, message: 'Site visit report saved.' });
+    res.json({ success: true, message: 'Site visit logged.' });
   } catch (err) {
     console.error('saveSiteVisitReport error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+const deleteSiteVisitReport = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.query('DELETE FROM site_visit_reports WHERE id = ?', [id]);
+    res.json({ success: true, message: 'Site visit deleted.' });
+  } catch (err) {
     res.status(500).json({ success: false, message: 'Server error.' });
   }
 };
@@ -364,7 +370,8 @@ async function fetchComplaintFull(complaint_id) {
   const [[visitReport]] = await db.query(
     `SELECT svr.*, o.full_name AS official_name
      FROM site_visit_reports svr JOIN officials o ON o.id = svr.official_id
-     WHERE svr.complaint_id = ?`,
+     WHERE svr.complaint_id = ?
+     ORDER BY svr.visit_date DESC, svr.created_at DESC LIMIT 1`,
     [complaint_id]
   ).catch(() => [[null]]);
 
@@ -1028,6 +1035,7 @@ module.exports = {
   deleteAccused,
   getSiteVisitReport,
   saveSiteVisitReport,
+  deleteSiteVisitReport,
   getDocuments,
   getDocumentFile,
   uploadDocument,

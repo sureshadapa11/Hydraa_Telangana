@@ -1654,35 +1654,49 @@ document.addEventListener('DOMContentLoaded',function(){
 
       <!-- ── SITE VISIT TAB ── -->
       <div id="cfv-visit">
-        <div style="font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:0.8rem">📋 Site Visit Report</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem">
-          <div>
-            <label style="font-size:0.73rem;font-weight:700;color:var(--text);display:block;margin-bottom:0.3rem">Visit Date <span style="color:#e53935">*</span></label>
-            <input type="date" id="sv_date" class="m-select" style="width:100%"/>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem">
+          <div style="font-size:0.82rem;font-weight:700;color:var(--navy)">🏕 Site Visit Reports</div>
+          <button id="svToggleBtn" onclick="toggleSvForm()" style="background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:8px;padding:0.4rem 1rem;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit">+ Log New Visit</button>
+        </div>
+
+        <!-- New visit form (hidden by default) -->
+        <div id="svFormBox" style="display:none;background:var(--bg);border:1.5px solid rgba(0,151,167,0.2);border-radius:10px;padding:1rem;margin-bottom:1rem">
+          <div style="font-size:0.78rem;font-weight:700;color:var(--teal);margin-bottom:0.7rem">📋 Log New Site Visit</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem">
+            <div>
+              <label style="font-size:0.73rem;font-weight:700;color:var(--text);display:block;margin-bottom:0.3rem">Visit Date <span style="color:#e53935">*</span></label>
+              <input type="date" id="sv_date" class="m-select" style="width:100%"/>
+            </div>
+            <div>
+              <label style="font-size:0.73rem;font-weight:700;color:var(--text);display:block;margin-bottom:0.3rem">Visit Time</label>
+              <input type="time" id="sv_time" class="m-select" style="width:100%"/>
+            </div>
+            <div>
+              <label style="font-size:0.73rem;font-weight:700;color:var(--text);display:block;margin-bottom:0.3rem">Encroachment Area</label>
+              <input type="text" id="sv_area" class="m-select" style="width:100%" placeholder="e.g. 200 sq yards"/>
+            </div>
+            <div>
+              <label style="font-size:0.73rem;font-weight:700;color:var(--text);display:block;margin-bottom:0.3rem">Construction Type</label>
+              <input type="text" id="sv_construction" class="m-select" style="width:100%" placeholder="e.g. Concrete compound wall"/>
+            </div>
+            <div style="grid-column:1/-1">
+              <label style="font-size:0.73rem;font-weight:700;color:var(--text);display:block;margin-bottom:0.3rem">Current Status of Land/Property</label>
+              <input type="text" id="sv_status" class="m-select" style="width:100%" placeholder="e.g. Under active construction, Fenced off..."/>
+            </div>
+            <div style="grid-column:1/-1">
+              <label style="font-size:0.73rem;font-weight:700;color:var(--text);display:block;margin-bottom:0.3rem">Detailed Findings</label>
+              <textarea id="sv_findings" class="m-textarea" rows="3" placeholder="Describe what you observed on site: extent of encroachment, type of activity, number of persons present, evidence collected..."></textarea>
+            </div>
           </div>
-          <div>
-            <label style="font-size:0.73rem;font-weight:700;color:var(--text);display:block;margin-bottom:0.3rem">Visit Time</label>
-            <input type="time" id="sv_time" class="m-select" style="width:100%"/>
-          </div>
-          <div>
-            <label style="font-size:0.73rem;font-weight:700;color:var(--text);display:block;margin-bottom:0.3rem">Encroachment Area</label>
-            <input type="text" id="sv_area" class="m-select" style="width:100%" placeholder="e.g. 200 sq yards"/>
-          </div>
-          <div>
-            <label style="font-size:0.73rem;font-weight:700;color:var(--text);display:block;margin-bottom:0.3rem">Construction Type</label>
-            <input type="text" id="sv_construction" class="m-select" style="width:100%" placeholder="e.g. Concrete compound wall"/>
-          </div>
-          <div style="grid-column:1/-1">
-            <label style="font-size:0.73rem;font-weight:700;color:var(--text);display:block;margin-bottom:0.3rem">Current Status of Land/Property</label>
-            <input type="text" id="sv_status" class="m-select" style="width:100%" placeholder="e.g. Under active construction, Fenced off..."/>
-          </div>
-          <div style="grid-column:1/-1">
-            <label style="font-size:0.73rem;font-weight:700;color:var(--text);display:block;margin-bottom:0.3rem">Detailed Findings</label>
-            <textarea id="sv_findings" class="m-textarea" rows="4" placeholder="Describe what you observed on site: extent of encroachment, type of activity, number of persons present, evidence collected..."></textarea>
+          <div id="svMsg" style="font-size:0.8rem;margin-top:0.5rem"></div>
+          <div style="display:flex;gap:0.6rem;margin-top:0.8rem">
+            <button onclick="saveSiteVisit()" style="background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:8px;padding:0.6rem 1.3rem;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit">💾 Save Visit</button>
+            <button onclick="toggleSvForm()" style="background:transparent;color:var(--text-2);border:1px solid var(--border);border-radius:8px;padding:0.6rem 1rem;font-size:0.82rem;cursor:pointer;font-family:inherit">Cancel</button>
           </div>
         </div>
-        <div id="svMsg" style="font-size:0.8rem;margin-top:0.6rem"></div>
-        <button onclick="saveSiteVisit()" style="margin-top:0.8rem;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">💾 Save Site Visit Report</button>
+
+        <!-- Past visits list -->
+        <div id="svVisitList"><div style="font-size:0.8rem;color:var(--text-3)">Loading...</div></div>
       </div>
 
       <!-- ── ACCUSED TAB ── -->
@@ -1891,24 +1905,55 @@ function switchCfTab(tab) {
 }
 
 // ── SITE VISIT ──
+function toggleSvForm() {
+  const box = document.getElementById('svFormBox');
+  const btn = document.getElementById('svToggleBtn');
+  const opening = box.style.display === 'none';
+  box.style.display = opening ? 'block' : 'none';
+  btn.textContent = opening ? '✕ Cancel' : '+ Log New Visit';
+  if (opening) {
+    ['sv_date','sv_time','sv_area','sv_construction','sv_status'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('sv_findings').value = '';
+    document.getElementById('svMsg').textContent = '';
+  }
+}
+
 async function loadSiteVisit() {
+  const el = document.getElementById('svVisitList');
   try {
     const res = await http.get(`/api/casefile/complaints/${_cfComplaintId}/site-visit`);
-    if (res.data) {
-      const r = res.data;
-      document.getElementById('sv_date').value = r.visit_date ? r.visit_date.slice(0,10) : '';
-      document.getElementById('sv_time').value = r.visit_time || '';
-      document.getElementById('sv_area').value = r.encroachment_area || '';
-      document.getElementById('sv_construction').value = r.construction_type || '';
-      document.getElementById('sv_status').value = r.current_status || '';
-      document.getElementById('sv_findings').value = r.findings || '';
+    const visits = res.data || [];
+    if (visits.length === 0) {
+      el.innerHTML = '<div style="font-size:0.8rem;color:var(--text-3);text-align:center;padding:1.5rem 0">No site visits recorded yet. Click "+ Log New Visit" to add the first one.</div>';
+      return;
     }
-  } catch(e) {}
+    el.innerHTML = visits.map((v, i) => `
+      <div style="border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:0.7rem;background:#fff">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem">
+          <div>
+            <span style="font-size:0.82rem;font-weight:700;color:var(--navy)">Visit ${visits.length - i}</span>
+            <span style="font-size:0.78rem;color:var(--teal);margin-left:0.5rem">📅 ${new Date(v.visit_date).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</span>
+            ${v.visit_time ? `<span style="font-size:0.73rem;color:var(--text-2);margin-left:0.4rem">⏰ ${v.visit_time}</span>` : ''}
+            <span style="font-size:0.72rem;color:var(--text-3);margin-left:0.4rem">— ${v.official_name || 'Official'}</span>
+          </div>
+          <button onclick="deleteSiteVisit(${v.id})" style="background:rgba(239,68,68,0.08);color:#e53935;border:1px solid rgba(239,68,68,0.2);border-radius:6px;padding:2px 8px;font-size:0.7rem;cursor:pointer;flex-shrink:0">🗑 Delete</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.3rem 1rem;font-size:0.78rem">
+          ${v.encroachment_area ? `<div><span style="color:var(--text-2);font-weight:600">Area:</span> ${v.encroachment_area}</div>` : ''}
+          ${v.construction_type ? `<div><span style="color:var(--text-2);font-weight:600">Construction:</span> ${v.construction_type}</div>` : ''}
+          ${v.current_status ? `<div style="grid-column:1/-1"><span style="color:var(--text-2);font-weight:600">Land Status:</span> ${v.current_status}</div>` : ''}
+        </div>
+        ${v.findings ? `<div style="margin-top:0.5rem;background:var(--bg);border-radius:6px;padding:0.5rem 0.7rem;font-size:0.78rem;color:var(--text);line-height:1.5;border-left:3px solid var(--teal)">${v.findings}</div>` : ''}
+      </div>`).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="font-size:0.8rem;color:#e53935">Error loading visits.</div>';
+  }
 }
 
 async function saveSiteVisit() {
   const d = document.getElementById('sv_date').value;
-  if (!d) { document.getElementById('svMsg').textContent = 'Visit date is required.'; document.getElementById('svMsg').style.color='#e53935'; return; }
+  const msgEl = document.getElementById('svMsg');
+  if (!d) { msgEl.textContent = 'Visit date is required.'; msgEl.style.color='#e53935'; return; }
   try {
     const res = await http.post(`/api/casefile/complaints/${_cfComplaintId}/site-visit`, {
       visit_date: d,
@@ -1918,10 +1963,21 @@ async function saveSiteVisit() {
       current_status: document.getElementById('sv_status').value.trim() || null,
       findings: document.getElementById('sv_findings').value.trim() || null,
     });
-    const msg = document.getElementById('svMsg');
-    msg.textContent = res.success ? '✅ Site visit report saved.' : (res.message || 'Error saving.');
-    msg.style.color = res.success ? '#065f46' : '#e53935';
-  } catch(e) { document.getElementById('svMsg').textContent = 'Error: ' + e.message; document.getElementById('svMsg').style.color='#e53935'; }
+    msgEl.textContent = res.success ? '✅ Visit logged.' : (res.message || 'Error saving.');
+    msgEl.style.color = res.success ? '#065f46' : '#e53935';
+    if (res.success) {
+      loadSiteVisit();
+      setTimeout(() => { toggleSvForm(); }, 900);
+    }
+  } catch(e) { msgEl.textContent = 'Error: ' + e.message; msgEl.style.color='#e53935'; }
+}
+
+async function deleteSiteVisit(id) {
+  if (!confirm('Delete this site visit record?')) return;
+  try {
+    await http.delete(`/api/casefile/site-visits/${id}`);
+    loadSiteVisit();
+  } catch(e) {}
 }
 
 // ── ACCUSED ──

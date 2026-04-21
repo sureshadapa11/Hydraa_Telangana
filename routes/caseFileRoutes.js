@@ -7,7 +7,7 @@ const router  = express.Router();
 const { verifyToken } = require('../middleware/auth');
 const {
   getAccused, addAccused, updateAccused, deleteAccused,
-  getSiteVisitReport, saveSiteVisitReport,
+  getSiteVisitReport, saveSiteVisitReport, deleteSiteVisitReport,
   getDocuments, getDocumentFile, uploadDocument, deleteDocument,
   getCaseFileNotes, addCaseFileNote,
   getPoliceStations, createPoliceStation, updatePoliceStation, deletePoliceStation,
@@ -22,9 +22,10 @@ router.post('/complaints/:complaint_id/accused',     verifyToken, addAccused);
 router.put('/accused/:id',                           verifyToken, updateAccused);
 router.delete('/accused/:id',                        verifyToken, deleteAccused);
 
-// ── Site Visit Report ──
+// ── Site Visit Reports ──
 router.get('/complaints/:complaint_id/site-visit',   verifyToken, getSiteVisitReport);
 router.post('/complaints/:complaint_id/site-visit',  verifyToken, saveSiteVisitReport);
+router.delete('/site-visits/:id',                    verifyToken, deleteSiteVisitReport);
 
 // ── Document Vault ──
 router.get('/complaints/:complaint_id/documents',    verifyToken, getDocuments);
