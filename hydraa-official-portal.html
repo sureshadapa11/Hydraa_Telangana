@@ -1647,7 +1647,8 @@ document.addEventListener('DOMContentLoaded',function(){
       <button class="cf-tab" id="cft-accused" onclick="switchCfTab('accused')">👤 Accused</button>
       <button class="cf-tab" id="cft-docs" onclick="switchCfTab('docs')">📁 Documents</button>
       <button class="cf-tab" id="cft-notes" onclick="switchCfTab('notes')">💬 Notes</button>
-      <button class="cf-tab" id="cft-pdf" onclick="switchCfTab('pdf')">📄 Petition/Notice</button>
+      <button class="cf-tab" id="cft-petition" onclick="switchCfTab('petition')">📨 Petition</button>
+      <button class="cf-tab" id="cft-notice" onclick="switchCfTab('notice')">⚠️ Notice</button>
     </div>
 
     <div class="modal-body" style="max-height:calc(92vh - 170px);overflow-y:auto;padding:1.2rem 1.5rem">
@@ -1797,68 +1798,65 @@ document.addEventListener('DOMContentLoaded',function(){
         </div>
       </div>
 
-      <!-- ── PDF TAB ── -->
-      <div id="cfv-pdf" style="display:none">
-        <div style="font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:1rem">📄 Generate & Send Documents</div>
-
-        <!-- Petition Card -->
-        <div style="border:1.5px solid rgba(0,151,167,0.3);border-radius:10px;padding:1.2rem;margin-bottom:1rem;background:rgba(0,151,167,0.03)">
-          <div style="font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:0.8rem">📨 Petition — Request for Action</div>
-          <div style="font-size:0.78rem;color:var(--text-2);margin-bottom:0.8rem">Send to: Police Station / Revenue Department / Collector</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;margin-bottom:0.7rem">
-            <div>
-              <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Send to Police Station</label>
-              <select id="pet_station" class="m-select" style="width:100%">
-                <option value="">— Select Station (optional) —</option>
-              </select>
-            </div>
-            <div>
-              <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Or: Custom Recipient Name</label>
-              <input type="text" id="pet_to_name" class="m-select" style="width:100%" placeholder="e.g. The District Collector"/>
-            </div>
-            <div style="grid-column:1/-1">
-              <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Recipient Address</label>
-              <input type="text" id="pet_to_address" class="m-select" style="width:100%" placeholder="Full address of the recipient"/>
-            </div>
-            <div style="grid-column:1/-1">
-              <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Action Requested (optional — leave blank for default text)</label>
-              <textarea id="pet_action" class="m-textarea" rows="2" placeholder="Specific action you are requesting..."></textarea>
-            </div>
+      <!-- ── PETITION TAB ── -->
+      <div id="cfv-petition" style="display:none">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:0.3rem">📨 Petition — Request for Action</div>
+        <div style="font-size:0.76rem;color:var(--text-2);margin-bottom:1rem">Formal petition to Police Station, Revenue Department, Collector, or Commissionerate.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;margin-bottom:0.8rem">
+          <div>
+            <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Send to Police Station</label>
+            <select id="pet_station" class="m-select" style="width:100%">
+              <option value="">— Select Station (optional) —</option>
+            </select>
           </div>
-          <div style="display:flex;gap:0.6rem;flex-wrap:wrap">
-            <button onclick="generatePetition()" style="background:linear-gradient(135deg,#0b2040,#006978);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">⬇ Download PDF</button>
-            <button onclick="sendPetition()" style="background:linear-gradient(135deg,#0097a7,#00bcd4);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">📧 Send to Station</button>
+          <div>
+            <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Or: Custom Recipient Name</label>
+            <input type="text" id="pet_to_name" class="m-select" style="width:100%" placeholder="e.g. The District Collector"/>
           </div>
-          <div id="petMsg" style="font-size:0.8rem;margin-top:0.5rem"></div>
+          <div style="grid-column:1/-1">
+            <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Recipient Address</label>
+            <input type="text" id="pet_to_address" class="m-select" style="width:100%" placeholder="Full address of the recipient"/>
+          </div>
+          <div style="grid-column:1/-1">
+            <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Action Requested <span style="font-weight:400;color:var(--text-3)">(leave blank for default text)</span></label>
+            <textarea id="pet_action" class="m-textarea" rows="2" placeholder="Specific action you are requesting..."></textarea>
+          </div>
         </div>
-
-        <!-- Notice Card -->
-        <div style="border:1.5px solid rgba(239,68,68,0.3);border-radius:10px;padding:1.2rem;background:rgba(239,68,68,0.02)">
-          <div style="font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:0.8rem">⚠️ Show Cause Notice — To Accused</div>
-          <div style="font-size:0.78rem;color:var(--text-2);margin-bottom:0.8rem">Formal notice sent to the accused person to show cause or respond.</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;margin-bottom:0.7rem">
-            <div>
-              <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Accused Person</label>
-              <select id="ntc_accused" class="m-select" style="width:100%">
-                <option value="">— First accused (default) —</option>
-              </select>
-            </div>
-            <div>
-              <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Response Deadline (days)</label>
-              <input type="number" id="ntc_days" class="m-select" style="width:100%" value="15" min="7" max="60"/>
-            </div>
-          </div>
-          <div style="display:flex;gap:0.6rem;flex-wrap:wrap">
-            <button onclick="generateNotice()" style="background:linear-gradient(135deg,#b91c1c,#ef4444);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">⬇ Download Notice PDF</button>
-            <button onclick="sendNotice()" style="background:linear-gradient(135deg,#7c3aed,#9f1b1b);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">📧 Send to Accused</button>
-          </div>
-          <div id="ntcMsg" style="font-size:0.8rem;margin-top:0.5rem"></div>
+        <div style="display:flex;gap:0.6rem;flex-wrap:wrap">
+          <button onclick="generatePetition()" style="background:linear-gradient(135deg,#0b2040,#006978);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">⬇ Download PDF</button>
+          <button onclick="sendPetition()" style="background:linear-gradient(135deg,#0097a7,#00bcd4);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">📧 Send to Station</button>
         </div>
-
-        <!-- History -->
+        <div id="petMsg" style="font-size:0.8rem;margin-top:0.5rem"></div>
         <div style="margin-top:1rem">
-          <div style="font-size:0.78rem;font-weight:700;color:var(--text-2);margin-bottom:0.5rem">📋 Generated Documents History</div>
+          <div style="font-size:0.75rem;font-weight:700;color:var(--text-2);margin-bottom:0.5rem">📋 Petition History</div>
           <div id="petitionHistory" style="font-size:0.78rem;color:var(--text-2)">Loading...</div>
+        </div>
+      </div>
+
+      <!-- ── NOTICE TAB ── -->
+      <div id="cfv-notice" style="display:none">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:0.3rem">⚠️ Show Cause Notice — To Accused</div>
+        <div style="font-size:0.76rem;color:var(--text-2);margin-bottom:1rem">Formal notice directing the accused person to respond or show cause within a set deadline.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;margin-bottom:0.8rem">
+          <div>
+            <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Accused Person</label>
+            <select id="ntc_accused" class="m-select" style="width:100%">
+              <option value="">— First accused (default) —</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Response Deadline (days)</label>
+            <input type="number" id="ntc_days" class="m-select" style="width:100%" value="15" min="7" max="60"/>
+          </div>
+        </div>
+        <div style="display:flex;gap:0.6rem;flex-wrap:wrap">
+          <button onclick="generateNotice()" style="background:linear-gradient(135deg,#b91c1c,#ef4444);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">⬇ Download Notice PDF</button>
+          <button onclick="sendNotice()" style="background:linear-gradient(135deg,#7c3aed,#9333ea);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">📧 Send to Accused</button>
+        </div>
+        <div id="ntcMsg" style="font-size:0.8rem;margin-top:0.5rem"></div>
+        <div style="margin-top:1rem">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--text-2);margin-bottom:0.5rem">📋 Notice History</div>
+          <div id="noticeHistory" style="font-size:0.78rem;color:var(--text-2)">Loading...</div>
         </div>
       </div>
 
@@ -1893,15 +1891,16 @@ async function openCaseFile(id, complaint_no) {
 }
 
 function switchCfTab(tab) {
-  ['visit','accused','docs','notes','pdf'].forEach(t => {
+  ['visit','accused','docs','notes','petition','notice'].forEach(t => {
     document.getElementById('cfv-'+t).style.display = t === tab ? 'block' : 'none';
     document.getElementById('cft-'+t).classList.toggle('active', t === tab);
   });
-  if (tab === 'visit')   loadSiteVisit();
-  if (tab === 'accused') loadAccused();
-  if (tab === 'docs')    loadDocuments();
-  if (tab === 'notes')   loadNotes();
-  if (tab === 'pdf')     { loadAccusedForNotice(); loadPetitionHistory(); }
+  if (tab === 'visit')    loadSiteVisit();
+  if (tab === 'accused')  loadAccused();
+  if (tab === 'docs')     loadDocuments();
+  if (tab === 'notes')    loadNotes();
+  if (tab === 'petition') { loadPoliceStationsForPdf(); loadPetitionHistory('petition'); }
+  if (tab === 'notice')   { loadAccusedForNotice(); loadPetitionHistory('notice'); }
 }
 
 // ── SITE VISIT ──
@@ -2183,17 +2182,22 @@ async function loadAccusedForNotice() {
   } catch(e) {}
 }
 
-async function loadPetitionHistory() {
+async function loadPetitionHistory(type) {
   try {
     const res = await http.get(`/api/casefile/complaints/${_cfComplaintId}/petitions`);
-    const rows = res.data || [];
-    const el = document.getElementById('petitionHistory');
-    if (rows.length === 0) { el.textContent = 'No documents generated yet.'; return; }
+    const all = res.data || [];
+    const rows = type ? all.filter(r => r.doc_type === type) : all;
+    const elId = type === 'notice' ? 'noticeHistory' : 'petitionHistory';
+    const el = document.getElementById(elId);
+    if (!el) return;
+    if (rows.length === 0) { el.textContent = 'No records yet.'; return; }
     el.innerHTML = rows.map(r => `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:0.45rem 0.7rem;border:1px solid var(--border);border-radius:7px;margin-bottom:0.35rem;background:#fff">
-        <div>
-          <span style="font-size:0.7rem;font-weight:700;background:${r.doc_type==='petition'?'rgba(0,151,167,0.12)':'rgba(239,68,68,0.12)'};color:${r.doc_type==='petition'?'#006978':'#b91c1c'};border-radius:5px;padding:2px 8px;margin-right:0.5rem">${r.doc_type.toUpperCase()}</span>
-          To: ${r.sent_to_name||'—'} · ${new Date(r.created_at).toLocaleDateString('en-IN')} · <span style="color:${r.send_status==='sent'?'#065f46':'var(--text-3)'}">${r.send_status}</span>
+        <div style="font-size:0.78rem">
+          To: <strong>${r.sent_to_name||'—'}</strong>
+          ${r.sent_to_email ? `<span style="color:var(--text-3)"> · ${r.sent_to_email}</span>` : ''}
+          · ${new Date(r.created_at).toLocaleDateString('en-IN')}
+          · <span style="font-weight:700;color:${r.send_status==='sent'?'#065f46':'var(--text-3)'}">${r.send_status}</span>
         </div>
       </div>`).join('');
   } catch(e) {}
@@ -2223,7 +2227,7 @@ async function generatePetition() {
     a.href = url; a.download = `Petition_${_cfComplaintId}.pdf`; a.click();
     URL.revokeObjectURL(url);
     msg.textContent = '✅ Petition PDF downloaded.'; msg.style.color='#065f46';
-    loadPetitionHistory();
+    loadPetitionHistory('petition');
   } catch(e) { msg.textContent = 'Error: ' + e.message; msg.style.color='#e53935'; }
 }
 
@@ -2248,7 +2252,7 @@ async function generateNotice() {
     a.href = url; a.download = `Notice_${_cfComplaintId}.pdf`; a.click();
     URL.revokeObjectURL(url);
     msg.textContent = '✅ Show Cause Notice downloaded.'; msg.style.color='#065f46';
-    loadPetitionHistory();
+    loadPetitionHistory('notice');
   } catch(e) { msg.textContent = 'Error: ' + e.message; msg.style.color='#e53935'; }
 }
 
@@ -2266,7 +2270,7 @@ async function sendPetition() {
       msg.textContent = '⚠️ ' + res.message; msg.style.color = '#b45309';
     } else if (res.success) {
       msg.textContent = '✅ ' + res.message; msg.style.color = '#065f46';
-      loadPetitionHistory();
+      loadPetitionHistory('petition');
     } else {
       msg.textContent = res.message || 'Failed to send.'; msg.style.color = '#e53935';
     }
@@ -2285,7 +2289,7 @@ async function sendNotice() {
       msg.textContent = '⚠️ ' + res.message; msg.style.color = '#b45309';
     } else if (res.success) {
       msg.textContent = '✅ ' + res.message; msg.style.color = '#065f46';
-      loadPetitionHistory();
+      loadPetitionHistory('notice');
     } else {
       msg.textContent = res.message || 'Failed to send.'; msg.style.color = '#e53935';
     }
