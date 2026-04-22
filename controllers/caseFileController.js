@@ -150,7 +150,7 @@ const saveSiteVisitReport = async (req, res) => {
         await db.query(
           `INSERT INTO complaint_documents (complaint_id, site_visit_id, doc_type, file_name, file_data, file_mime, caption, uploaded_by_id, uploaded_by_role)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [complaint_id, visit_id, doc.doc_type || 'Site Visit Evidence', doc.file_name,
+          [complaint_id, visit_id, doc.doc_type || 'Site Visit Photo', doc.file_name,
            doc.file_data, doc.file_mime || null, doc.caption || null, official_id, official_role]
         );
       }

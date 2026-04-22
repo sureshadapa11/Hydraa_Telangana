@@ -1602,8 +1602,19 @@ document.addEventListener('DOMContentLoaded',function(){
                 <label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.4rem">📎 Attach Documents</label>
                 <div style="border:1.5px dashed rgba(0,151,167,0.35);border-radius:8px;padding:0.7rem;background:rgba(0,151,167,0.03)">
                   <input type="file" id="sv_docInput" multiple accept="image/*,.pdf,.doc,.docx" style="display:none" onchange="svHandleFiles(this.files)"/>
-                  <button type="button" onclick="document.getElementById('sv_docInput').click()" style="background:rgba(0,151,167,0.1);color:var(--teal);border:1px solid rgba(0,151,167,0.3);border-radius:7px;padding:0.3rem 0.8rem;font-size:0.76rem;font-weight:700;cursor:pointer;font-family:inherit">+ Add Files</button>
-                  <span style="font-size:0.7rem;color:var(--text-3);margin-left:0.5rem">Images, PDF, Word — any format</span>
+                  <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+                    <select id="sv_docType" class="m-select" style="font-size:0.75rem;padding:0.28rem 0.5rem;width:auto">
+                      <option value="Site Visit Photo">Site Visit Photo</option>
+                      <option value="Encroachment Photo">Encroachment Photo</option>
+                      <option value="Survey Map">Survey Map</option>
+                      <option value="Legal Document">Legal Document</option>
+                      <option value="Ownership Proof">Ownership Proof</option>
+                      <option value="Notice Copy">Notice Copy</option>
+                      <option value="Other">Other</option>
+                    </select>
+                    <button type="button" onclick="document.getElementById('sv_docInput').click()" style="background:rgba(0,151,167,0.1);color:var(--teal);border:1px solid rgba(0,151,167,0.3);border-radius:7px;padding:0.3rem 0.8rem;font-size:0.76rem;font-weight:700;cursor:pointer;font-family:inherit">+ Add Files</button>
+                    <span style="font-size:0.7rem;color:var(--text-3)">Images, PDF, Word — any format</span>
+                  </div>
                   <div id="sv_docPreview" style="margin-top:0.5rem;display:flex;flex-direction:column;gap:0.3rem"></div>
                 </div>
               </div>
@@ -1895,6 +1906,7 @@ function toggleSvForm() {
     _svPendingDocs = [];
     document.getElementById('sv_docPreview').innerHTML = '';
     document.getElementById('sv_docInput').value = '';
+    document.getElementById('sv_docType').value = 'Site Visit Photo';
   }
 }
 
@@ -1986,7 +1998,8 @@ function svHandleFiles(files) {
     const reader = new FileReader();
     reader.onload = (e) => {
       const base64 = e.target.result.split(',')[1];
-      const entry = { file_name: file.name, file_data: base64, file_mime: file.type, doc_type: 'Site Visit Evidence', caption: '' };
+      const docType = document.getElementById('sv_docType')?.value || 'Site Visit Photo';
+      const entry = { file_name: file.name, file_data: base64, file_mime: file.type, doc_type: docType, caption: '' };
       _svPendingDocs.push(entry);
       const idx = _svPendingDocs.length - 1;
       const row = document.createElement('div');
