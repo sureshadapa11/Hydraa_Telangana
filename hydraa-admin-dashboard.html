@@ -1546,7 +1546,8 @@ setInterval(() => {
         <div class="mh-title" style="color:#fff">Case File</div>
         <div style="font-size:0.75rem;color:#4dd6e8;font-weight:600;margin-top:4px" id="adminCfComplaintNo"></div>
       </div>
-      <button onclick="adminCloseCaseFile()" style="margin-left:auto;background:rgba(255,255,255,0.12);border:none;color:#fff;border-radius:8px;padding:0.4rem 0.9rem;cursor:pointer;font-size:0.82rem;font-family:inherit;font-weight:600">✕ Close</button>
+      <button onclick="adminOpenCfLandSearch()" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:6px;padding:2px 10px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit;margin-left:auto">🔍 Land Search</button>
+      <button onclick="adminCloseCaseFile()" style="background:rgba(255,255,255,0.12);border:none;color:#fff;border-radius:8px;padding:0.4rem 0.9rem;cursor:pointer;font-size:0.82rem;font-family:inherit;font-weight:600;margin-left:0.5rem">✕ Close</button>
     </div>
 
     <div style="display:flex;gap:0;border-bottom:1px solid var(--border);background:#f8fcfd;">
@@ -1555,6 +1556,7 @@ setInterval(() => {
       <button class="cf-tab"        id="acft-notes"   onclick="adminSwitchCfTab('notes')">💬 Notes</button>
       <button class="cf-tab"        id="acft-petition" onclick="adminSwitchCfTab('petition')">📨 Petition</button>
       <button class="cf-tab"        id="acft-notice"  onclick="adminSwitchCfTab('notice')">⚠️ Notice</button>
+      <button class="cf-tab"        id="acft-landdata" onclick="adminSwitchCfTab('landdata')">📄 Land Data</button>
     </div>
 
     <div class="modal-body" style="max-height:calc(92vh - 170px);overflow-y:auto;padding:1.2rem 1.5rem">
@@ -1743,6 +1745,45 @@ setInterval(() => {
         </div>
       </div>
 
+      <!-- LAND DATA TAB -->
+      <div id="acfv-landdata" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem">
+          <div style="font-size:0.82rem;font-weight:700;color:var(--navy)">📄 Bhu Bharathi Land Records</div>
+          <button onclick="adminOpenCfLandSearch()" style="background:linear-gradient(135deg,#006978,#0097a7);color:#fff;border:none;border-radius:8px;padding:0.35rem 0.9rem;font-size:0.76rem;font-weight:700;cursor:pointer;font-family:inherit">🔍 Search / Refresh</button>
+        </div>
+        <div id="adminCfLandDataContent"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN LAND SEARCH MODAL -->
+<div id="adminCfLandModal" class="modal" style="z-index:10001">
+  <div class="modal-box" style="max-width:560px">
+    <div class="modal-hdr">
+      <div class="mh-icon" style="background:rgba(0,105,120,0.12)">🏛️</div>
+      <div><div class="mh-title">Bhu Bharathi Land Records</div><div class="mh-sub">Search land ownership and legal status</div></div>
+      <button onclick="document.getElementById('adminCfLandModal').classList.remove('open')" style="margin-left:auto;background:transparent;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-2)">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="border:1.5px solid rgba(0,151,167,0.25);border-radius:12px;overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#006978,#0097a7);padding:0.75rem 1rem;display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:0.82rem;font-weight:800;color:#fff;">🏛️ Bhu Bharathi Land Records</span>
+          <span id="adminLandApiBadge" style="font-size:0.65rem;background:rgba(255,255,255,0.18);color:#fff;padding:0.2rem 0.55rem;border-radius:20px;font-weight:700;">⏳ Demo Mode</span>
+        </div>
+        <div style="padding:0.9rem 1rem;background:#f8fcfd;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
+            <div><div style="font-size:0.62rem;color:#00838f;font-weight:700;margin-bottom:3px;">DISTRICT</div><input id="adminLsDistrict" class="m-select" style="width:100%;font-size:0.82rem;" placeholder="District name"/></div>
+            <div><div style="font-size:0.62rem;color:#00838f;font-weight:700;margin-bottom:3px;">MANDAL</div><input id="adminLsMandal" class="m-select" style="width:100%;font-size:0.82rem;" placeholder="Mandal name"/></div>
+            <div><div style="font-size:0.62rem;color:#00838f;font-weight:700;margin-bottom:3px;">VILLAGE</div><input id="adminLsVillage" class="m-select" style="width:100%;font-size:0.82rem;" placeholder="Village name"/></div>
+            <div><div style="font-size:0.62rem;color:#00838f;font-weight:700;margin-bottom:3px;">SURVEY NO.</div><input id="adminLsSurvey" class="m-select" style="width:100%;font-size:0.82rem;" placeholder="e.g. 234/A"/></div>
+            <div style="grid-column:1/-1;"><div style="font-size:0.62rem;color:#00838f;font-weight:700;margin-bottom:3px;">KHATA NO.</div><input id="adminLsKhata" class="m-select" style="width:100%;font-size:0.82rem;" placeholder="e.g. 345"/></div>
+          </div>
+          <button onclick="adminSearchLandRecords()" id="adminLsSearchBtn" style="width:100%;padding:0.65rem;background:linear-gradient(135deg,#006978,#0097a7);color:#fff;border:none;border-radius:8px;font-size:0.85rem;font-weight:800;cursor:pointer;font-family:inherit;margin-top:0.25rem;">🔍 Search Land Records</button>
+        </div>
+        <div id="adminLsResult" style="display:none;border-top:1px solid rgba(0,151,167,0.15);"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1781,15 +1822,16 @@ async function adminOpenCaseFile(id) {
 }
 
 function adminSwitchCfTab(tab) {
-  ['visit','accused','notes','petition','notice'].forEach(t => {
+  ['visit','accused','notes','petition','notice','landdata'].forEach(t => {
     document.getElementById('acfv-'+t).style.display = t === tab ? 'block' : 'none';
     document.getElementById('acft-'+t).classList.toggle('active', t === tab);
   });
-  if (tab === 'visit')    { adminLoadSiteVisit(); adminLoadCfStatusHistory(); adminCfLoadLocationStatus(); }
-  if (tab === 'accused')  adminLoadAccused();
-  if (tab === 'notes')    adminLoadNotes();
-  if (tab === 'petition') { adminLoadPoliceStationsForPdf(); adminLoadPetitionHistory('petition'); }
-  if (tab === 'notice')   { adminLoadAccusedForNotice(); adminLoadPetitionHistory('notice'); }
+  if (tab === 'visit')     { adminLoadSiteVisit(); adminLoadCfStatusHistory(); adminCfLoadLocationStatus(); }
+  if (tab === 'accused')   adminLoadAccused();
+  if (tab === 'notes')     adminLoadNotes();
+  if (tab === 'petition')  { adminLoadPoliceStationsForPdf(); adminLoadPetitionHistory('petition'); }
+  if (tab === 'notice')    { adminLoadAccusedForNotice(); adminLoadPetitionHistory('notice'); }
+  if (tab === 'landdata')  adminLoadCfLandData();
 }
 
 async function adminCfDoUpdate() {
@@ -1874,6 +1916,268 @@ async function adminCfSaveLocation() {
       loadComplaints({ silent: true });
     } else { msgEl.textContent = res.message || 'Failed.'; msgEl.style.color='#e53935'; }
   } catch(e) { msgEl.textContent = 'Server error.'; msgEl.style.color='#e53935'; }
+}
+
+// ── ADMIN LAND SEARCH (Case File) ──
+function adminOpenCfLandSearch() {
+  const c = _adminComplaints.find(x => x.id === _adminCfComplaintId) || allComplaints.find(x => x.id === _adminCfComplaintId);
+  if (c) {
+    document.getElementById('adminLsDistrict').value = c.land_district || c.district_name || '';
+    document.getElementById('adminLsMandal').value   = c.land_mandal   || c.mandal_name   || '';
+    document.getElementById('adminLsVillage').value  = c.land_village  || '';
+    document.getElementById('adminLsSurvey').value   = c.land_survey_no || '';
+    document.getElementById('adminLsKhata').value    = c.khata_no       || '';
+  }
+  document.getElementById('adminLsResult').style.display = 'none';
+  document.getElementById('adminLsResult').innerHTML = '';
+  document.getElementById('adminCfLandModal').classList.add('open');
+}
+
+async function adminSearchLandRecords() {
+  const btn      = document.getElementById('adminLsSearchBtn');
+  const res      = document.getElementById('adminLsResult');
+  const district = document.getElementById('adminLsDistrict').value.trim();
+  const mandal   = document.getElementById('adminLsMandal').value.trim();
+  const village  = document.getElementById('adminLsVillage').value.trim();
+  const survey   = document.getElementById('adminLsSurvey').value.trim();
+  const khata    = document.getElementById('adminLsKhata').value.trim();
+
+  if (!district && !survey && !khata) {
+    res.style.display = 'block';
+    res.innerHTML = `<div style="padding:0.9rem 1rem;font-size:0.78rem;color:#b91c1c;">⚠️ Please enter at least District and Survey No. or Khata No.</div>`;
+    return;
+  }
+
+  btn.textContent = '⏳ Searching...';
+  btn.disabled = true;
+  res.style.display = 'none';
+
+  try {
+    const params = new URLSearchParams({ district, mandal, village, survey_no: survey, khata_no: khata });
+    const token  = localStorage.getItem('hydraa_token') || localStorage.getItem('hydraa_official_token');
+    const resp   = await fetch(`/api/land/search?${params}`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const json   = await resp.json();
+
+    if (!json.success) {
+      res.innerHTML = `<div style="padding:0.9rem 1rem;font-size:0.78rem;color:#b91c1c;">❌ ${json.message || 'Search failed.'}</div>`;
+      res.style.display = 'block';
+      return;
+    }
+
+    const badge = document.getElementById('adminLandApiBadge');
+    badge.textContent = json.demo ? '⚠️ Demo Mode' : '✅ Live Data';
+    badge.style.background = json.demo ? 'rgba(255,165,0,0.3)' : 'rgba(16,185,129,0.3)';
+
+    if (!json.data) {
+      res.innerHTML = `<div style="padding:0.9rem 1rem;font-size:0.78rem;color:#64748b;">🔍 No land record found for the given details.</div>`;
+      res.style.display = 'block';
+      return;
+    }
+
+    const d = json.data;
+    window._lastLandRecord = d;
+
+    const alerts = [];
+    if (d.isProhibited)    alerts.push({ level:'red',    icon:'🚫', text:`Prohibited Property — ${d.prohibitionReason||'Cannot be transferred or registered'}` });
+    if (d.courtAttachment) alerts.push({ level:'red',    icon:'⚖️', text:`Court Attachment Active${d.courtCaseNo?' · Case: '+d.courtCaseNo:''} — Do not process` });
+    if (d.pendingMutation) alerts.push({ level:'orange', icon:'⏳', text:'Ownership Mutation Pending — Disputed transfer in progress' });
+    if (d.encumbrance)     alerts.push({ level:'orange', icon:'🏦', text:`Encumbrance Registered${d.encumbranceDetails?' · '+d.encumbranceDetails:''} — Loan/mortgage exists` });
+    const govtTypes = ['Poramboke','Assigned Land','Government','Endowment','Inam'];
+    if (govtTypes.some(t => (d.landClassification||'').includes(t)))
+      alerts.push({ level:'red', icon:'🏛️', text:`Government Land — Classification: ${d.landClassification}. Private claim is invalid.` });
+
+    const alertsHtml = alerts.map(a => {
+      const bg  = a.level==='red' ? '#fef2f2' : '#fff7ed';
+      const bdr = a.level==='red' ? '#fca5a5' : '#fed7aa';
+      const clr = a.level==='red' ? '#991b1b' : '#92400e';
+      return `<div style="background:${bg};border:1.5px solid ${bdr};border-radius:8px;padding:0.55rem 0.8rem;font-size:0.75rem;font-weight:700;color:${clr};display:flex;gap:0.4rem;align-items:flex-start;"><span>${a.icon}</span><span>${a.text}</span></div>`;
+    }).join('');
+
+    const clearBadge = alerts.length === 0
+      ? `<div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:0.55rem 0.8rem;font-size:0.75rem;font-weight:700;color:#166534;display:flex;gap:0.4rem;"><span>✅</span><span>No Issues Found — Private land, clear title</span></div>` : '';
+
+    res.innerHTML = `
+      <div style="padding:0.9rem 1rem;display:flex;flex-direction:column;gap:0.65rem;">
+        ${json.demo ? `<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:0.5rem 0.75rem;font-size:0.7rem;color:#92400e;font-weight:600;">⚠️ Demo Mode — Add <code>DHARANI_API_KEY</code> to Railway env vars for live records</div>` : ''}
+        ${alertsHtml}${clearBadge}
+        <div style="border:1.5px solid rgba(0,151,167,0.18);border-radius:10px;overflow:hidden">
+          <div style="background:rgba(0,151,167,0.06);padding:0.55rem 0.85rem;font-size:0.72rem;font-weight:800;color:#006978;border-bottom:1px solid rgba(0,151,167,0.1)">📄 Bhu Bharathi Land Record</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr">
+            ${adminLsRow('Pattadar / Owner', d.pattadarName)}
+            ${adminLsRow('Father / Husband', d.fatherName)}
+            ${adminLsRow('Passbook No.',     d.passbook)}
+            ${adminLsRow('Pattadar Phone',   d.pattadarPhone)}
+            ${adminLsRow('District',         d.district)}
+            ${adminLsRow('Mandal',           d.mandal)}
+            ${adminLsRow('Village',          d.village)}
+            ${adminLsRow('Survey No.',       d.surveyNo)}
+            ${adminLsRow('Khata No.',        d.khataNo)}
+            ${adminLsRow('Area',             d.area)}
+            ${adminLsRow('Land Type',        d.landType)}
+            ${adminLsRow('Classification',   d.landClassification)}
+            ${adminLsRow('Mutation Status',  d.mutationStatus)}
+            ${adminLsRow('Last Mutation',    d.lastMutation)}
+          </div>
+        </div>
+        <button onclick="document.getElementById('adminCfLandModal').classList.remove('open');adminSwitchCfTab('landdata');" style="background:linear-gradient(135deg,#0b2040,#006978);color:#fff;border:none;border-radius:8px;padding:0.55rem 1.2rem;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit">✅ Save & View in Land Data Tab</button>
+      </div>`;
+    res.style.display = 'block';
+  } catch(e) {
+    res.innerHTML = `<div style="padding:0.9rem 1rem;font-size:0.78rem;color:#b91c1c;">❌ Server error: ${e.message}</div>`;
+    res.style.display = 'block';
+  } finally {
+    btn.textContent = '🔍 Search Land Records';
+    btn.disabled = false;
+  }
+}
+
+function adminLsRow(label, val, full) {
+  if (!val) return '';
+  return `<div style="padding:0.45rem 0.85rem;border-bottom:1px solid rgba(0,151,167,0.07);${full?'grid-column:1/-1':''}">
+    <div style="font-size:0.58rem;color:#7a9baf;font-weight:700;text-transform:uppercase;letter-spacing:0.04em">${label}</div>
+    <div style="font-size:0.82rem;font-weight:700;color:#0d2137;margin-top:1px">${val}</div>
+  </div>`;
+}
+
+function adminLoadCfLandData() {
+  const el = document.getElementById('adminCfLandDataContent');
+  const c  = _adminComplaints.find(x => x.id === _adminCfComplaintId) || allComplaints.find(x => x.id === _adminCfComplaintId);
+  const d  = window._lastLandRecord;
+
+  const hasComplaintLandInfo = c && (c.land_survey_no || c.khata_no || c.land_district || c.land_village);
+
+  let complaintInfoHtml = '';
+  if (hasComplaintLandInfo) {
+    complaintInfoHtml = `
+      <div style="border:1px solid rgba(0,151,167,0.2);border-radius:10px;overflow:hidden;margin-bottom:1rem">
+        <div style="background:rgba(0,151,167,0.07);padding:0.5rem 0.85rem;font-size:0.72rem;font-weight:800;color:#006978;border-bottom:1px solid rgba(0,151,167,0.1)">📋 Land Details from Complaint</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr">
+          ${adminLsRow('District',    c.land_district || c.district_name)}
+          ${adminLsRow('Mandal',      c.land_mandal   || c.mandal_name)}
+          ${adminLsRow('Village',     c.land_village)}
+          ${adminLsRow('Survey No.',  c.land_survey_no)}
+          ${adminLsRow('Khata No.',   c.khata_no)}
+          ${adminLsRow('Land Address', c.land_address, true)}
+        </div>
+      </div>`;
+  }
+
+  if (!d) {
+    el.innerHTML = `${complaintInfoHtml}
+      <div style="text-align:center;padding:2rem 1rem;background:#f8fcfd;border:1.5px dashed rgba(0,151,167,0.25);border-radius:10px">
+        <div style="font-size:1.8rem;margin-bottom:0.5rem">🏛️</div>
+        <div style="font-size:0.85rem;font-weight:700;color:var(--navy);margin-bottom:0.3rem">No land record searched yet</div>
+        <div style="font-size:0.78rem;color:var(--text-3);margin-bottom:1rem">Click "Search / Refresh" above to fetch Bhu Bharathi records</div>
+        <button onclick="adminOpenCfLandSearch()" style="background:linear-gradient(135deg,#006978,#0097a7);color:#fff;border:none;border-radius:8px;padding:0.55rem 1.3rem;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit">🔍 Search Land Records</button>
+      </div>`;
+    return;
+  }
+
+  const alerts = [];
+  if (d.isProhibited)    alerts.push({ level:'red',    icon:'🚫', text:`Prohibited Property — ${d.prohibitionReason||'Cannot be transferred or registered'}` });
+  if (d.courtAttachment) alerts.push({ level:'red',    icon:'⚖️', text:`Court Attachment Active${d.courtCaseNo?' · Case: '+d.courtCaseNo:''} — Do not process` });
+  if (d.pendingMutation) alerts.push({ level:'orange', icon:'⏳', text:'Ownership Mutation Pending — Disputed transfer in progress' });
+  if (d.encumbrance)     alerts.push({ level:'orange', icon:'🏦', text:`Encumbrance Registered${d.encumbranceDetails?' · '+d.encumbranceDetails:''} — Loan/mortgage exists` });
+  const govtTypes = ['Poramboke','Assigned Land','Government','Endowment','Inam'];
+  if (govtTypes.some(t => (d.landClassification||'').includes(t)))
+    alerts.push({ level:'red', icon:'🏛️', text:`Government Land — Classification: ${d.landClassification}` });
+
+  const alertsHtml = alerts.map(a => {
+    const bg  = a.level==='red' ? '#fef2f2' : '#fff7ed';
+    const bdr = a.level==='red' ? '#fca5a5' : '#fed7aa';
+    const clr = a.level==='red' ? '#991b1b' : '#92400e';
+    return `<div style="background:${bg};border:1.5px solid ${bdr};border-radius:8px;padding:0.55rem 0.8rem;font-size:0.75rem;font-weight:700;color:${clr};display:flex;gap:0.4rem;margin-bottom:0.5rem"><span>${a.icon}</span><span>${a.text}</span></div>`;
+  }).join('');
+
+  const clearBadge = alerts.length === 0
+    ? `<div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:0.55rem 0.8rem;font-size:0.75rem;font-weight:700;color:#166534;display:flex;gap:0.4rem;margin-bottom:0.5rem"><span>✅</span><span>No Issues Found — Private land, clear title</span></div>` : '';
+
+  el.innerHTML = `
+    ${complaintInfoHtml}
+    ${alertsHtml}${clearBadge}
+    <div style="border:1.5px solid rgba(0,151,167,0.18);border-radius:10px;overflow:hidden;margin-bottom:1rem">
+      <div style="background:rgba(0,151,167,0.06);padding:0.55rem 0.85rem;font-size:0.72rem;font-weight:800;color:#006978;border-bottom:1px solid rgba(0,151,167,0.1)">📄 Bhu Bharathi Land Record</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr">
+        ${adminLsRow('Pattadar / Owner',  d.pattadarName)}
+        ${adminLsRow('Father / Husband',  d.fatherName)}
+        ${adminLsRow('Passbook No.',      d.passbook)}
+        ${adminLsRow('Pattadar Phone',    d.pattadarPhone)}
+        ${adminLsRow('District',          d.district)}
+        ${adminLsRow('Mandal',            d.mandal)}
+        ${adminLsRow('Village',           d.village)}
+        ${adminLsRow('Survey No.',        d.surveyNo)}
+        ${adminLsRow('Khata No.',         d.khataNo)}
+        ${adminLsRow('Area',              d.area)}
+        ${adminLsRow('Land Type',         d.landType)}
+        ${adminLsRow('Classification',    d.landClassification)}
+        ${adminLsRow('Mutation Status',   d.mutationStatus)}
+        ${adminLsRow('Last Mutation',     d.lastMutation)}
+      </div>
+    </div>
+    <div style="padding-top:0.5rem;border-top:1px solid var(--border)">
+      <button onclick="downloadAdminLandDataPdf()" style="background:linear-gradient(135deg,#0b2040,#006978);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">⬇ Download Records as PDF</button>
+    </div>`;
+}
+
+function downloadAdminLandDataPdf() {
+  const d = window._lastLandRecord;
+  const c = _adminComplaints.find(x => x.id === _adminCfComplaintId) || allComplaints.find(x => x.id === _adminCfComplaintId);
+  if (!d && !c) { alert('No land data to download. Please search first.'); return; }
+  const complaintNo = c ? c.complaint_no : '';
+  const printArea = document.getElementById('adminLandPrintArea') || (() => {
+    const el = document.createElement('div');
+    el.id = 'adminLandPrintArea';
+    el.style.cssText = 'display:none;position:fixed;inset:0;z-index:99999;background:#fff;overflow:auto;padding:20px';
+    document.body.appendChild(el);
+    return el;
+  })();
+  const rows = [];
+  if (c) {
+    if (c.land_district || c.district_name) rows.push(['District (Complaint)', c.land_district || c.district_name]);
+    if (c.land_mandal || c.mandal_name)     rows.push(['Mandal (Complaint)',   c.land_mandal   || c.mandal_name]);
+    if (c.land_village)   rows.push(['Village',    c.land_village]);
+    if (c.land_survey_no) rows.push(['Survey No.', c.land_survey_no]);
+    if (c.khata_no)       rows.push(['Khata No.',  c.khata_no]);
+  }
+  if (d) {
+    rows.push(
+      ['Pattadar / Owner',  d.pattadarName],
+      ['Father / Husband',  d.fatherName],
+      ['Passbook No.',      d.passbook],
+      ['Pattadar Phone',    d.pattadarPhone],
+      ['Survey No.',        d.surveyNo],
+      ['Khata No.',         d.khataNo],
+      ['Area',              d.area],
+      ['Land Type',         d.landType],
+      ['Classification',    d.landClassification],
+      ['Mutation Status',   d.mutationStatus],
+      ['Last Mutation',     d.lastMutation],
+      ['Prohibited',        d.isProhibited ? ('Yes — '+(d.prohibitionReason||'')) : 'No'],
+      ['Court Attachment',  d.courtAttachment ? ('Yes — Case: '+(d.courtCaseNo||'')) : 'No'],
+      ['Pending Mutation',  d.pendingMutation ? 'Yes' : 'No'],
+      ['Encumbrance',       d.encumbrance ? ('Yes — '+(d.encumbranceDetails||'')) : 'No'],
+    );
+  }
+  printArea.innerHTML = `
+    <div style="font-family:sans-serif;max-width:700px;margin:0 auto;padding:20px">
+      <div style="display:flex;align-items:center;gap:12px;border-bottom:3px solid #0097a7;padding-bottom:12px;margin-bottom:16px">
+        <div>
+          <div style="font-size:18px;font-weight:800;color:#0b1f3a">HYDRAA — Bhu Bharathi Land Record</div>
+          <div style="font-size:11px;color:#64748b">Complaint: ${complaintNo} &nbsp;|&nbsp; Printed: ${new Date().toLocaleString('en-IN')}</div>
+          <div style="font-size:10px;color:#94a3b8">Source: Bhu Bharathi Land Records Portal, Government of Telangana</div>
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        ${rows.filter(r=>r[1]).map(([l,v])=>`
+          <tr>
+            <td style="padding:6px 10px;font-weight:700;color:#64748b;background:#f8fafc;width:38%;border:1px solid #e2e8f0">${l}</td>
+            <td style="padding:6px 10px;color:#0d2137;border:1px solid #e2e8f0">${v}</td>
+          </tr>`).join('')}
+      </table>
+    </div>`;
+  printArea.style.display = 'block';
+  window.print();
+  printArea.style.display = 'none';
 }
 
 const _adminStatusLabelMap = { open:'Open', assigned:'Assigned to Official', in_progress:'In Progress', resolved:'Resolved', closed:'Closed', rejected:'Rejected' };
