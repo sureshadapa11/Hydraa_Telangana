@@ -3,7 +3,7 @@
 //   Cache static assets, network-first for API
 // =====================================================
 
-const CACHE_NAME   = 'hydraa-v5';
+const CACHE_NAME   = 'hydraa-v6';
 const OFFLINE_URL  = '/offline.html';
 
 // Only cache non-HTML static assets — HTML is always fetched fresh from network
@@ -64,13 +64,10 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // HTML pages — Network first so deployments show immediately on normal refresh
-  // Falls back to cache only when truly offline
+  // HTML pages — Always fetch fresh from network, never serve from cache
   if (request.destination === 'document') {
     event.respondWith(
-      fetch(request).then(response => {
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
+      fetch(request, { cache: 'no-store' }).then(response => {
         return response;
       }).catch(() =>
         caches.match(request).then(cached => cached || caches.match(OFFLINE_URL))
