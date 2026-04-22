@@ -646,74 +646,20 @@
   </div>
 </div>
 
-<div id="updateModal" class="modal">
-  <div class="modal-box">
+<!-- LAND SEARCH MODAL -->
+<div id="cfLandModal" class="modal">
+  <div class="modal-box" style="max-width:560px">
     <div class="modal-hdr">
-      <div class="mh-icon">🔄</div>
-      <div><div class="mh-title">Update Complaint Status</div><div class="mh-sub">Record the action taken in the field</div></div>
-    </div>
-    <div class="modal-info" id="modalInfo"></div>
-    <div id="modalMapLink" style="display:none;padding:0.5rem 1.5rem;background:rgba(21,101,192,0.06);border-bottom:1px solid var(--border);">
-      <a id="modalMapAnchor" href="#" target="_blank"
-         style="display:inline-flex;align-items:center;gap:0.45rem;font-size:0.82rem;font-weight:700;color:#1565c0;text-decoration:none;">
-        🗺️ Open Site Location in Google Maps ↗
-      </a>
-      <span style="font-size:0.72rem;color:var(--text-3);margin-left:0.6rem;">GPS pin from citizen</span>
+      <div class="mh-icon" style="background:rgba(0,105,120,0.12)">🏛️</div>
+      <div><div class="mh-title">Bhu Bharathi Land Records</div><div class="mh-sub">Search land ownership and legal status</div></div>
+      <button onclick="document.getElementById('cfLandModal').classList.remove('open')" style="margin-left:auto;background:transparent;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-2)">✕</button>
     </div>
     <div class="modal-body">
-      <input type="hidden" id="updateId"/>
-      <div class="m-field">
-        <label class="m-label">Update Status <span>*</span></label>
-        <select id="updateStatus" class="m-select">
-          <option value="in_progress">🔄 In Progress — Work started</option>
-          <option value="resolved">✅ Resolved — Issue fixed</option>
-          <option value="rejected">❌ Rejected — Cannot be resolved</option>
-          <option value="closed">🔒 Closed</option>
-        </select>
-      </div>
-      <div class="m-field">
-        <label class="m-label">Change Priority (optional)</label>
-        <select id="updatePriority" class="m-select">
-          <option value="">— Keep Current Priority —</option>
-          <option value="low">🟢 Low</option>
-          <option value="medium">🟡 Medium</option>
-          <option value="high">🔴 High</option>
-          <option value="urgent">🚨 Urgent</option>
-        </select>
-      </div>
-      <div class="m-field">
-        <label class="m-label">Remarks / Action Taken <span>*</span></label>
-        <textarea id="updateRemarks" class="m-textarea" placeholder="Describe what action was taken in the field, current situation, evidence collected..."></textarea>
-      </div>
-      <div class="m-field">
-        <label class="m-label">Add Internal Note (optional)</label>
-        <textarea id="updateNote" class="m-textarea" placeholder="Internal note — visible only to admin and officials, not to the citizen..." style="min-height:60px"></textarea>
-      </div>
-
-      <!-- Photo Upload -->
-      <div class="m-field">
-        <label class="m-label">📷 Field Evidence Photos (optional, max 5)</label>
-        <div style="border:2px dashed var(--border);border-radius:var(--radius-sm);padding:0.75rem;background:var(--bg);">
-          <input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handlePhotoSelect(event)"/>
-          <button type="button" onclick="document.getElementById('photoInput').click()" style="width:100%;padding:0.5rem;background:none;border:none;color:var(--teal);font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;">
-            📁 Select Photos
-          </button>
-          <div id="photoPreview" style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.5rem;"></div>
-          <div id="photoMsg" style="font-size:0.72rem;color:#64748b;margin-top:0.3rem;"></div>
-        </div>
-      </div>
-
-      <div id="updateMsg" class="m-msg"></div>
-
-      <!-- Land Records Native Search — always visible -->
-      <div style="margin-top:1rem;border:1.5px solid rgba(0,151,167,0.25);border-radius:12px;overflow:hidden;">
-        <!-- Header -->
+      <div style="border:1.5px solid rgba(0,151,167,0.25);border-radius:12px;overflow:hidden;">
         <div style="background:linear-gradient(135deg,#006978,#0097a7);padding:0.75rem 1rem;display:flex;align-items:center;justify-content:space-between;">
           <span style="font-size:0.82rem;font-weight:800;color:#fff;">🏛️ Bhu Bharathi Land Records</span>
           <span id="landApiBadge" style="font-size:0.65rem;background:rgba(255,255,255,0.18);color:#fff;padding:0.2rem 0.55rem;border-radius:20px;font-weight:700;">⏳ Demo Mode</span>
         </div>
-
-        <!-- Search form -->
         <div style="padding:0.9rem 1rem;background:#f8fcfd;">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
             <div>
@@ -737,20 +683,12 @@
               <input id="lsKhata" class="m-select" style="width:100%;font-size:0.82rem;" placeholder="e.g. 345"/>
             </div>
           </div>
-          <button onclick="searchLandRecords()" id="lsSearchBtn"
-            style="width:100%;padding:0.65rem;background:linear-gradient(135deg,#006978,#0097a7);color:#fff;border:none;border-radius:8px;font-size:0.85rem;font-weight:800;cursor:pointer;font-family:inherit;margin-top:0.25rem;">
+          <button onclick="searchLandRecords()" id="lsSearchBtn" style="width:100%;padding:0.65rem;background:linear-gradient(135deg,#006978,#0097a7);color:#fff;border:none;border-radius:8px;font-size:0.85rem;font-weight:800;cursor:pointer;font-family:inherit;margin-top:0.25rem;">
             🔍 Search Land Records
           </button>
         </div>
-
-        <!-- Results area -->
         <div id="lsResult" style="display:none;border-top:1px solid rgba(0,151,167,0.15);"></div>
       </div>
-    </div>
-    <div class="modal-ftr">
-      <button class="mb-ok" onclick="doUpdate()">✅ Save Update</button>
-      <button class="mb-cancel" onclick="closeUpdate()">Cancel</button>
-      <button class="mb-cancel" onclick="openReassignRequest()" style="margin-left:auto;color:#f59e0b;border-color:rgba(245,158,11,0.35);" title="Ask admin to reassign this complaint">🔄 Request Reassign</button>
     </div>
   </div>
 </div>
@@ -1079,7 +1017,7 @@ function updateDashboard() {
          <td>${pb(x.priority)}</td>
          <td>${sb(x.status)}</td>
          <td style="white-space:nowrap">${formatDate(x.created_at)}</td>
-         <td style="white-space:nowrap;display:flex;gap:0.3rem;align-items:center">${(x.status!=='resolved'&&x.status!=='closed') ? `<button class="upd-btn" onclick="openUpdate(${x.id})">✏️ Update</button>` : '<span class="done-tag">✅ Done</span>'}<button class="upd-btn" style="background:rgba(139,92,246,0.1);color:#8b5cf6;border-color:rgba(139,92,246,0.2)" onclick="openTimeline('${x.complaint_no}')">📋</button><button class="upd-btn" style="background:rgba(0,151,167,0.1);color:#006978;border-color:rgba(0,151,167,0.25)" onclick="openCaseFile(${x.id},'${(x.complaint_no||'').replace(/'/g,'')}')">🗂 Case File</button></td>
+         <td style="white-space:nowrap;display:flex;gap:0.3rem;align-items:center">${(x.latitude&&x.longitude)?`<button class="upd-btn" style="background:rgba(21,101,192,0.1);color:#1565c0;border-color:rgba(21,101,192,0.25)" onclick="window.open('https://maps.google.com/?q=${x.latitude},${x.longitude}','_blank')" title="View site location">📍</button>`:''}<button class="upd-btn" style="background:rgba(0,151,167,0.1);color:#006978;border-color:rgba(0,151,167,0.25)" onclick="openCaseFile(${x.id})">🗂 Case File</button><button class="upd-btn" style="background:rgba(245,158,11,0.1);color:#b45309;border-color:rgba(245,158,11,0.25)" onclick="openCfReassign(${x.id})">🔄 Reassign</button></td>
        </tr>`).join('')}
        </tbody></table></div>`;
 }
@@ -1092,7 +1030,7 @@ function taskItem(x) {
       <div class="task-title">${x.title}</div>
       <div class="task-meta">${x.category_name||'—'} · ${x.user_name}</div>
     </div>
-    <button class="task-btn" onclick="openUpdate(${x.id})">Update</button>
+    <button class="task-btn" onclick="openCaseFile(${x.id})">🗂 Case File</button>
   </div>`;
 }
 
@@ -1149,50 +1087,17 @@ function filterComplaints() {
          <td>${pb(c.priority)}</td>
          <td>${sb(c.status)}</td>
          <td style="white-space:nowrap">${formatDate(c.created_at)}</td>
-         <td style="white-space:nowrap;display:flex;gap:0.3rem;align-items:center">${(c.status!=='resolved'&&c.status!=='closed') ? `<button class="upd-btn" onclick="openUpdate(${c.id})">✏️ Update</button>` : '<span class="done-tag">✅ Done</span>'}<button class="upd-btn" style="background:rgba(139,92,246,0.1);color:#8b5cf6;border-color:rgba(139,92,246,0.2)" onclick="openTimeline('${c.complaint_no}')">📋</button><button class="upd-btn" style="background:rgba(0,151,167,0.1);color:#006978;border-color:rgba(0,151,167,0.25)" onclick="openCaseFile(${c.id},'${(c.complaint_no||'').replace(/'/g,'')}')">🗂 Case File</button></td>
+         <td style="white-space:nowrap;display:flex;gap:0.3rem;align-items:center">${(c.latitude&&c.longitude)?`<button class="upd-btn" style="background:rgba(21,101,192,0.1);color:#1565c0;border-color:rgba(21,101,192,0.25)" onclick="window.open('https://maps.google.com/?q=${c.latitude},${c.longitude}','_blank')" title="View site location">📍</button>`:''}<button class="upd-btn" style="background:rgba(0,151,167,0.1);color:#006978;border-color:rgba(0,151,167,0.25)" onclick="openCaseFile(${c.id})">🗂 Case File</button><button class="upd-btn" style="background:rgba(245,158,11,0.1);color:#b45309;border-color:rgba(245,158,11,0.25)" onclick="openCfReassign(${c.id})">🔄 Reassign</button></td>
        </tr>`).join('')}
        </tbody></table></div>`;
   updateDailySummary();
 }
 
-// ═══ MODAL ═══
-function openUpdate(id) {
-  const c = allComplaints.find(x => x.id === id);
-  if (!c) return;
-  document.getElementById('updateId').value = id;
-  document.getElementById('updateRemarks').value = c.official_remarks || '';
-  document.getElementById('updateStatus').value = c.status === 'assigned' ? 'in_progress' : (c.status === 'in_progress' ? 'resolved' : 'in_progress');
-  document.getElementById('updatePriority').value = '';
-  document.getElementById('updateNote').value = c.internal_notes || '';
-  document.getElementById('updateMsg').className = 'm-msg';
-  document.getElementById('modalInfo').innerHTML = `<strong>${c.complaint_no}</strong> — ${c.title}<br><span style="color:var(--text-3);font-size:0.75rem">Citizen: ${c.user_name}${c.user_phone?' · '+c.user_phone:''} · ${c.category_name||'N/A'}</span>`;
-
-  // Google Maps link — show only if GPS coordinates were captured by citizen
-  const mapLink = document.getElementById('modalMapLink');
-  if (c.latitude && c.longitude) {
-    document.getElementById('modalMapAnchor').href =
-      `https://www.google.com/maps?q=${c.latitude},${c.longitude}`;
-    mapLink.style.display = 'block';
-  } else {
-    mapLink.style.display = 'none';
-  }
-
-  // Pre-fill land search form from complaint data
-  populateLandSearch(c);
-  _currentComplaintId = c.id;
-  window._currentComplaintNo = c.complaint_no || '';
-  _pendingPhotos = [];
-  document.getElementById('photoPreview').innerHTML = '';
-  document.getElementById('photoMsg').textContent = '';
-
-  document.getElementById('updateModal').classList.add('open');
-}
-function closeUpdate() {
-  document.getElementById('updateModal').classList.remove('open');
-  document.getElementById('photoPreview').innerHTML = '';
-  document.getElementById('photoMsg').textContent = '';
-  document.getElementById('photoInput').value = '';
-  _pendingPhotos = [];
+// ═══ LAND SEARCH (opened from Case File header) ═══
+function openCfLandSearch() {
+  const c = allComplaints.find(x => x.id === _cfComplaintId);
+  if (c) populateLandSearch(c);
+  document.getElementById('cfLandModal').classList.add('open');
 }
 
 // ── Timeline ─────────────────────────────────────────
@@ -1344,7 +1249,7 @@ async function searchLandRecords() {
 
   try {
     const params = new URLSearchParams({ district, mandal, village, survey_no: survey, khata_no: khata });
-    const token = localStorage.getItem('hydraa_token');
+    const token = localStorage.getItem('hydraa_official_token') || localStorage.getItem('hydraa_token');
     const resp = await fetch(`/api/land/search?${params}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -1502,7 +1407,7 @@ function printLandRecord() {
 async function saveLandRecordToNotes() {
   const d = window._lastLandRecord;
   if (!d) return;
-  const complaintId = document.getElementById('updateId')?.value;
+  const complaintId = _cfComplaintId;
   if (!complaintId) return;
   const btn = document.getElementById('saveNotesBtn');
   btn.disabled = true;
@@ -1529,7 +1434,7 @@ async function saveLandRecordToNotes() {
   ].join('\n');
 
   try {
-    const token = localStorage.getItem('hydraa_token');
+    const token = localStorage.getItem('hydraa_official_token') || localStorage.getItem('hydraa_token');
     const res = await fetch(`/api/complaints/${complaintId}/comments`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -1548,40 +1453,9 @@ async function saveLandRecordToNotes() {
     btn.disabled = false;
   }
 }
-document.getElementById('updateModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeUpdate(); });
-
-async function doUpdate() {
-  const id       = document.getElementById('updateId').value;
-  const status   = document.getElementById('updateStatus').value;
-  const remarks  = document.getElementById('updateRemarks').value.trim();
-  const priority = document.getElementById('updatePriority').value;
-  const note     = document.getElementById('updateNote').value.trim();
-  const msg = document.getElementById('updateMsg');
-  if (!remarks) { msg.textContent='Please add remarks about the action taken.'; msg.className='m-msg err'; return; }
-  try {
-    // Upload photos FIRST so they are in DB when the status update email is sent
-    if (_pendingPhotos.length > 0) {
-      msg.textContent='Uploading photos...'; msg.className='m-msg';
-      await uploadPendingPhotos(id);
-    }
-    const body = {status, remarks};
-    if (priority) body.priority = priority;
-    if (note) body.internal_notes = note;
-    const res = await http.put('/api/complaints/official/resolve/'+id, body);
-    if (res.success) {
-      // Post internal note as comment if provided
-      if (note) {
-        await http.post('/api/complaints/'+id+'/comments', {message: note, is_internal: 1}).catch(()=>{});
-      }
-      msg.textContent='Complaint updated successfully!'; msg.className='m-msg ok';
-      setTimeout(() => { closeUpdate(); loadComplaints(); }, 1400);
-    } else { msg.textContent=res.message; msg.className='m-msg err'; }
-  } catch(e) { msg.textContent='Server error. Try again.'; msg.className='m-msg err'; }
-}
-
 // ═══ REASSIGNMENT REQUEST ═══
-function openReassignRequest() {
-  const id = parseInt(document.getElementById('updateId').value);
+function openCfReassign(id) {
+  _cfComplaintId = id;
   const c = allComplaints.find(x => x.id === id);
   if (!c) return;
   document.getElementById('rrInfo').innerHTML = `<strong>${c.complaint_no}</strong> — ${c.title}`;
@@ -1592,7 +1466,7 @@ function openReassignRequest() {
 }
 
 async function submitReassignRequest() {
-  const id = parseInt(document.getElementById('updateId').value);
+  const id = _cfComplaintId;
   const reason = document.getElementById('rrReason').value.trim();
   const msgEl = document.getElementById('rrMsg');
   if (!reason) { msgEl.textContent = 'Please provide a reason.'; msgEl.style.color = 'var(--red)'; return; }
@@ -1601,7 +1475,7 @@ async function submitReassignRequest() {
     if (res.success) {
       msgEl.textContent = '✅ Request submitted. Admin will review and reassign.';
       msgEl.style.color = 'var(--green)';
-      setTimeout(() => { document.getElementById('reassignReqModal').classList.remove('open'); closeUpdate(); }, 2000);
+      setTimeout(() => { document.getElementById('reassignReqModal').classList.remove('open'); }, 2000);
     } else { msgEl.textContent = res.message; msgEl.style.color = 'var(--red)'; }
   } catch(e) { msgEl.textContent = 'Server error.'; msgEl.style.color = 'var(--red)'; }
 }
@@ -1636,7 +1510,10 @@ document.addEventListener('DOMContentLoaded',function(){
       <div class="mh-icon" style="background:rgba(0,188,212,0.2)">🗂</div>
       <div>
         <div class="mh-title" style="color:#fff">Case File</div>
-        <div class="mh-sub" style="color:rgba(0,188,212,0.8)" id="cfComplaintNo">—</div>
+        <div style="display:flex;align-items:center;gap:0.7rem;margin-top:4px">
+          <div id="cfComplaintNo" style="font-size:0.75rem;color:#4dd6e8;font-weight:600"></div>
+          <button onclick="openCfLandSearch()" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:6px;padding:2px 10px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit">🔍 Land Search</button>
+        </div>
       </div>
       <button onclick="closeCaseFile()" style="margin-left:auto;background:rgba(255,255,255,0.12);border:none;color:#fff;border-radius:8px;padding:0.4rem 0.9rem;cursor:pointer;font-size:0.82rem;font-family:inherit;font-weight:600">✕ Close</button>
     </div>
@@ -1655,49 +1532,88 @@ document.addEventListener('DOMContentLoaded',function(){
 
       <!-- ── SITE VISIT TAB ── -->
       <div id="cfv-visit">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem">
-          <div style="font-size:0.82rem;font-weight:700;color:var(--navy)">🏕 Site Visit Reports</div>
-          <button id="svToggleBtn" onclick="toggleSvForm()" style="background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:8px;padding:0.4rem 1rem;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit">+ Log New Visit</button>
-        </div>
 
-        <!-- New visit form (hidden by default) -->
-        <div id="svFormBox" style="display:none;background:var(--bg);border:1.5px solid rgba(0,151,167,0.2);border-radius:10px;padding:1rem;margin-bottom:1rem">
-          <div style="font-size:0.78rem;font-weight:700;color:var(--teal);margin-bottom:0.7rem">📋 Log New Site Visit</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem">
+        <!-- A: Update Complaint Status -->
+        <div style="border:1.5px solid rgba(0,151,167,0.25);border-radius:10px;padding:1rem;margin-bottom:1.1rem;background:rgba(0,151,167,0.02)">
+          <div style="font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:0.7rem">🔄 Update Complaint</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;margin-bottom:0.6rem">
             <div>
-              <label style="font-size:0.73rem;font-weight:700;color:var(--text);display:block;margin-bottom:0.3rem">Visit Date <span style="color:#e53935">*</span></label>
-              <input type="date" id="sv_date" class="m-select" style="width:100%"/>
+              <label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem">Status <span style="color:#e53935">*</span></label>
+              <select id="cf_updateStatus" class="m-select" style="width:100%">
+                <option value="in_progress">🔄 In Progress</option>
+                <option value="resolved">✅ Resolved</option>
+                <option value="rejected">❌ Rejected</option>
+                <option value="closed">🔒 Closed</option>
+              </select>
             </div>
             <div>
-              <label style="font-size:0.73rem;font-weight:700;color:var(--text);display:block;margin-bottom:0.3rem">Visit Time</label>
-              <input type="time" id="sv_time" class="m-select" style="width:100%"/>
-            </div>
-            <div>
-              <label style="font-size:0.73rem;font-weight:700;color:var(--text);display:block;margin-bottom:0.3rem">Encroachment Area</label>
-              <input type="text" id="sv_area" class="m-select" style="width:100%" placeholder="e.g. 200 sq yards"/>
-            </div>
-            <div>
-              <label style="font-size:0.73rem;font-weight:700;color:var(--text);display:block;margin-bottom:0.3rem">Construction Type</label>
-              <input type="text" id="sv_construction" class="m-select" style="width:100%" placeholder="e.g. Concrete compound wall"/>
+              <label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem">Priority <span style="font-weight:400;color:var(--text-3)">(optional)</span></label>
+              <select id="cf_updatePriority" class="m-select" style="width:100%">
+                <option value="">— Keep Current —</option>
+                <option value="low">🟢 Low</option>
+                <option value="medium">🟡 Medium</option>
+                <option value="high">🔴 High</option>
+                <option value="urgent">🚨 Urgent</option>
+              </select>
             </div>
             <div style="grid-column:1/-1">
-              <label style="font-size:0.73rem;font-weight:700;color:var(--text);display:block;margin-bottom:0.3rem">Current Status of Land/Property</label>
-              <input type="text" id="sv_status" class="m-select" style="width:100%" placeholder="e.g. Under active construction, Fenced off..."/>
-            </div>
-            <div style="grid-column:1/-1">
-              <label style="font-size:0.73rem;font-weight:700;color:var(--text);display:block;margin-bottom:0.3rem">Detailed Findings</label>
-              <textarea id="sv_findings" class="m-textarea" rows="3" placeholder="Describe what you observed on site: extent of encroachment, type of activity, number of persons present, evidence collected..."></textarea>
+              <label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem">Remarks / Action Taken <span style="color:#e53935">*</span> <span style="font-weight:400;color:var(--text-3)">(sent to citizen in email)</span></label>
+              <textarea id="cf_updateRemarks" class="m-textarea" rows="2" placeholder="Describe action taken, current situation, what was resolved..."></textarea>
             </div>
           </div>
-          <div id="svMsg" style="font-size:0.8rem;margin-top:0.5rem"></div>
-          <div style="display:flex;gap:0.6rem;margin-top:0.8rem">
-            <button onclick="saveSiteVisit()" style="background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:8px;padding:0.6rem 1.3rem;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit">💾 Save Visit</button>
-            <button onclick="toggleSvForm()" style="background:transparent;color:var(--text-2);border:1px solid var(--border);border-radius:8px;padding:0.6rem 1rem;font-size:0.82rem;cursor:pointer;font-family:inherit">Cancel</button>
-          </div>
+          <button onclick="cfDoUpdate()" style="background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:8px;padding:0.6rem 1.4rem;font-size:0.83rem;font-weight:700;cursor:pointer;font-family:inherit">✅ Save Update</button>
+          <div id="cfUpdateMsg" style="font-size:0.8rem;margin-top:0.5rem"></div>
         </div>
 
-        <!-- Past visits list -->
-        <div id="svVisitList"><div style="font-size:0.8rem;color:var(--text-3)">Loading...</div></div>
+        <!-- B: Site Visit Log -->
+        <div style="margin-bottom:1.1rem">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem">
+            <div style="font-size:0.82rem;font-weight:700;color:var(--navy)">🏕 Site Visit Log</div>
+            <button id="svToggleBtn" onclick="toggleSvForm()" style="background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:8px;padding:0.35rem 0.9rem;font-size:0.76rem;font-weight:700;cursor:pointer;font-family:inherit">+ Log New Visit</button>
+          </div>
+          <div id="svFormBox" style="display:none;background:var(--bg);border:1.5px solid rgba(0,151,167,0.2);border-radius:10px;padding:1rem;margin-bottom:0.8rem">
+            <div style="font-size:0.76rem;font-weight:700;color:var(--teal);margin-bottom:0.6rem">📋 New Site Visit</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem">
+              <div>
+                <label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem">Visit Date <span style="color:#e53935">*</span></label>
+                <input type="date" id="sv_date" class="m-select" style="width:100%"/>
+              </div>
+              <div>
+                <label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem">Visit Time</label>
+                <input type="time" id="sv_time" class="m-select" style="width:100%"/>
+              </div>
+              <div>
+                <label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem">Encroachment Area</label>
+                <input type="text" id="sv_area" class="m-select" style="width:100%" placeholder="e.g. 200 sq yards"/>
+              </div>
+              <div>
+                <label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem">Construction Type</label>
+                <input type="text" id="sv_construction" class="m-select" style="width:100%" placeholder="e.g. Concrete compound wall"/>
+              </div>
+              <div style="grid-column:1/-1">
+                <label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem">Current Status of Land/Property</label>
+                <input type="text" id="sv_status" class="m-select" style="width:100%" placeholder="e.g. Under active construction, Fenced off..."/>
+              </div>
+              <div style="grid-column:1/-1">
+                <label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem">Detailed Findings</label>
+                <textarea id="sv_findings" class="m-textarea" rows="3" placeholder="What you observed on site — encroachment extent, activity, persons present, evidence..."></textarea>
+              </div>
+            </div>
+            <div id="svMsg" style="font-size:0.8rem;margin-top:0.5rem"></div>
+            <div style="display:flex;gap:0.6rem;margin-top:0.7rem">
+              <button onclick="saveSiteVisit()" style="background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:8px;padding:0.55rem 1.2rem;font-size:0.81rem;font-weight:700;cursor:pointer;font-family:inherit">💾 Save Visit</button>
+              <button onclick="toggleSvForm()" style="background:transparent;color:var(--text-2);border:1px solid var(--border);border-radius:8px;padding:0.55rem 0.9rem;font-size:0.81rem;cursor:pointer;font-family:inherit">Cancel</button>
+            </div>
+          </div>
+          <div id="svVisitList"><div style="font-size:0.8rem;color:var(--text-3)">Loading...</div></div>
+        </div>
+
+        <!-- C: Status History Timeline -->
+        <div>
+          <div style="font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:0.6rem">📋 Status History</div>
+          <div id="cfStatusHistory"><div style="font-size:0.78rem;color:var(--text-3)">Loading...</div></div>
+        </div>
+
       </div>
 
       <!-- ── ACCUSED TAB ── -->
@@ -1882,9 +1798,17 @@ function closeCaseFile() {
   _cfComplaintId = null;
 }
 
-async function openCaseFile(id, complaint_no) {
+async function openCaseFile(id) {
   _cfComplaintId = id;
-  document.getElementById('cfComplaintNo').textContent = complaint_no;
+  const c = allComplaints.find(x => x.id === id);
+  document.getElementById('cfComplaintNo').textContent = c ? c.complaint_no : '#' + id;
+  // Pre-fill the Update Complaint form with current values
+  if (c) {
+    document.getElementById('cf_updateStatus').value   = c.status === 'assigned' ? 'in_progress' : (c.status === 'in_progress' ? 'resolved' : 'in_progress');
+    document.getElementById('cf_updatePriority').value = c.priority || '';
+    document.getElementById('cf_updateRemarks').value  = '';
+  }
+  document.getElementById('cfUpdateMsg').textContent = '';
   document.getElementById('caseFileModal').classList.add('open');
   switchCfTab('visit');
   loadPoliceStationsForPdf();
@@ -1895,12 +1819,55 @@ function switchCfTab(tab) {
     document.getElementById('cfv-'+t).style.display = t === tab ? 'block' : 'none';
     document.getElementById('cft-'+t).classList.toggle('active', t === tab);
   });
-  if (tab === 'visit')    loadSiteVisit();
+  if (tab === 'visit')    { loadSiteVisit(); loadCfStatusHistory(); }
   if (tab === 'accused')  loadAccused();
   if (tab === 'docs')     loadDocuments();
   if (tab === 'notes')    loadNotes();
   if (tab === 'petition') { loadPoliceStationsForPdf(); loadPetitionHistory('petition'); }
   if (tab === 'notice')   { loadAccusedForNotice(); loadPetitionHistory('notice'); }
+}
+
+// ── UPDATE COMPLAINT (inside Case File) ──
+async function cfDoUpdate() {
+  const status   = document.getElementById('cf_updateStatus').value;
+  const remarks  = document.getElementById('cf_updateRemarks').value.trim();
+  const priority = document.getElementById('cf_updatePriority').value;
+  const msgEl    = document.getElementById('cfUpdateMsg');
+  if (!remarks) { msgEl.textContent = 'Remarks are required.'; msgEl.style.color = '#e53935'; return; }
+  msgEl.textContent = 'Saving...'; msgEl.style.color = 'var(--teal)';
+  try {
+    const body = { status, remarks };
+    if (priority) body.priority = priority;
+    const res = await http.put('/api/complaints/official/resolve/' + _cfComplaintId, body);
+    if (res.success) {
+      msgEl.textContent = '✅ Complaint updated. Citizen notified by email.'; msgEl.style.color = '#065f46';
+      loadComplaints();
+      setTimeout(() => loadCfStatusHistory(), 600);
+    } else { msgEl.textContent = res.message || 'Failed.'; msgEl.style.color = '#e53935'; }
+  } catch(e) { msgEl.textContent = 'Server error.'; msgEl.style.color = '#e53935'; }
+}
+
+// ── STATUS HISTORY TIMELINE (inside Site Visit tab) ──
+async function loadCfStatusHistory() {
+  const el = document.getElementById('cfStatusHistory');
+  if (!el) return;
+  const c = allComplaints.find(x => x.id === _cfComplaintId);
+  if (!c) { el.innerHTML = '<div style="font-size:0.78rem;color:var(--text-3)">Complaint data not loaded.</div>'; return; }
+  el.innerHTML = '<div style="font-size:0.78rem;color:var(--text-3)">Loading history...</div>';
+  try {
+    const trackRes = await fetch(`/api/complaints/track/${c.complaint_no}`).then(r => r.json());
+    const history = trackRes.data?.history || [];
+    if (history.length === 0) { el.innerHTML = '<div style="font-size:0.78rem;color:var(--text-3);text-align:center;padding:1rem 0">No status history yet.</div>'; return; }
+    el.innerHTML = history.map(h => `
+      <div style="display:flex;gap:0.75rem;align-items:flex-start;padding:0.5rem 0;border-bottom:1px solid var(--border)">
+        <div style="min-width:8px;height:8px;border-radius:50%;background:var(--teal);margin-top:5px;flex-shrink:0"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:0.78rem;font-weight:600;color:var(--text-1)">${h.status_label || h.status}</div>
+          ${h.remarks ? `<div style="font-size:0.75rem;color:var(--text-2);margin-top:0.1rem">${h.remarks}</div>` : ''}
+          <div style="font-size:0.7rem;color:var(--text-3);margin-top:0.15rem">${h.updated_by_name||'System'} · ${new Date(h.created_at).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+        </div>
+      </div>`).join('');
+  } catch(e) { el.innerHTML = '<div style="font-size:0.78rem;color:#e53935">Failed to load history.</div>'; }
 }
 
 // ── SITE VISIT ──
