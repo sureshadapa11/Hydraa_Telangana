@@ -1121,7 +1121,7 @@ const getReassignmentRequests = async (req, res) => {
       FROM reassignment_requests rr
       JOIN complaints c ON c.id = rr.complaint_id
       JOIN officials o ON o.id = rr.official_id
-      WHERE rr.status = 'pending'
+      WHERE rr.status IN ('pending', 'approved')
       ORDER BY rr.created_at DESC
       LIMIT 50
     `);
