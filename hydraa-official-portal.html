@@ -1522,7 +1522,6 @@ document.addEventListener('DOMContentLoaded',function(){
     <div style="display:flex;gap:0;border-bottom:1px solid var(--border);background:#f8fcfd;">
       <button class="cf-tab active" id="cft-visit" onclick="switchCfTab('visit')">🏕 Site Visit</button>
       <button class="cf-tab" id="cft-accused" onclick="switchCfTab('accused')">👤 Accused</button>
-      <button class="cf-tab" id="cft-docs" onclick="switchCfTab('docs')">📁 Documents</button>
       <button class="cf-tab" id="cft-notes" onclick="switchCfTab('notes')">💬 Notes</button>
       <button class="cf-tab" id="cft-petition" onclick="switchCfTab('petition')">📨 Petition</button>
       <button class="cf-tab" id="cft-notice" onclick="switchCfTab('notice')">⚠️ Notice</button>
@@ -1691,39 +1690,6 @@ document.addEventListener('DOMContentLoaded',function(){
         <div id="accusedList"></div>
       </div>
 
-      <!-- ── DOCUMENTS TAB ── -->
-      <div id="cfv-docs" style="display:none">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem">
-          <div style="font-size:0.82rem;font-weight:700;color:var(--navy)">📁 Document Vault</div>
-          <span style="font-size:0.72rem;color:var(--text-3)">Max 25 files per complaint</span>
-        </div>
-        <div style="border:2px dashed var(--border);border-radius:10px;padding:1rem;background:var(--bg);margin-bottom:1rem">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;margin-bottom:0.7rem">
-            <div>
-              <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Document Type</label>
-              <select id="doc_type" class="m-select" style="width:100%">
-                <option value="Survey Map">Survey Map</option>
-                <option value="Ownership Proof">Ownership Proof</option>
-                <option value="Encroachment Photo">Encroachment Photo</option>
-                <option value="Site Visit Photo">Site Visit Photo</option>
-                <option value="Legal Document">Legal Document</option>
-                <option value="Notice Copy">Notice Copy</option>
-                <option value="Other" selected>Other</option>
-              </select>
-            </div>
-            <div>
-              <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Caption / Description</label>
-              <input type="text" id="doc_caption" class="m-select" style="width:100%" placeholder="Brief description (optional)"/>
-            </div>
-          </div>
-          <input type="file" id="docFileInput" accept="image/*,.pdf,.doc,.docx" style="display:none" onchange="handleDocFile(event)"/>
-          <button onclick="document.getElementById('docFileInput').click()" style="width:100%;padding:0.6rem;background:none;border:none;color:var(--teal);font-size:0.83rem;font-weight:700;cursor:pointer;font-family:inherit">📂 Click to select a file (Image / PDF)</button>
-          <div id="docFilePreview" style="font-size:0.8rem;color:var(--text-2);margin-top:0.4rem;text-align:center"></div>
-          <div id="docMsg" style="font-size:0.8rem;margin-top:0.4rem"></div>
-        </div>
-        <div id="documentList"></div>
-      </div>
-
       <!-- ── NOTES TAB ── -->
       <div id="cfv-notes" style="display:none">
         <div style="font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:0.8rem">💬 Internal Notes — Official ↔ Admin</div>
@@ -1835,13 +1801,12 @@ async function openCaseFile(id) {
 }
 
 function switchCfTab(tab) {
-  ['visit','accused','docs','notes','petition','notice'].forEach(t => {
+  ['visit','accused','notes','petition','notice'].forEach(t => {
     document.getElementById('cfv-'+t).style.display = t === tab ? 'block' : 'none';
     document.getElementById('cft-'+t).classList.toggle('active', t === tab);
   });
   if (tab === 'visit')    { loadSiteVisit(); loadCfStatusHistory(); }
   if (tab === 'accused')  loadAccused();
-  if (tab === 'docs')     loadDocuments();
   if (tab === 'notes')    loadNotes();
   if (tab === 'petition') { loadPoliceStationsForPdf(); loadPetitionHistory('petition'); }
   if (tab === 'notice')   { loadAccusedForNotice(); loadPetitionHistory('notice'); }
