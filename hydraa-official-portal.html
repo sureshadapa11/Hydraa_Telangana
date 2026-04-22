@@ -1833,6 +1833,17 @@ async function cfDoUpdate() {
 }
 
 // ── STATUS HISTORY TIMELINE (inside Site Visit tab) ──
+const _statusLabelMap = { open:'Open', assigned:'Assigned to Official', in_progress:'In Progress', resolved:'Resolved', closed:'Closed', rejected:'Rejected' };
+const _statusColorMap = { open:'#1565c0', assigned:'#6d28d9', in_progress:'#b45309', resolved:'#065f46', closed:'#374151', rejected:'#b91c1c' };
+const _roleLabel = { admin:'Admin', official:'Official', user:'Citizen', system:'System' };
+
+function fmtHistDate(raw) {
+  if (!raw) return '—';
+  const d = new Date(raw);
+  if (isNaN(d)) return String(raw).slice(0, 16).replace('T', ' ');
+  return d.toLocaleString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
 async function loadCfStatusHistory() {
   const el = document.getElementById('cfStatusHistory');
   if (!el) return;
@@ -1843,15 +1854,26 @@ async function loadCfStatusHistory() {
     const trackRes = await fetch(`/api/complaints/track/${c.complaint_no}`).then(r => r.json());
     const history = trackRes.data?.history || [];
     if (history.length === 0) { el.innerHTML = '<div style="font-size:0.78rem;color:var(--text-3);text-align:center;padding:1rem 0">No status history yet.</div>'; return; }
-    el.innerHTML = history.map(h => `
-      <div style="display:flex;gap:0.75rem;align-items:flex-start;padding:0.5rem 0;border-bottom:1px solid var(--border)">
-        <div style="min-width:8px;height:8px;border-radius:50%;background:var(--teal);margin-top:5px;flex-shrink:0"></div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:0.78rem;font-weight:600;color:var(--text-1)">${h.status_label || h.status}</div>
-          ${h.remarks ? `<div style="font-size:0.75rem;color:var(--text-2);margin-top:0.1rem">${h.remarks}</div>` : ''}
-          <div style="font-size:0.7rem;color:var(--text-3);margin-top:0.15rem">${h.updated_by_name||'System'} · ${new Date(h.created_at).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+    el.innerHTML = history.map((h, i) => {
+      const status = h.new_status || h.status || '';
+      const label  = _statusLabelMap[status] || status.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+      const color  = _statusColorMap[status] || 'var(--teal)';
+      const role   = _roleLabel[h.changed_by_role] || h.changed_by_role || 'System';
+      const date   = fmtHistDate(h.changed_at || h.created_at);
+      const isLast = i === history.length - 1;
+      return `
+      <div style="display:flex;gap:0.75rem;align-items:flex-start;padding:0.55rem 0;${isLast?'':'border-bottom:1px solid var(--border)'}">
+        <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0">
+          <div style="width:10px;height:10px;border-radius:50%;background:${color};border:2px solid ${color};margin-top:3px"></div>
+          ${!isLast ? `<div style="width:2px;flex:1;background:var(--border);margin-top:3px;min-height:16px"></div>` : ''}
         </div>
-      </div>`).join('');
+        <div style="flex:1;min-width:0;padding-bottom:${isLast?'0':'0.3rem'}">
+          <div style="font-size:0.78rem;font-weight:700;color:${color}">${label}</div>
+          ${h.remarks ? `<div style="font-size:0.75rem;color:var(--text-1);margin-top:0.15rem;line-height:1.4">${h.remarks}</div>` : ''}
+          <div style="font-size:0.69rem;color:var(--text-3);margin-top:0.2rem">${role} &nbsp;·&nbsp; ${date}</div>
+        </div>
+      </div>`;
+    }).join('');
   } catch(e) { el.innerHTML = '<div style="font-size:0.78rem;color:#e53935">Failed to load history.</div>'; }
 }
 
