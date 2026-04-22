@@ -890,45 +890,27 @@ async function loadReassignmentRequests() {
   try {
     const res = await http.get('/api/complaints/admin/reassign-requests');
     const list = (res.success && res.data) ? res.data : [];
-    const pending = list.filter(r => r.status === 'pending');
-    document.getElementById('rrCount').textContent = pending.length + ' pending';
+    document.getElementById('rrCount').textContent = list.length + ' pending';
     if (!list.length) {
       document.getElementById('rrTable').innerHTML =
-        `<div class="empty"><div class="empty-icon">✅</div><p>No reassignment requests</p></div>`;
+        `<div class="empty"><div class="empty-icon">✅</div><p>No pending reassignment requests</p></div>`;
       return;
     }
     document.getElementById('rrTable').innerHTML = `
       <table>
-        <thead><tr><th>Complaint</th><th>Official</th><th>Reason</th><th>Status</th><th>Submitted</th><th>Actions</th></tr></thead>
-        <tbody>${list.map(r => {
-          const isPending = r.status === 'pending';
-          const statusBadge = isPending
-            ? `<span style="background:rgba(245,158,11,0.12);color:#b45309;padding:2px 8px;border-radius:999px;font-size:0.72rem;font-weight:700">Pending</span>`
-            : r.status === 'approved'
-              ? `<span style="background:rgba(16,185,129,0.1);color:#065f46;padding:2px 8px;border-radius:999px;font-size:0.72rem;font-weight:700">Approved</span>`
-              : `<span style="background:rgba(239,68,68,0.1);color:#b91c1c;padding:2px 8px;border-radius:999px;font-size:0.72rem;font-weight:700">Rejected</span>`;
-          return `<tr>
+        <thead><tr><th>Complaint</th><th>Official</th><th>Reason</th><th>Submitted</th><th>Actions</th></tr></thead>
+        <tbody>${list.map(r => `<tr>
             <td><span class="cno">${r.complaint_no}</span><br><span style="font-size:0.75rem;color:var(--text-3)">${r.title}</span></td>
             <td><strong>${r.official_name}</strong><br><span style="font-size:0.72rem;color:var(--text-3)">${r.official_email||''}</span></td>
             <td style="max-width:200px;font-size:0.82rem;color:var(--text-2)">${r.reason}</td>
-            <td>${statusBadge}${r.admin_note?`<br><span style="font-size:0.7rem;color:var(--text-3)">${r.admin_note}</span>`:''}</td>
             <td style="white-space:nowrap;font-size:0.78rem">${formatDate(r.created_at)}</td>
             <td>
-              ${isPending ? `
-                <div style="display:flex;gap:0.4rem;flex-wrap:wrap">
-                  <button onclick="handleRR(${r.id},'approve')" style="background:rgba(16,185,129,0.1);color:#065f46;border:1px solid rgba(16,185,129,0.3);border-radius:6px;padding:4px 10px;font-size:0.75rem;font-weight:700;cursor:pointer;">✅ Approve</button>
-                  <button onclick="handleRR(${r.id},'reject')" style="background:rgba(239,68,68,0.08);color:#b91c1c;border:1px solid rgba(239,68,68,0.25);border-radius:6px;padding:4px 10px;font-size:0.75rem;font-weight:700;cursor:pointer;">✗ Reject</button>
-                </div>`
-              : r.status === 'approved' ? `
-                <div class="act-wrap">
-                  <button class="act-btn ab-assign" onclick="openAssign(${r.complaint_id})">👷 Assign</button>
-                  <button class="act-btn ab-status" onclick="openStatus(${r.complaint_id},'open')">🔄 Status</button>
-                  <button class="act-btn" style="background:rgba(139,92,246,0.08);color:#8b5cf6;border:1px solid rgba(139,92,246,0.2)" onclick="openTimeline('${r.complaint_no}')">📋 Timeline</button>
-                </div>`
-              : '—'}
+              <div style="display:flex;gap:0.4rem;flex-wrap:wrap">
+                <button onclick="handleRR(${r.id},'approve')" style="background:rgba(16,185,129,0.1);color:#065f46;border:1px solid rgba(16,185,129,0.3);border-radius:6px;padding:4px 10px;font-size:0.75rem;font-weight:700;cursor:pointer;">✅ Approve</button>
+                <button onclick="handleRR(${r.id},'reject')" style="background:rgba(239,68,68,0.08);color:#b91c1c;border:1px solid rgba(239,68,68,0.25);border-radius:6px;padding:4px 10px;font-size:0.75rem;font-weight:700;cursor:pointer;">✗ Reject</button>
+              </div>
             </td>
-          </tr>`;
-        }).join('')}
+          </tr>`).join('')}
         </tbody>
       </table>`;
   } catch(e) { console.error('loadReassignmentRequests error:', e); }

@@ -473,6 +473,9 @@ const assignComplaint = async (req, res) => {
       }
     } catch (e) { console.error('Assign complaint email error:', e.message); }
 
+    // Clean up any reassignment requests for this complaint
+    await db.query(`DELETE FROM reassignment_requests WHERE complaint_id = ?`, [id]);
+
     res.json({
       success: true,
       message: 'Complaint assigned successfully.',
@@ -571,6 +574,9 @@ const reassignComplaint = async (req, res) => {
         department:  matchedDept,
       });
     } catch (e) { console.error('Reassign email error:', e.message); }
+
+    // Clean up any reassignment requests for this complaint
+    await db.query(`DELETE FROM reassignment_requests WHERE complaint_id = ?`, [id]);
 
     res.json({ success: true, message: 'Complaint reassigned successfully.' });
   } catch (err) {
@@ -1115,6 +1121,7 @@ const getReassignmentRequests = async (req, res) => {
       FROM reassignment_requests rr
       JOIN complaints c ON c.id = rr.complaint_id
       JOIN officials o ON o.id = rr.official_id
+      WHERE rr.status = 'pending'
       ORDER BY rr.created_at DESC
       LIMIT 50
     `);
