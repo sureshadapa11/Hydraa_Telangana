@@ -1221,6 +1221,30 @@ const bulkResolveComplaints = async (req, res) => {
   }
 };
 
+// ────────────────────────────────────────────────────
+//  UPDATE COMPLAINT LOCATION (admin or official)
+// ────────────────────────────────────────────────────
+const updateComplaintLocation = async (req, res) => {
+  const { id } = req.params;
+  const { latitude, longitude } = req.body;
+  if (!latitude || !longitude) {
+    return res.status(400).json({ success: false, message: 'Latitude and longitude are required.' });
+  }
+  const lat = parseFloat(latitude);
+  const lng = parseFloat(longitude);
+  if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    return res.status(400).json({ success: false, message: 'Invalid coordinates.' });
+  }
+  try {
+    const [result] = await db.query('UPDATE complaints SET latitude = ?, longitude = ? WHERE id = ?', [lat, lng, id]);
+    if (result.affectedRows === 0) return res.status(404).json({ success: false, message: 'Complaint not found.' });
+    res.json({ success: true, message: 'Location saved.', data: { latitude: lat, longitude: lng } });
+  } catch (err) {
+    console.error('updateComplaintLocation error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
 module.exports = {
   lodgeComplaint,
   trackComplaint,
@@ -1244,4 +1268,5 @@ module.exports = {
   checkDuplicate,
   getDistrictStats,
   getUserProfile,
+  updateComplaintLocation,
 };

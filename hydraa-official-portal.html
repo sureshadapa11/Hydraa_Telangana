@@ -1564,7 +1564,31 @@ document.addEventListener('DOMContentLoaded',function(){
           <div id="cfUpdateMsg" style="font-size:0.8rem;margin-top:0.5rem"></div>
         </div>
 
-        <!-- B: Site Visit Log -->
+        <!-- B: Complaint Location -->
+        <div style="border:1.5px solid rgba(21,101,192,0.2);border-radius:10px;padding:1rem;margin-bottom:1.1rem;background:rgba(21,101,192,0.02)">
+          <div style="font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:0.6rem">📍 Complaint Location</div>
+          <div id="cfLocationStatus" style="font-size:0.78rem;color:var(--text-2);margin-bottom:0.6rem"></div>
+          <div id="cfManualLocBox" style="display:none;margin-bottom:0.6rem">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem">
+              <div>
+                <label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem">Latitude</label>
+                <input type="number" step="any" id="cfLocLat" class="m-select" style="width:100%" placeholder="e.g. 17.3850"/>
+              </div>
+              <div>
+                <label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem">Longitude</label>
+                <input type="number" step="any" id="cfLocLng" class="m-select" style="width:100%" placeholder="e.g. 78.4867"/>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center">
+            <button onclick="cfUseMyLocation()" style="background:rgba(21,101,192,0.1);color:#1565c0;border:1px solid rgba(21,101,192,0.3);border-radius:8px;padding:0.4rem 1rem;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit">📍 Use My Location</button>
+            <button id="cfManualLocToggle" onclick="cfToggleManualLoc()" style="background:rgba(0,151,167,0.08);color:#006978;border:1px solid rgba(0,151,167,0.25);border-radius:8px;padding:0.4rem 1rem;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit">✏️ Enter Manually</button>
+            <button id="cfSaveLocBtn" onclick="cfSaveLocation()" style="display:none;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:8px;padding:0.4rem 1rem;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit">💾 Save Location</button>
+          </div>
+          <div id="cfLocMsg" style="font-size:0.78rem;margin-top:0.5rem"></div>
+        </div>
+
+        <!-- C: Site Visit Log -->
         <div style="margin-bottom:1.1rem">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem">
             <div style="font-size:0.82rem;font-weight:700;color:var(--navy)">🏕 Site Visit Log</div>
@@ -1805,7 +1829,7 @@ function switchCfTab(tab) {
     document.getElementById('cfv-'+t).style.display = t === tab ? 'block' : 'none';
     document.getElementById('cft-'+t).classList.toggle('active', t === tab);
   });
-  if (tab === 'visit')    { loadSiteVisit(); loadCfStatusHistory(); }
+  if (tab === 'visit')    { loadSiteVisit(); loadCfStatusHistory(); cfLoadLocationStatus(); }
   if (tab === 'accused')  loadAccused();
   if (tab === 'notes')    loadNotes();
   if (tab === 'petition') { loadPoliceStationsForPdf(); loadPetitionHistory('petition'); }
@@ -1830,6 +1854,71 @@ async function cfDoUpdate() {
       setTimeout(() => loadCfStatusHistory(), 600);
     } else { msgEl.textContent = res.message || 'Failed.'; msgEl.style.color = '#e53935'; }
   } catch(e) { msgEl.textContent = 'Server error.'; msgEl.style.color = '#e53935'; }
+}
+
+// ── COMPLAINT LOCATION (inside Case File) ──
+function cfLoadLocationStatus() {
+  const c = allComplaints.find(x => x.id === _cfComplaintId);
+  const el = document.getElementById('cfLocationStatus');
+  if (!el) return;
+  if (c && c.latitude && c.longitude) {
+    el.innerHTML = `<span style="color:#065f46;font-weight:600">✅ Location recorded</span> &nbsp;
+      <a href="https://www.google.com/maps?q=${c.latitude},${c.longitude}" target="_blank" style="color:#1565c0;font-size:0.75rem">View on map ↗</a>
+      <span style="color:var(--text-3);font-size:0.72rem;margin-left:0.5rem">(${parseFloat(c.latitude).toFixed(5)}, ${parseFloat(c.longitude).toFixed(5)})</span>`;
+  } else {
+    el.innerHTML = `<span style="color:#b45309;font-weight:600">⚠️ No location data</span> <span style="color:var(--text-3);font-size:0.75rem">— citizen did not add location when filing</span>`;
+  }
+  document.getElementById('cfLocLat').value = '';
+  document.getElementById('cfLocLng').value = '';
+  document.getElementById('cfLocMsg').textContent = '';
+  document.getElementById('cfSaveLocBtn').style.display = 'none';
+  document.getElementById('cfManualLocBox').style.display = 'none';
+  document.getElementById('cfManualLocToggle').textContent = '✏️ Enter Manually';
+}
+
+function cfToggleManualLoc() {
+  const box = document.getElementById('cfManualLocBox');
+  const btn = document.getElementById('cfManualLocToggle');
+  const open = box.style.display === 'none';
+  box.style.display = open ? 'block' : 'none';
+  btn.textContent = open ? '✕ Cancel Manual' : '✏️ Enter Manually';
+  document.getElementById('cfSaveLocBtn').style.display = open ? 'inline-block' : 'none';
+}
+
+function cfUseMyLocation() {
+  const msgEl = document.getElementById('cfLocMsg');
+  if (!navigator.geolocation) { msgEl.textContent = 'Geolocation not supported by this browser.'; msgEl.style.color='#e53935'; return; }
+  msgEl.textContent = 'Getting your location...'; msgEl.style.color = 'var(--teal)';
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      document.getElementById('cfLocLat').value = pos.coords.latitude.toFixed(6);
+      document.getElementById('cfLocLng').value = pos.coords.longitude.toFixed(6);
+      document.getElementById('cfManualLocBox').style.display = 'block';
+      document.getElementById('cfSaveLocBtn').style.display = 'inline-block';
+      document.getElementById('cfManualLocToggle').textContent = '✕ Cancel Manual';
+      msgEl.textContent = `📍 Got location: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)} — click Save to confirm.`;
+      msgEl.style.color = '#065f46';
+    },
+    (err) => { msgEl.textContent = 'Could not get location: ' + err.message; msgEl.style.color='#e53935'; }
+  );
+}
+
+async function cfSaveLocation() {
+  const lat = document.getElementById('cfLocLat').value.trim();
+  const lng = document.getElementById('cfLocLng').value.trim();
+  const msgEl = document.getElementById('cfLocMsg');
+  if (!lat || !lng) { msgEl.textContent = 'Both latitude and longitude are required.'; msgEl.style.color='#e53935'; return; }
+  msgEl.textContent = 'Saving...'; msgEl.style.color = 'var(--teal)';
+  try {
+    const res = await http.put(`/api/complaints/${_cfComplaintId}/location`, { latitude: lat, longitude: lng });
+    if (res.success) {
+      msgEl.textContent = '✅ Location saved.'; msgEl.style.color = '#065f46';
+      const c = allComplaints.find(x => x.id === _cfComplaintId);
+      if (c) { c.latitude = parseFloat(lat); c.longitude = parseFloat(lng); }
+      cfLoadLocationStatus();
+      loadComplaints();
+    } else { msgEl.textContent = res.message || 'Failed.'; msgEl.style.color='#e53935'; }
+  } catch(e) { msgEl.textContent = 'Server error.'; msgEl.style.color='#e53935'; }
 }
 
 // ── STATUS HISTORY TIMELINE (inside Site Visit tab) ──

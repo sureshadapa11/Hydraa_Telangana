@@ -28,6 +28,7 @@ const {
   checkDuplicate,
   getDistrictStats,
   getUserProfile,
+  updateComplaintLocation,
 } = require('../controllers/complaintController');
 const { verifyToken } = require('../middleware/auth');
 
@@ -52,6 +53,9 @@ router.post('/official/reassign-request', verifyToken, requestReassignment);
 // ── Admin Reassignment Queue ──
 router.get('/admin/reassign-requests', verifyToken, getReassignmentRequests);
 router.put('/admin/reassign-requests/:id', verifyToken, handleReassignmentRequest);
+
+// ── Location update (admin or official) ──
+router.put('/:id/location', verifyToken, updateComplaintLocation);
 
 // ── Comments / Notes (all roles) ──
 router.get('/:id/comments', verifyToken, getComments);
