@@ -175,7 +175,7 @@ const deleteSiteVisitReport = async (req, res) => {
 };
 
 // ────────────────────────────────────────────────────
-//  GENERATE SITE VISIT PDF
+//  GENERATE SITE VISIT PDF  (redesigned)
 // ────────────────────────────────────────────────────
 const generateSiteVisitPdf = async (req, res) => {
   const { id } = req.params;
@@ -205,94 +205,266 @@ const generateSiteVisitPdf = async (req, res) => {
       [visit.complaint_id]
     );
 
+    // Fetch file_data so images can be embedded
     const [docs] = await db.query(
-      `SELECT doc_type, file_name, file_mime, caption, uploaded_by_role, created_at
+      `SELECT doc_type, file_name, file_mime, file_data, caption, uploaded_by_role, created_at
        FROM complaint_documents WHERE site_visit_id = ? ORDER BY created_at ASC`,
       [id]
     );
 
-    // Count which visit number this is (for display)
     const [[{ visit_no }]] = await db.query(
       `SELECT COUNT(*) AS visit_no FROM site_visit_reports
        WHERE complaint_id = ? AND (visit_date < ? OR (visit_date = ? AND created_at <= ?))`,
       [visit.complaint_id, visit.visit_date, visit.visit_date, visit.created_at]
     );
 
+    // Split docs into embeddable images vs other files
+    const embeddable = docs.filter(d => d.file_data && d.file_mime &&
+      (d.file_mime.includes('jpeg') || d.file_mime.includes('jpg') || d.file_mime.includes('png')));
+    const otherDocs  = docs.filter(d => !embeddable.includes(d));
+
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="SiteVisit_${complaint.complaint_no}_V${visit_no}.pdf"`);
 
-    const doc = new PDFDocument({ margin: 40, size: 'A4' });
+    const doc = new PDFDocument({ margin: 0, size: 'A4', autoFirstPage: true });
     doc.pipe(res);
 
-    drawPdfHeader(doc, 'SITE VISIT REPORT');
+    const W  = doc.page.width;   // 595.28
+    const M  = 36;               // margin
+    const CW = W - M * 2;       // content width
 
-    // Ref line
-    doc.moveDown(0.4);
-    doc.font('Helvetica').fontSize(9).fill('#555555')
-       .text(`Complaint: ${complaint.complaint_no}   |   Visit No: ${visit_no}   |   Generated: ${fmtDate(new Date())}`, { align: 'right' });
-    doc.fill('#000000');
+    // ── HEADER ─────────────────────────────────────────
+    doc.rect(0, 0, W, 82).fill('#0b2040');
+    doc.fillColor('#4dd6e8').font('Helvetica').fontSize(7.5)
+       .text('GOVERNMENT OF TELANGANA', M, 14, { width: CW, align: 'center', characterSpacing: 1.5 });
+    doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(20)
+       .text('HYDRAA', M, 24, { width: CW, align: 'center', characterSpacing: 2 });
+    doc.fillColor('#a8c4d8').font('Helvetica').fontSize(7.5)
+       .text('Hyderabad Disaster Response & Asset Protection Agency', M, 48, { width: CW, align: 'center' });
 
-    // Complaint summary
-    sectionHead(doc, '1. COMPLAINT SUMMARY');
-    kvRow(doc, 'Complaint No', complaint.complaint_no);
-    kvRow(doc, 'Title', complaint.title);
-    kvRow(doc, 'Category', `${complaint.category_name || '—'}${complaint.subcategory_name ? ' / ' + complaint.subcategory_name : ''}`);
-    kvRow(doc, 'Citizen', `${complaint.citizen_name}${complaint.citizen_phone ? ' · ' + complaint.citizen_phone : ''}`);
-    kvRow(doc, 'Address', complaint.address);
-    kvRow(doc, 'District / Mandal', `${complaint.district_name || '—'} / ${complaint.mandal_name || '—'}`);
-    kvRow(doc, 'Current Status', (complaint.status || '—').toUpperCase());
-    kvRow(doc, 'Priority', (complaint.priority || '—').toUpperCase());
+    // Gold title strip
+    doc.rect(0, 64, W, 18).fill('#f4a820');
+    doc.fillColor('#0b2040').font('Helvetica-Bold').fontSize(9)
+       .text('SITE VISIT INSPECTION REPORT', M, 68.5, { width: CW, align: 'center', characterSpacing: 1 });
 
-    // Visit details
-    sectionHead(doc, '2. SITE VISIT DETAILS');
-    kvRow(doc, 'Visit Date', fmtDate(visit.visit_date));
-    kvRow(doc, 'Visit Time', visit.visit_time || '—');
-    kvRow(doc, 'Inspecting Official', visit.official_name);
-    if (visit.official_dept) kvRow(doc, 'Department', visit.official_dept);
-    if (visit.official_phone) kvRow(doc, 'Official Phone', visit.official_phone);
-    kvRow(doc, 'Encroachment Area', visit.encroachment_area);
-    kvRow(doc, 'Construction Type', visit.construction_type);
-    kvRow(doc, 'Current Status of Land', visit.current_status);
-    if (visit.geo_lat && visit.geo_lng) kvRow(doc, 'GPS Coordinates', `${visit.geo_lat}, ${visit.geo_lng}`);
+    // ── REFERENCE BAR ──────────────────────────────────
+    doc.rect(0, 82, W, 22).fill('#f1f5f9');
+    doc.rect(0, 104, W, 1).fill('#cbd5e1');
+    const refText = `Complaint: ${complaint.complaint_no}   ·   Visit No. ${visit_no}   ·   Date: ${fmtDate(visit.visit_date)}   ·   Inspector: ${visit.official_name}   ·   Generated: ${fmtDate(new Date())}`;
+    doc.fillColor('#475569').font('Helvetica').fontSize(7.5)
+       .text(refText, M, 89, { width: CW, align: 'center' });
 
+    // ── STATUS BADGES ROW ───────────────────────────────
+    let y = 113;
+    const statusColor = { resolved: '#065f46', in_progress: '#92400e', assigned: '#1e40af', pending: '#6b21a8' };
+    const sc = statusColor[complaint.status] || '#374151';
+    const priorityColor = { high: '#991b1b', medium: '#92400e', low: '#065f46' };
+    const pc = priorityColor[(complaint.priority||'').toLowerCase()] || '#374151';
+
+    // Status pill
+    doc.roundedRect(M, y, 100, 18, 4).fill(sc + '18');
+    doc.fillColor(sc).font('Helvetica-Bold').fontSize(7.5)
+       .text(`STATUS: ${(complaint.status||'').toUpperCase().replace('_',' ')}`, M + 6, y + 5);
+    // Priority pill
+    doc.roundedRect(M + 108, y, 90, 18, 4).fill(pc + '18');
+    doc.fillColor(pc).font('Helvetica-Bold').fontSize(7.5)
+       .text(`PRIORITY: ${(complaint.priority||'—').toUpperCase()}`, M + 114, y + 5);
+    // Category pill
+    doc.roundedRect(M + 206, y, CW - 206, 18, 4).fill('#0b204018');
+    doc.fillColor('#0b2040').font('Helvetica').fontSize(7.5)
+       .text(`${complaint.category_name || ''}${complaint.subcategory_name ? ' · ' + complaint.subcategory_name : ''}`, M + 212, y + 5, { width: CW - 218 });
+
+    y += 28;
+
+    // ── HELPER: draw a labeled field box ───────────────
+    function fieldBox(label, value, fx, fy, fw, fh) {
+      fh = fh || 34;
+      doc.rect(fx, fy, fw, fh).fill('#f8fafc').stroke('#e2e8f0');
+      doc.fillColor('#94a3b8').font('Helvetica').fontSize(6.5)
+         .text(label.toUpperCase(), fx + 7, fy + 6, { width: fw - 14, lineBreak: false });
+      doc.fillColor('#0f172a').font('Helvetica-Bold').fontSize(9)
+         .text(value || '—', fx + 7, fy + 16, { width: fw - 14, lineBreak: false, ellipsis: true });
+    }
+
+    function fieldBoxTall(label, value, fx, fy, fw) {
+      const lines  = Math.ceil((value || '—').length / 55) + 1;
+      const fh     = Math.max(34, 16 + lines * 11 + 6);
+      doc.rect(fx, fy, fw, fh).fill('#f8fafc').stroke('#e2e8f0');
+      doc.fillColor('#94a3b8').font('Helvetica').fontSize(6.5)
+         .text(label.toUpperCase(), fx + 7, fy + 6, { width: fw - 14, lineBreak: false });
+      doc.fillColor('#0f172a').font('Helvetica-Bold').fontSize(9)
+         .text(value || '—', fx + 7, fy + 16, { width: fw - 14 });
+      return fh;
+    }
+
+    function sectionLabel(text, sy) {
+      doc.rect(M, sy, CW, 20).fill('#0b2040');
+      doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(8)
+         .text(text, M + 10, sy + 6, { characterSpacing: 0.5 });
+      return sy + 20;
+    }
+
+    // ── 1. COMPLAINT DETAILS ────────────────────────────
+    y = sectionLabel('1.  COMPLAINT DETAILS', y);
+    y += 6;
+
+    const half = (CW - 4) / 2;
+    fieldBox('Complaint No.', complaint.complaint_no, M, y, half);
+    fieldBox('Citizen Name', complaint.citizen_name, M + half + 4, y, half);
+    y += 38;
+    const titleH = fieldBoxTall('Complaint Title', complaint.title, M, y, CW);
+    y += titleH + 4;
+    const addrH = fieldBoxTall('Address / Location', complaint.address, M, y, CW);
+    y += addrH + 4;
+    fieldBox('District', complaint.district_name, M, y, half);
+    fieldBox('Mandal', complaint.mandal_name, M + half + 4, y, half);
+    y += 38;
+    fieldBox('Citizen Phone', complaint.citizen_phone, M, y, half);
+    fieldBox('Citizen Email', complaint.citizen_email, M + half + 4, y, half);
+    y += 38 + 10;
+
+    // ── 2. SITE VISIT DETAILS ───────────────────────────
+    y = sectionLabel('2.  SITE VISIT DETAILS', y);
+    y += 6;
+
+    const third = (CW - 8) / 3;
+    fieldBox('Visit Date', fmtDate(visit.visit_date), M, y, third);
+    fieldBox('Visit Time', visit.visit_time || '—', M + third + 4, y, third);
+    fieldBox('Inspecting Official', visit.official_name, M + (third + 4) * 2, y, third);
+    y += 38;
+    if (visit.official_dept || visit.official_phone) {
+      fieldBox('Department', visit.official_dept, M, y, half);
+      fieldBox('Official Phone', visit.official_phone, M + half + 4, y, half);
+      y += 38;
+    }
+    fieldBox('Encroachment Area', visit.encroachment_area, M, y, half);
+    fieldBox('Construction Type', visit.construction_type, M + half + 4, y, half);
+    y += 38;
+    const csH = fieldBoxTall('Current Status of Land / Property', visit.current_status, M, y, CW);
+    y += csH + 4;
+    if (visit.geo_lat && visit.geo_lng) {
+      fieldBox('GPS Coordinates', `${visit.geo_lat}, ${visit.geo_lng}`, M, y, CW);
+      y += 38;
+    }
+    y += 10;
+
+    // ── 3. DETAILED FINDINGS ────────────────────────────
     if (visit.findings) {
-      doc.moveDown(0.4);
-      sectionHead(doc, '3. DETAILED FINDINGS');
-      doc.font('Helvetica').fontSize(9.5)
-         .text(visit.findings, { indent: 10, lineGap: 2 });
+      y = sectionLabel('3.  DETAILED FINDINGS', y);
+      y += 6;
+      // Quote box with teal left accent
+      const findingLines = visit.findings.split('\n').length;
+      const findingH = Math.max(50, findingLines * 14 + 24);
+      doc.rect(M, y, CW, findingH).fill('#f0fdfa').stroke('#99f6e4');
+      doc.rect(M, y, 4, findingH).fill('#0d9488');
+      doc.fillColor('#134e4a').font('Helvetica').fontSize(9.5)
+         .text(visit.findings, M + 14, y + 10, { width: CW - 22, lineGap: 3 });
+      y += findingH + 14;
     }
 
-    // Documents
-    const docSection = visit.findings ? '4' : '3';
-    sectionHead(doc, `${docSection}. EVIDENCE & DOCUMENTS ATTACHED (${docs.length})`);
+    // ── 4. DOCUMENTS LIST (non-image) ───────────────────
+    const sectionNum = visit.findings ? 4 : 3;
+    y = sectionLabel(`${sectionNum}.  DOCUMENTS ATTACHED  (${docs.length} file${docs.length !== 1 ? 's' : ''})`, y);
+    y += 8;
+
     if (docs.length === 0) {
-      doc.font('Helvetica').fontSize(9).fill('#888888').text('No documents attached to this visit.', { indent: 10 });
-      doc.fill('#000000');
+      doc.fillColor('#94a3b8').font('Helvetica').fontSize(9)
+         .text('No documents were attached to this site visit.', M + 10, y);
+      y += 20;
     } else {
+      // List all docs (show images as "embedded below")
       docs.forEach((d, i) => {
-        doc.font('Helvetica').fontSize(9)
-           .text(`${i + 1}.  [${d.doc_type}]  ${d.file_name}${d.caption ? '  —  ' + d.caption : ''}`, { indent: 10 })
-           .font('Helvetica').fontSize(8).fill('#666666')
-           .text(`     Uploaded by ${d.uploaded_by_role} on ${fmtDate(d.created_at)}`, { indent: 10 });
-        doc.fill('#000000');
-        if (i < docs.length - 1) doc.moveDown(0.2);
+        const isImg = embeddable.includes(d);
+        const rowH = 24;
+        const bg = i % 2 === 0 ? '#f8fafc' : '#ffffff';
+        doc.rect(M, y, CW, rowH).fill(bg).stroke('#e2e8f0');
+
+        // Index
+        doc.fillColor('#94a3b8').font('Helvetica-Bold').fontSize(8)
+           .text(`${i + 1}`, M + 6, y + 8, { width: 14, align: 'center' });
+
+        // Type badge
+        const badgeW = 90;
+        doc.roundedRect(M + 22, y + 5, badgeW, 14, 3).fill('#0b204015');
+        doc.fillColor('#0b2040').font('Helvetica-Bold').fontSize(7)
+           .text(d.doc_type, M + 25, y + 8, { width: badgeW - 6 });
+
+        // Filename
+        doc.fillColor('#1e293b').font('Helvetica').fontSize(8.5)
+           .text(d.file_name + (isImg ? '  [image — embedded below]' : '') + (d.caption ? '  · ' + d.caption : ''),
+             M + 118, y + 8, { width: CW - 200 });
+
+        // Date
+        doc.fillColor('#94a3b8').font('Helvetica').fontSize(7)
+           .text(fmtDate(d.created_at), M + CW - 74, y + 9, { width: 70, align: 'right' });
+
+        y += rowH;
       });
+      y += 10;
     }
 
-    // Signature block
-    doc.moveDown(2);
-    doc.font('Helvetica-Bold').fontSize(10)
-       .text('________________________________', { align: 'right' });
-    doc.font('Helvetica').fontSize(9)
-       .text(visit.official_name || 'Inspecting Official', { align: 'right' })
-       .text(visit.official_dept || 'HYDRAA', { align: 'right' })
-       .text(`Date: ${fmtDate(new Date())}`, { align: 'right' });
+    // ── 5. EMBEDDED IMAGES ──────────────────────────────
+    if (embeddable.length > 0) {
+      const imgSectionNum = sectionNum + 1;
+      y = sectionLabel(`${imgSectionNum}.  PHOTOGRAPHIC EVIDENCE  (${embeddable.length} image${embeddable.length !== 1 ? 's' : ''})`, y);
+      y += 10;
 
-    doc.moveDown(1);
-    doc.rect(40, doc.y, doc.page.width - 80, 1).fill('#cccccc');
-    doc.moveDown(0.3);
-    doc.font('Helvetica').fontSize(8).fill('#888888')
-       .text('HYDRAA — Hyderabad Disaster Response & Asset Protection Agency  |  Government of Telangana', { align: 'center' });
+      for (const d of embeddable) {
+        try {
+          const imgBuf = Buffer.from(d.file_data, 'base64');
+          // Check if we need a new page
+          if (y + 260 > doc.page.height - 60) {
+            doc.addPage({ margin: 0, size: 'A4' });
+            y = 30;
+          }
+          // Image border box
+          doc.rect(M, y, CW, 240).fill('#f1f5f9').stroke('#cbd5e1');
+          doc.image(imgBuf, M + 6, y + 6, { fit: [CW - 12, 228], align: 'center', valign: 'center' });
+          y += 244;
+          // Caption row
+          doc.rect(M, y, CW, 20).fill('#e2e8f0');
+          doc.fillColor('#475569').font('Helvetica').fontSize(7.5)
+             .text(`[${d.doc_type}]  ${d.file_name}${d.caption ? '  ·  ' + d.caption : ''}  —  ${fmtDate(d.created_at)}`,
+               M + 8, y + 6, { width: CW - 16 });
+          y += 22 + 10;
+        } catch (_) {
+          // If image fails to embed, show as filename only
+          doc.fillColor('#94a3b8').font('Helvetica').fontSize(8)
+             .text(`⚠ Could not embed: ${d.file_name}`, M + 10, y);
+          y += 16;
+        }
+      }
+      y += 6;
+    }
+
+    // ── SIGNATURE BLOCK ─────────────────────────────────
+    if (y + 80 > doc.page.height - 40) {
+      doc.addPage({ margin: 0, size: 'A4' });
+      y = 40;
+    }
+    y += 10;
+    doc.rect(M, y, CW, 1).fill('#cbd5e1');
+    y += 12;
+    doc.fillColor('#64748b').font('Helvetica').fontSize(8)
+       .text('Prepared and submitted by:', M, y);
+    y += 14;
+    doc.rect(M + CW - 180, y, 180, 1).fill('#374151');
+    y += 4;
+    doc.fillColor('#0f172a').font('Helvetica-Bold').fontSize(9)
+       .text(visit.official_name || 'Inspecting Official', M + CW - 180, y, { width: 180, align: 'center' });
+    y += 13;
+    doc.fillColor('#475569').font('Helvetica').fontSize(8)
+       .text(visit.official_dept || 'HYDRAA', M + CW - 180, y, { width: 180, align: 'center' });
+    y += 12;
+    doc.fillColor('#475569').font('Helvetica').fontSize(8)
+       .text(`Date: ${fmtDate(new Date())}`, M + CW - 180, y, { width: 180, align: 'center' });
+
+    // ── FOOTER ──────────────────────────────────────────
+    const footerY = doc.page.height - 26;
+    doc.rect(0, footerY, W, 26).fill('#0b2040');
+    doc.fillColor('#4dd6e8').font('Helvetica').fontSize(7)
+       .text('HYDRAA  ·  Hyderabad Disaster Response & Asset Protection Agency  ·  Government of Telangana  ·  CONFIDENTIAL OFFICIAL DOCUMENT',
+         M, footerY + 9, { width: CW, align: 'center' });
 
     doc.end();
   } catch (err) {
