@@ -7,7 +7,7 @@ const router  = express.Router();
 const { verifyToken } = require('../middleware/auth');
 const {
   getAccused, addAccused, updateAccused, deleteAccused,
-  getSiteVisitReport, saveSiteVisitReport, deleteSiteVisitReport,
+  getSiteVisitReport, saveSiteVisitReport, deleteSiteVisitReport, generateSiteVisitPdf,
   getDocuments, getDocumentFile, uploadDocument, deleteDocument,
   getCaseFileNotes, addCaseFileNote,
   getPoliceStations, createPoliceStation, updatePoliceStation, deletePoliceStation,
@@ -26,6 +26,7 @@ router.delete('/accused/:id',                        verifyToken, deleteAccused)
 router.get('/complaints/:complaint_id/site-visit',   verifyToken, getSiteVisitReport);
 router.post('/complaints/:complaint_id/site-visit',  verifyToken, saveSiteVisitReport);
 router.delete('/site-visits/:id',                    verifyToken, deleteSiteVisitReport);
+router.get('/site-visits/:id/generate-pdf',          verifyToken, generateSiteVisitPdf);
 
 // ── Document Vault ──
 router.get('/complaints/:complaint_id/documents',    verifyToken, getDocuments);

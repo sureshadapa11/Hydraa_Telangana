@@ -98,6 +98,22 @@ const getSiteVisitReport = async (req, res) => {
        ORDER BY svr.visit_date DESC, svr.created_at DESC`,
       [complaint_id]
     );
+
+    if (reports.length > 0) {
+      const visitIds = reports.map(r => r.id);
+      const [docs] = await db.query(
+        `SELECT id, site_visit_id, doc_type, file_name, file_mime, caption, uploaded_by_role, created_at
+         FROM complaint_documents WHERE site_visit_id IN (?) ORDER BY created_at ASC`,
+        [visitIds]
+      );
+      const docsByVisit = {};
+      docs.forEach(d => {
+        if (!docsByVisit[d.site_visit_id]) docsByVisit[d.site_visit_id] = [];
+        docsByVisit[d.site_visit_id].push(d);
+      });
+      reports.forEach(r => { r.documents = docsByVisit[r.id] || []; });
+    }
+
     res.json({ success: true, data: reports });
   } catch (err) {
     console.error('getSiteVisitReport error:', err);
@@ -107,15 +123,16 @@ const getSiteVisitReport = async (req, res) => {
 
 const saveSiteVisitReport = async (req, res) => {
   const { complaint_id } = req.params;
-  const { visit_date, visit_time, encroachment_area, construction_type, current_status, findings, geo_lat, geo_lng } = req.body;
-  const official_id = req.user.id;
+  const { visit_date, visit_time, encroachment_area, construction_type, current_status, findings, geo_lat, geo_lng, documents } = req.body;
+  const official_id   = req.user.id;
+  const official_role = req.user.role;
 
   if (!visit_date) {
     return res.status(400).json({ success: false, message: 'Visit date is required.' });
   }
 
   try {
-    await db.query(
+    const [result] = await db.query(
       `INSERT INTO site_visit_reports
          (complaint_id, official_id, visit_date, visit_time, encroachment_area, construction_type, current_status, findings, geo_lat, geo_lng)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -124,7 +141,22 @@ const saveSiteVisitReport = async (req, res) => {
        current_status || null, findings || null,
        geo_lat || null, geo_lng || null]
     );
-    res.json({ success: true, message: 'Site visit logged.' });
+
+    const visit_id = result.insertId;
+
+    if (Array.isArray(documents) && documents.length > 0) {
+      for (const doc of documents) {
+        if (!doc.file_name || !doc.file_data) continue;
+        await db.query(
+          `INSERT INTO complaint_documents (complaint_id, site_visit_id, doc_type, file_name, file_data, file_mime, caption, uploaded_by_id, uploaded_by_role)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [complaint_id, visit_id, doc.doc_type || 'Site Visit Evidence', doc.file_name,
+           doc.file_data, doc.file_mime || null, doc.caption || null, official_id, official_role]
+        );
+      }
+    }
+
+    res.json({ success: true, message: 'Site visit logged.', visit_id });
   } catch (err) {
     console.error('saveSiteVisitReport error:', err);
     res.status(500).json({ success: false, message: 'Server error.' });
@@ -134,10 +166,138 @@ const saveSiteVisitReport = async (req, res) => {
 const deleteSiteVisitReport = async (req, res) => {
   const { id } = req.params;
   try {
+    await db.query('DELETE FROM complaint_documents WHERE site_visit_id = ?', [id]);
     await db.query('DELETE FROM site_visit_reports WHERE id = ?', [id]);
     res.json({ success: true, message: 'Site visit deleted.' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+// ────────────────────────────────────────────────────
+//  GENERATE SITE VISIT PDF
+// ────────────────────────────────────────────────────
+const generateSiteVisitPdf = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const [[visit]] = await db.query(
+      `SELECT svr.*, o.full_name AS official_name, o.phone AS official_phone, o.department AS official_dept
+       FROM site_visit_reports svr
+       JOIN officials o ON o.id = svr.official_id
+       WHERE svr.id = ?`,
+      [id]
+    );
+    if (!visit) return res.status(404).json({ success: false, message: 'Site visit not found.' });
+
+    const [[complaint]] = await db.query(
+      `SELECT c.*,
+              u.full_name AS citizen_name, u.email AS citizen_email, u.phone AS citizen_phone,
+              cat.name AS category_name, subcat.name AS subcategory_name,
+              d.name AS district_name, m.name AS mandal_name
+       FROM complaints c
+       JOIN users u ON u.id = c.user_id
+       LEFT JOIN categories cat ON cat.id = c.category_id
+       LEFT JOIN subcategories subcat ON subcat.id = c.subcategory_id
+       LEFT JOIN districts d ON d.id = c.district_id
+       LEFT JOIN mandals m ON m.id = c.mandal_id
+       WHERE c.id = ?`,
+      [visit.complaint_id]
+    );
+
+    const [docs] = await db.query(
+      `SELECT doc_type, file_name, file_mime, caption, uploaded_by_role, created_at
+       FROM complaint_documents WHERE site_visit_id = ? ORDER BY created_at ASC`,
+      [id]
+    );
+
+    // Count which visit number this is (for display)
+    const [[{ visit_no }]] = await db.query(
+      `SELECT COUNT(*) AS visit_no FROM site_visit_reports
+       WHERE complaint_id = ? AND (visit_date < ? OR (visit_date = ? AND created_at <= ?))`,
+      [visit.complaint_id, visit.visit_date, visit.visit_date, visit.created_at]
+    );
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="SiteVisit_${complaint.complaint_no}_V${visit_no}.pdf"`);
+
+    const doc = new PDFDocument({ margin: 40, size: 'A4' });
+    doc.pipe(res);
+
+    drawPdfHeader(doc, 'SITE VISIT REPORT');
+
+    // Ref line
+    doc.moveDown(0.4);
+    doc.font('Helvetica').fontSize(9).fill('#555555')
+       .text(`Complaint: ${complaint.complaint_no}   |   Visit No: ${visit_no}   |   Generated: ${fmtDate(new Date())}`, { align: 'right' });
+    doc.fill('#000000');
+
+    // Complaint summary
+    sectionHead(doc, '1. COMPLAINT SUMMARY');
+    kvRow(doc, 'Complaint No', complaint.complaint_no);
+    kvRow(doc, 'Title', complaint.title);
+    kvRow(doc, 'Category', `${complaint.category_name || '—'}${complaint.subcategory_name ? ' / ' + complaint.subcategory_name : ''}`);
+    kvRow(doc, 'Citizen', `${complaint.citizen_name}${complaint.citizen_phone ? ' · ' + complaint.citizen_phone : ''}`);
+    kvRow(doc, 'Address', complaint.address);
+    kvRow(doc, 'District / Mandal', `${complaint.district_name || '—'} / ${complaint.mandal_name || '—'}`);
+    kvRow(doc, 'Current Status', (complaint.status || '—').toUpperCase());
+    kvRow(doc, 'Priority', (complaint.priority || '—').toUpperCase());
+
+    // Visit details
+    sectionHead(doc, '2. SITE VISIT DETAILS');
+    kvRow(doc, 'Visit Date', fmtDate(visit.visit_date));
+    kvRow(doc, 'Visit Time', visit.visit_time || '—');
+    kvRow(doc, 'Inspecting Official', visit.official_name);
+    if (visit.official_dept) kvRow(doc, 'Department', visit.official_dept);
+    if (visit.official_phone) kvRow(doc, 'Official Phone', visit.official_phone);
+    kvRow(doc, 'Encroachment Area', visit.encroachment_area);
+    kvRow(doc, 'Construction Type', visit.construction_type);
+    kvRow(doc, 'Current Status of Land', visit.current_status);
+    if (visit.geo_lat && visit.geo_lng) kvRow(doc, 'GPS Coordinates', `${visit.geo_lat}, ${visit.geo_lng}`);
+
+    if (visit.findings) {
+      doc.moveDown(0.4);
+      sectionHead(doc, '3. DETAILED FINDINGS');
+      doc.font('Helvetica').fontSize(9.5)
+         .text(visit.findings, { indent: 10, lineGap: 2 });
+    }
+
+    // Documents
+    const docSection = visit.findings ? '4' : '3';
+    sectionHead(doc, `${docSection}. EVIDENCE & DOCUMENTS ATTACHED (${docs.length})`);
+    if (docs.length === 0) {
+      doc.font('Helvetica').fontSize(9).fill('#888888').text('No documents attached to this visit.', { indent: 10 });
+      doc.fill('#000000');
+    } else {
+      docs.forEach((d, i) => {
+        doc.font('Helvetica').fontSize(9)
+           .text(`${i + 1}.  [${d.doc_type}]  ${d.file_name}${d.caption ? '  —  ' + d.caption : ''}`, { indent: 10 })
+           .font('Helvetica').fontSize(8).fill('#666666')
+           .text(`     Uploaded by ${d.uploaded_by_role} on ${fmtDate(d.created_at)}`, { indent: 10 });
+        doc.fill('#000000');
+        if (i < docs.length - 1) doc.moveDown(0.2);
+      });
+    }
+
+    // Signature block
+    doc.moveDown(2);
+    doc.font('Helvetica-Bold').fontSize(10)
+       .text('________________________________', { align: 'right' });
+    doc.font('Helvetica').fontSize(9)
+       .text(visit.official_name || 'Inspecting Official', { align: 'right' })
+       .text(visit.official_dept || 'HYDRAA', { align: 'right' })
+       .text(`Date: ${fmtDate(new Date())}`, { align: 'right' });
+
+    doc.moveDown(1);
+    doc.rect(40, doc.y, doc.page.width - 80, 1).fill('#cccccc');
+    doc.moveDown(0.3);
+    doc.font('Helvetica').fontSize(8).fill('#888888')
+       .text('HYDRAA — Hyderabad Disaster Response & Asset Protection Agency  |  Government of Telangana', { align: 'center' });
+
+    doc.end();
+  } catch (err) {
+    console.error('generateSiteVisitPdf error:', err);
+    if (!res.headersSent) res.status(500).json({ success: false, message: 'Server error.' });
   }
 };
 
@@ -1036,6 +1196,7 @@ module.exports = {
   getSiteVisitReport,
   saveSiteVisitReport,
   deleteSiteVisitReport,
+  generateSiteVisitPdf,
   getDocuments,
   getDocumentFile,
   uploadDocument,
