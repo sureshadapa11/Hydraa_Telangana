@@ -813,7 +813,7 @@ async function loadDashboard() {
     }
     document.getElementById('recentTable').innerHTML = `
       <table>
-        <thead><tr><th>Complaint No.</th><th>Title</th><th>Citizen</th><th>Priority</th><th>Status</th><th>Date</th><th>Manage</th><th>View</th></tr></thead>
+        <thead><tr><th>Complaint No.</th><th>Title</th><th>Citizen</th><th>Priority</th><th>Status</th><th>Date</th><th>Assign</th><th>Actions</th></tr></thead>
         <tbody>${recent.map(c=>`
           <tr>
             <td><span class="cno">${c.complaint_no}</span></td>
@@ -822,14 +822,10 @@ async function loadDashboard() {
             <td>${pb(c.priority)}</td>
             <td>${sb(c.status)}</td>
             <td>${formatDate(c.created_at)}</td>
+            <td>${c.official_name ? `<button class="act-btn ab-assign" onclick="openReassign(${c.id},'${(c.official_name||'').replace(/'/g,"\\'")}')">🔄 Change</button>` : `<button class="act-btn ab-assign" onclick="openAssign(${c.id})">👷 Assign</button>`}</td>
             <td><div class="act-wrap" style="flex-direction:column;gap:0.3rem;align-items:flex-start">
-              ${c.official_name ? `<button class="act-btn ab-assign" onclick="openReassign(${c.id},'${(c.official_name||'').replace(/'/g,"\\'")}')">🔄 Change</button>` : `<button class="act-btn ab-assign" onclick="openAssign(${c.id})">👷 Assign</button>`}
-              <button class="act-btn ab-status" onclick="openStatus(${c.id},'${c.status}')">📝 Status</button>
-            </div></td>
-            <td><div class="act-wrap" style="flex-direction:column;gap:0.3rem;align-items:flex-start">
-              <button class="act-btn" style="background:rgba(139,92,246,0.08);color:#8b5cf6;border-color:rgba(139,92,246,0.2)" onclick="openTimeline('${c.complaint_no}')">📋 Timeline</button>
+              ${c.latitude && c.longitude ? `<a href="https://www.google.com/maps?q=${c.latitude},${c.longitude}" target="_blank" class="act-btn" style="background:rgba(21,101,192,0.08);color:#1565c0;border-color:rgba(21,101,192,0.25);text-decoration:none;">📍 Location</a>` : '<span style="font-size:0.72rem;color:var(--text-3)">—</span>'}
               <button class="act-btn" style="background:rgba(0,151,167,0.08);color:#006978;border-color:rgba(0,151,167,0.25)" onclick="adminOpenCaseFile(${c.id})">🗂 Case File</button>
-              ${c.latitude && c.longitude ? `<a href="https://www.google.com/maps?q=${c.latitude},${c.longitude}" target="_blank" class="act-btn" style="background:rgba(21,101,192,0.08);color:#1565c0;border-color:rgba(21,101,192,0.25);text-decoration:none;">🗺️</a>` : ''}
             </div></td>
           </tr>`).join('')}
         </tbody>
@@ -1182,8 +1178,8 @@ async function loadComplaints({ silent = false } = {}) {
             <th style="padding:0.55rem 0.6rem;text-align:left;font-size:0.65rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;background:#f8fafc;">Status</th>
             <th style="padding:0.55rem 0.6rem;text-align:left;font-size:0.65rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;background:#f8fafc;">Assigned To</th>
             <th style="padding:0.55rem 0.6rem;text-align:left;font-size:0.65rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;background:#f8fafc;">Date</th>
-            <th style="padding:0.55rem 0.6rem;text-align:left;font-size:0.65rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;background:#f8fafc;">Manage</th>
-            <th style="padding:0.55rem 0.6rem;text-align:left;font-size:0.65rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;background:#f8fafc;">View</th>
+            <th style="padding:0.55rem 0.6rem;text-align:left;font-size:0.65rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;background:#f8fafc;">Assign</th>
+            <th style="padding:0.55rem 0.6rem;text-align:left;font-size:0.65rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;background:#f8fafc;">Actions</th>
           </tr>
         </thead>
         <tbody>${data.map((c,i)=>`
@@ -1204,18 +1200,14 @@ async function loadComplaints({ silent = false } = {}) {
             </td>
             <td style="padding:0.7rem 0.8rem;white-space:nowrap;font-size:0.78rem;color:var(--text-3);">${formatDate(c.created_at)}</td>
             <td style="padding:0.7rem 0.6rem;white-space:nowrap">
-              <div class="act-wrap" style="flex-direction:column;gap:0.3rem;align-items:flex-start">
-                ${c.official_name
+              ${c.official_name
                   ? `<button class="act-btn ab-assign" onclick="openReassign(${c.id},'${(c.official_name||'').replace(/'/g,"\\'")}')">🔄 Change</button>`
                   : `<button class="act-btn ab-assign" onclick="openAssign(${c.id})">👷 Assign</button>`}
-                <button class="act-btn ab-status" onclick="openStatus(${c.id},'${c.status}')">📝 Status</button>
-              </div>
             </td>
             <td style="padding:0.7rem 0.6rem;white-space:nowrap">
               <div class="act-wrap" style="flex-direction:column;gap:0.3rem;align-items:flex-start">
-                <button class="act-btn" style="background:rgba(139,92,246,0.08);color:#8b5cf6;border-color:rgba(139,92,246,0.2)" onclick="openTimeline('${c.complaint_no}')">📋 Timeline</button>
+                ${c.latitude && c.longitude ? `<a href="https://www.google.com/maps?q=${c.latitude},${c.longitude}" target="_blank" class="act-btn" style="background:rgba(21,101,192,0.08);color:#1565c0;border-color:rgba(21,101,192,0.25);text-decoration:none;">📍 Location</a>` : '<span style="font-size:0.72rem;color:var(--text-3)">—</span>'}
                 <button class="act-btn" style="background:rgba(0,151,167,0.08);color:#006978;border-color:rgba(0,151,167,0.25)" onclick="adminOpenCaseFile(${c.id})">🗂 Case File</button>
-                ${c.latitude && c.longitude ? `<a href="https://www.google.com/maps?q=${c.latitude},${c.longitude}" target="_blank" class="act-btn" style="background:rgba(21,101,192,0.08);color:#1565c0;border-color:rgba(21,101,192,0.25);text-decoration:none;">🗺️ Map</a>` : ''}
               </div>
             </td>
           </tr>`).join('')}
