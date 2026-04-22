@@ -824,7 +824,7 @@ async function loadDashboard() {
             <td>${formatDate(c.created_at)}</td>
             <td>${c.official_name ? `<button class="act-btn ab-assign" onclick="openReassign(${c.id},'${(c.official_name||'').replace(/'/g,"\\'")}')">🔄 Change</button>` : `<button class="act-btn ab-assign" onclick="openAssign(${c.id})">👷 Assign</button>`}</td>
             <td><div class="act-wrap" style="flex-direction:column;gap:0.3rem;align-items:flex-start">
-              ${c.latitude && c.longitude ? `<a href="https://www.google.com/maps?q=${c.latitude},${c.longitude}" target="_blank" class="act-btn" style="background:rgba(21,101,192,0.08);color:#1565c0;border-color:rgba(21,101,192,0.25);text-decoration:none;">📍 Location</a>` : '<span style="font-size:0.72rem;color:var(--text-3)">—</span>'}
+              ${c.latitude && c.longitude ? `<a href="https://www.google.com/maps?q=${c.latitude},${c.longitude}" target="_blank" class="act-btn" style="background:rgba(21,101,192,0.08);color:#1565c0;border-color:rgba(21,101,192,0.25);text-decoration:none;">📍 Location</a>` : `<button class="act-btn" style="background:#f1f5f9;color:#94a3b8;border-color:#e2e8f0;cursor:default" onclick="alert('No location data added for this complaint.')">📍 Location</button>`}
               <button class="act-btn" style="background:rgba(0,151,167,0.08);color:#006978;border-color:rgba(0,151,167,0.25)" onclick="adminOpenCaseFile(${c.id})">🗂 Case File</button>
             </div></td>
           </tr>`).join('')}
@@ -1206,7 +1206,7 @@ async function loadComplaints({ silent = false } = {}) {
             </td>
             <td style="padding:0.7rem 0.6rem;white-space:nowrap">
               <div class="act-wrap" style="flex-direction:column;gap:0.3rem;align-items:flex-start">
-                ${c.latitude && c.longitude ? `<a href="https://www.google.com/maps?q=${c.latitude},${c.longitude}" target="_blank" class="act-btn" style="background:rgba(21,101,192,0.08);color:#1565c0;border-color:rgba(21,101,192,0.25);text-decoration:none;">📍 Location</a>` : '<span style="font-size:0.72rem;color:var(--text-3)">—</span>'}
+                ${c.latitude && c.longitude ? `<a href="https://www.google.com/maps?q=${c.latitude},${c.longitude}" target="_blank" class="act-btn" style="background:rgba(21,101,192,0.08);color:#1565c0;border-color:rgba(21,101,192,0.25);text-decoration:none;">📍 Location</a>` : `<button class="act-btn" style="background:#f1f5f9;color:#94a3b8;border-color:#e2e8f0;cursor:default" onclick="alert('No location data added for this complaint.')">📍 Location</button>`}
                 <button class="act-btn" style="background:rgba(0,151,167,0.08);color:#006978;border-color:rgba(0,151,167,0.25)" onclick="adminOpenCaseFile(${c.id})">🗂 Case File</button>
               </div>
             </td>
