@@ -813,7 +813,7 @@ async function loadDashboard() {
     }
     document.getElementById('recentTable').innerHTML = `
       <table>
-        <thead><tr><th>Complaint No.</th><th>Title</th><th>Citizen</th><th>Priority</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Complaint No.</th><th>Title</th><th>Citizen</th><th>Priority</th><th>Status</th><th>Date</th><th>Manage</th><th>View</th></tr></thead>
         <tbody>${recent.map(c=>`
           <tr>
             <td><span class="cno">${c.complaint_no}</span></td>
@@ -822,10 +822,13 @@ async function loadDashboard() {
             <td>${pb(c.priority)}</td>
             <td>${sb(c.status)}</td>
             <td>${formatDate(c.created_at)}</td>
-            <td><div class="act-wrap">
+            <td><div class="act-wrap" style="flex-direction:column;gap:0.3rem;align-items:flex-start">
               ${c.official_name ? `<button class="act-btn ab-assign" onclick="openReassign(${c.id},'${(c.official_name||'').replace(/'/g,"\\'")}')">🔄 Change</button>` : `<button class="act-btn ab-assign" onclick="openAssign(${c.id})">👷 Assign</button>`}
-              <button class="act-btn ab-status" onclick="openStatus(${c.id},'${c.status}')">🔄 Status</button>
-              <button class="act-btn" style="background:rgba(139,92,246,0.08);color:#8b5cf6;border-color:rgba(139,92,246,0.2)" onclick="openTimeline('${c.complaint_no}')">📋</button>
+              <button class="act-btn ab-status" onclick="openStatus(${c.id},'${c.status}')">📝 Status</button>
+            </div></td>
+            <td><div class="act-wrap" style="flex-direction:column;gap:0.3rem;align-items:flex-start">
+              <button class="act-btn" style="background:rgba(139,92,246,0.08);color:#8b5cf6;border-color:rgba(139,92,246,0.2)" onclick="openTimeline('${c.complaint_no}')">📋 Timeline</button>
+              <button class="act-btn" style="background:rgba(0,151,167,0.08);color:#006978;border-color:rgba(0,151,167,0.25)" onclick="adminOpenCaseFile(${c.id})">🗂 Case File</button>
               ${c.latitude && c.longitude ? `<a href="https://www.google.com/maps?q=${c.latitude},${c.longitude}" target="_blank" class="act-btn" style="background:rgba(21,101,192,0.08);color:#1565c0;border-color:rgba(21,101,192,0.25);text-decoration:none;">🗺️</a>` : ''}
             </div></td>
           </tr>`).join('')}
@@ -1084,6 +1087,7 @@ async function keepSeparate(id, no) {
 // ═══ COMPLAINTS ═══
 var officials = [];
 var allComplaints = [];
+var _adminComplaints = [];
 
 async function init() {
   try {
@@ -1133,6 +1137,7 @@ async function loadComplaints({ silent = false } = {}) {
     }
 
     let data = res.data;
+    _adminComplaints = data;
     // Keep allComplaints in sync so assign modal can look up category by id
     data.forEach(c => { if (!allComplaints.find(x => x.id === c.id)) allComplaints.push(c); });
 
@@ -1154,15 +1159,16 @@ async function loadComplaints({ silent = false } = {}) {
         <colgroup>
           <col style="width:36px"/>
           <col style="width:110px"/>
-          <col style="width:200px"/>
-          <col style="width:110px"/>
-          <col style="width:140px"/>
-          <col style="width:110px"/>
-          <col style="width:80px"/>
+          <col style="width:190px"/>
           <col style="width:100px"/>
           <col style="width:130px"/>
-          <col style="width:85px"/>
-          <col style="width:130px"/>
+          <col style="width:100px"/>
+          <col style="width:75px"/>
+          <col style="width:95px"/>
+          <col style="width:120px"/>
+          <col style="width:80px"/>
+          <col style="width:105px"/>
+          <col style="width:120px"/>
         </colgroup>
         <thead style="position:sticky;top:0;z-index:2;">
           <tr style="background:#f8fafc;border-bottom:2px solid var(--border);">
@@ -1176,7 +1182,8 @@ async function loadComplaints({ silent = false } = {}) {
             <th style="padding:0.55rem 0.6rem;text-align:left;font-size:0.65rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;background:#f8fafc;">Status</th>
             <th style="padding:0.55rem 0.6rem;text-align:left;font-size:0.65rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;background:#f8fafc;">Assigned To</th>
             <th style="padding:0.55rem 0.6rem;text-align:left;font-size:0.65rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;background:#f8fafc;">Date</th>
-            <th style="padding:0.55rem 0.6rem;text-align:left;font-size:0.65rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;background:#f8fafc;">Actions</th>
+            <th style="padding:0.55rem 0.6rem;text-align:left;font-size:0.65rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;background:#f8fafc;">Manage</th>
+            <th style="padding:0.55rem 0.6rem;text-align:left;font-size:0.65rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;background:#f8fafc;">View</th>
           </tr>
         </thead>
         <tbody>${data.map((c,i)=>`
@@ -1196,14 +1203,19 @@ async function loadComplaints({ silent = false } = {}) {
               ${c.official_name ? `<span style="color:var(--green);font-size:0.78rem;font-weight:600;">✓ ${c.official_name}</span>` : `<span style="color:var(--orange);font-size:0.78rem;font-weight:600;">⚠ Unassigned</span>`}
             </td>
             <td style="padding:0.7rem 0.8rem;white-space:nowrap;font-size:0.78rem;color:var(--text-3);">${formatDate(c.created_at)}</td>
-            <td style="padding:0.7rem 0.8rem;">
-              <div class="act-wrap">
+            <td style="padding:0.7rem 0.6rem;white-space:nowrap">
+              <div class="act-wrap" style="flex-direction:column;gap:0.3rem;align-items:flex-start">
                 ${c.official_name
                   ? `<button class="act-btn ab-assign" onclick="openReassign(${c.id},'${(c.official_name||'').replace(/'/g,"\\'")}')">🔄 Change</button>`
                   : `<button class="act-btn ab-assign" onclick="openAssign(${c.id})">👷 Assign</button>`}
-                <button class="act-btn ab-status" onclick="openStatus(${c.id},'${c.status}')">🔄 Status</button>
-                <button class="act-btn" style="background:rgba(139,92,246,0.08);color:#8b5cf6;border-color:rgba(139,92,246,0.2)" onclick="openTimeline('${c.complaint_no}')">📋</button>
-                ${c.latitude && c.longitude ? `<a href="https://www.google.com/maps?q=${c.latitude},${c.longitude}" target="_blank" class="act-btn" style="background:rgba(21,101,192,0.08);color:#1565c0;border-color:rgba(21,101,192,0.25);text-decoration:none;">🗺️</a>` : ''}
+                <button class="act-btn ab-status" onclick="openStatus(${c.id},'${c.status}')">📝 Status</button>
+              </div>
+            </td>
+            <td style="padding:0.7rem 0.6rem;white-space:nowrap">
+              <div class="act-wrap" style="flex-direction:column;gap:0.3rem;align-items:flex-start">
+                <button class="act-btn" style="background:rgba(139,92,246,0.08);color:#8b5cf6;border-color:rgba(139,92,246,0.2)" onclick="openTimeline('${c.complaint_no}')">📋 Timeline</button>
+                <button class="act-btn" style="background:rgba(0,151,167,0.08);color:#006978;border-color:rgba(0,151,167,0.25)" onclick="adminOpenCaseFile(${c.id})">🗂 Case File</button>
+                ${c.latitude && c.longitude ? `<a href="https://www.google.com/maps?q=${c.latitude},${c.longitude}" target="_blank" class="act-btn" style="background:rgba(21,101,192,0.08);color:#1565c0;border-color:rgba(21,101,192,0.25);text-decoration:none;">🗺️ Map</a>` : ''}
               </div>
             </td>
           </tr>`).join('')}
@@ -1537,6 +1549,637 @@ setInterval(() => {
   else loadDashboard();
 }, 15000);
 </script>
+<!-- ═══════════════ ADMIN CASE FILE MODAL ═══════════════ -->
+<div id="adminCaseFileModal" class="modal">
+  <div class="modal-box" style="max-width:780px;max-height:92vh">
+    <div class="modal-hdr" style="background:linear-gradient(135deg,#0b2040,#006978);border-radius:var(--radius) var(--radius) 0 0">
+      <div class="mh-icon" style="background:rgba(0,188,212,0.2)">🗂</div>
+      <div>
+        <div class="mh-title" style="color:#fff">Case File</div>
+        <div style="font-size:0.75rem;color:#4dd6e8;font-weight:600;margin-top:4px" id="adminCfComplaintNo"></div>
+      </div>
+      <button onclick="adminCloseCaseFile()" style="margin-left:auto;background:rgba(255,255,255,0.12);border:none;color:#fff;border-radius:8px;padding:0.4rem 0.9rem;cursor:pointer;font-size:0.82rem;font-family:inherit;font-weight:600">✕ Close</button>
+    </div>
+
+    <div style="display:flex;gap:0;border-bottom:1px solid var(--border);background:#f8fcfd;">
+      <button class="cf-tab active" id="acft-visit"   onclick="adminSwitchCfTab('visit')">🏕 Site Visit</button>
+      <button class="cf-tab"        id="acft-accused" onclick="adminSwitchCfTab('accused')">👤 Accused</button>
+      <button class="cf-tab"        id="acft-notes"   onclick="adminSwitchCfTab('notes')">💬 Notes</button>
+      <button class="cf-tab"        id="acft-petition" onclick="adminSwitchCfTab('petition')">📨 Petition</button>
+      <button class="cf-tab"        id="acft-notice"  onclick="adminSwitchCfTab('notice')">⚠️ Notice</button>
+    </div>
+
+    <div class="modal-body" style="max-height:calc(92vh - 170px);overflow-y:auto;padding:1.2rem 1.5rem">
+
+      <!-- SITE VISIT TAB -->
+      <div id="acfv-visit">
+        <div style="border:1.5px solid rgba(0,151,167,0.25);border-radius:10px;padding:1rem;margin-bottom:1.1rem;background:rgba(0,151,167,0.02)">
+          <div style="font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:0.7rem">🔄 Update Complaint</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;margin-bottom:0.6rem">
+            <div>
+              <label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem">Status <span style="color:#e53935">*</span></label>
+              <select id="acf_updateStatus" class="m-select" style="width:100%">
+                <option value="in_progress">🔄 In Progress</option>
+                <option value="resolved">✅ Resolved</option>
+                <option value="rejected">❌ Rejected</option>
+                <option value="closed">🔒 Closed</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem">Priority <span style="font-weight:400;color:var(--text-3)">(optional)</span></label>
+              <select id="acf_updatePriority" class="m-select" style="width:100%">
+                <option value="">— Keep Current —</option>
+                <option value="low">🟢 Low</option>
+                <option value="medium">🟡 Medium</option>
+                <option value="high">🔴 High</option>
+                <option value="urgent">🚨 Urgent</option>
+              </select>
+            </div>
+            <div style="grid-column:1/-1">
+              <label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem">Remarks / Action Taken <span style="color:#e53935">*</span></label>
+              <textarea id="acf_updateRemarks" class="m-textarea" rows="2" placeholder="Describe action taken or current situation..."></textarea>
+            </div>
+          </div>
+          <button onclick="adminCfDoUpdate()" style="background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:8px;padding:0.6rem 1.4rem;font-size:0.83rem;font-weight:700;cursor:pointer;font-family:inherit">✅ Save Update</button>
+          <div id="adminCfUpdateMsg" style="font-size:0.8rem;margin-top:0.5rem"></div>
+        </div>
+
+        <div style="margin-bottom:1.1rem">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem">
+            <div style="font-size:0.82rem;font-weight:700;color:var(--navy)">🏕 Site Visit Log</div>
+            <button id="adminSvToggleBtn" onclick="adminToggleSvForm()" style="background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:8px;padding:0.35rem 0.9rem;font-size:0.76rem;font-weight:700;cursor:pointer;font-family:inherit">+ Log New Visit</button>
+          </div>
+          <div id="adminSvFormBox" style="display:none;background:var(--bg);border:1.5px solid rgba(0,151,167,0.2);border-radius:10px;padding:1rem;margin-bottom:0.8rem">
+            <div style="font-size:0.76rem;font-weight:700;color:var(--teal);margin-bottom:0.6rem">📋 New Site Visit</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem">
+              <div><label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem">Visit Date <span style="color:#e53935">*</span></label><input type="date" id="asv_date" class="m-select" style="width:100%"/></div>
+              <div><label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem">Visit Time</label><input type="time" id="asv_time" class="m-select" style="width:100%"/></div>
+              <div><label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem">Encroachment Area</label><input type="text" id="asv_area" class="m-select" style="width:100%" placeholder="e.g. 200 sq yards"/></div>
+              <div><label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem">Construction Type</label><input type="text" id="asv_construction" class="m-select" style="width:100%" placeholder="e.g. Concrete compound wall"/></div>
+              <div style="grid-column:1/-1"><label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem">Current Status of Land/Property</label><input type="text" id="asv_status" class="m-select" style="width:100%" placeholder="e.g. Under active construction..."/></div>
+              <div style="grid-column:1/-1"><label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem">Detailed Findings</label><textarea id="asv_findings" class="m-textarea" rows="3" placeholder="What you observed on site..."></textarea></div>
+              <div style="grid-column:1/-1">
+                <label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.4rem">📎 Attach Documents</label>
+                <div style="border:1.5px dashed rgba(0,151,167,0.35);border-radius:8px;padding:0.7rem;background:rgba(0,151,167,0.03)">
+                  <input type="file" id="asv_docInput" multiple accept="image/*,.pdf,.doc,.docx" style="display:none" onchange="adminSvHandleFiles(this.files)"/>
+                  <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+                    <select id="asv_docType" class="m-select" style="font-size:0.75rem;padding:0.28rem 0.5rem;width:auto">
+                      <option value="Site Visit Photo">Site Visit Photo</option>
+                      <option value="Encroachment Photo">Encroachment Photo</option>
+                      <option value="Survey Map">Survey Map</option>
+                      <option value="Legal Document">Legal Document</option>
+                      <option value="Ownership Proof">Ownership Proof</option>
+                      <option value="Notice Copy">Notice Copy</option>
+                      <option value="Other">Other</option>
+                    </select>
+                    <button type="button" onclick="document.getElementById('asv_docInput').click()" style="background:rgba(0,151,167,0.1);color:var(--teal);border:1px solid rgba(0,151,167,0.3);border-radius:7px;padding:0.3rem 0.8rem;font-size:0.76rem;font-weight:700;cursor:pointer;font-family:inherit">+ Add Files</button>
+                    <span style="font-size:0.7rem;color:var(--text-3)">Images, PDF, Word — any format</span>
+                  </div>
+                  <div id="asv_docPreview" style="margin-top:0.5rem;display:flex;flex-direction:column;gap:0.3rem"></div>
+                </div>
+              </div>
+            </div>
+            <div id="adminSvMsg" style="font-size:0.8rem;margin-top:0.5rem"></div>
+            <div style="display:flex;gap:0.6rem;margin-top:0.7rem">
+              <button onclick="adminSaveSiteVisit()" style="background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:8px;padding:0.55rem 1.2rem;font-size:0.81rem;font-weight:700;cursor:pointer;font-family:inherit">💾 Save Visit</button>
+              <button onclick="adminToggleSvForm()" style="background:transparent;color:var(--text-2);border:1px solid var(--border);border-radius:8px;padding:0.55rem 0.9rem;font-size:0.81rem;cursor:pointer;font-family:inherit">Cancel</button>
+            </div>
+          </div>
+          <div id="adminSvVisitList"><div style="font-size:0.8rem;color:var(--text-3)">Loading...</div></div>
+        </div>
+
+        <div>
+          <div style="font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:0.6rem">📋 Status History</div>
+          <div id="adminCfStatusHistory"><div style="font-size:0.78rem;color:var(--text-3)">Loading...</div></div>
+        </div>
+      </div>
+
+      <!-- ACCUSED TAB -->
+      <div id="acfv-accused" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem">
+          <div style="font-size:0.82rem;font-weight:700;color:var(--navy)">👤 Accused Person(s)</div>
+          <button onclick="adminShowAddAccusedForm()" style="background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:8px;padding:0.45rem 1rem;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit">+ Add Accused</button>
+        </div>
+        <div id="adminAccusedFormBox" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem">
+          <input type="hidden" id="admin_acc_edit_id"/>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem">
+            <div><label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Full Name <span style="color:#e53935">*</span></label><input type="text" id="admin_acc_name" class="m-select" style="width:100%" placeholder="Accused person's full name"/></div>
+            <div><label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Phone</label><input type="tel" id="admin_acc_phone" class="m-select" style="width:100%" placeholder="Mobile number"/></div>
+            <div><label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Email</label><input type="email" id="admin_acc_email" class="m-select" style="width:100%" placeholder="Email address"/></div>
+            <div>
+              <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Relation</label>
+              <select id="admin_acc_relation" class="m-select" style="width:100%">
+                <option value="">— Select —</option>
+                <option>Neighbour</option><option>Builder / Contractor</option><option>Land Grabber / Encroacher</option>
+                <option>Property Owner</option><option>Government Official</option><option>Other</option>
+              </select>
+            </div>
+            <div><label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Occupation</label><input type="text" id="admin_acc_occupation" class="m-select" style="width:100%" placeholder="e.g. Builder, Farmer"/></div>
+            <div><label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Aadhaar / ID No.</label><input type="text" id="admin_acc_aadhaar" class="m-select" style="width:100%" placeholder="Optional"/></div>
+            <div style="grid-column:1/-1"><label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Address</label><input type="text" id="admin_acc_address" class="m-select" style="width:100%" placeholder="Full residential / business address"/></div>
+          </div>
+          <div style="display:flex;gap:0.6rem;margin-top:0.8rem">
+            <button onclick="adminSaveAccused()" style="background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:8px;padding:0.55rem 1.2rem;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit">💾 Save</button>
+            <button onclick="adminCancelAccusedForm()" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:0.55rem 1rem;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text-2)">Cancel</button>
+          </div>
+          <div id="adminAccMsg" style="font-size:0.8rem;margin-top:0.5rem"></div>
+        </div>
+        <div id="adminAccusedList"></div>
+      </div>
+
+      <!-- NOTES TAB -->
+      <div id="acfv-notes" style="display:none">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:0.8rem">💬 Internal Notes — Admin ↔ Official</div>
+        <div id="adminNotesList" style="display:flex;flex-direction:column;gap:0.6rem;margin-bottom:1rem;max-height:300px;overflow-y:auto"></div>
+        <div style="display:flex;gap:0.5rem">
+          <textarea id="adminNoteInput" class="m-textarea" rows="2" placeholder="Write a note to the official or record an internal update..." style="flex:1;min-height:54px;resize:vertical"></textarea>
+          <button onclick="adminAddCaseNote()" style="background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:8px;padding:0.5rem 1rem;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;align-self:flex-end">Send</button>
+        </div>
+      </div>
+
+      <!-- PETITION TAB -->
+      <div id="acfv-petition" style="display:none">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:0.3rem">📨 Petition — Request for Action</div>
+        <div style="font-size:0.76rem;color:var(--text-2);margin-bottom:1rem">Formal petition to Police Station, Revenue Department, Collector, or Commissionerate.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;margin-bottom:0.8rem">
+          <div><label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Send to Police Station</label><select id="admin_pet_station" class="m-select" style="width:100%"><option value="">— Select Station (optional) —</option></select></div>
+          <div><label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Or: Custom Recipient Name</label><input type="text" id="admin_pet_to_name" class="m-select" style="width:100%" placeholder="e.g. The District Collector"/></div>
+          <div style="grid-column:1/-1"><label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Recipient Address</label><input type="text" id="admin_pet_to_address" class="m-select" style="width:100%" placeholder="Full address of the recipient"/></div>
+          <div style="grid-column:1/-1"><label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Action Requested <span style="font-weight:400;color:var(--text-3)">(leave blank for default text)</span></label><textarea id="admin_pet_action" class="m-textarea" rows="2" placeholder="Specific action you are requesting..."></textarea></div>
+        </div>
+        <div style="display:flex;gap:0.6rem;flex-wrap:wrap">
+          <button onclick="adminGeneratePetition()" style="background:linear-gradient(135deg,#0b2040,#006978);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">⬇ Download PDF</button>
+          <button onclick="adminSendPetition()" style="background:linear-gradient(135deg,#0097a7,#00bcd4);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">📧 Send to Station</button>
+        </div>
+        <div id="adminPetMsg" style="font-size:0.8rem;margin-top:0.5rem"></div>
+        <div style="margin-top:1rem">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--text-2);margin-bottom:0.5rem">📋 Petition History</div>
+          <div id="adminPetitionHistory" style="font-size:0.78rem;color:var(--text-2)">Loading...</div>
+        </div>
+      </div>
+
+      <!-- NOTICE TAB -->
+      <div id="acfv-notice" style="display:none">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:0.3rem">⚠️ Show Cause Notice — To Accused</div>
+        <div style="font-size:0.76rem;color:var(--text-2);margin-bottom:1rem">Formal notice directing the accused person to respond or show cause within a set deadline.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;margin-bottom:0.8rem">
+          <div><label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Accused Person</label><select id="admin_ntc_accused" class="m-select" style="width:100%"><option value="">— First accused (default) —</option></select></div>
+          <div><label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Response Deadline (days)</label><input type="number" id="admin_ntc_days" class="m-select" style="width:100%" value="15" min="7" max="60"/></div>
+        </div>
+        <div style="display:flex;gap:0.6rem;flex-wrap:wrap">
+          <button onclick="adminGenerateNotice()" style="background:linear-gradient(135deg,#b91c1c,#ef4444);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">⬇ Download Notice PDF</button>
+          <button onclick="adminSendNotice()" style="background:linear-gradient(135deg,#7c3aed,#9333ea);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">📧 Send to Accused</button>
+        </div>
+        <div id="adminNtcMsg" style="font-size:0.8rem;margin-top:0.5rem"></div>
+        <div style="margin-top:1rem">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--text-2);margin-bottom:0.5rem">📋 Notice History</div>
+          <div id="adminNoticeHistory" style="font-size:0.78rem;color:var(--text-2)">Loading...</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+  .cf-tab{padding:0.6rem 1.1rem;border:none;background:transparent;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;color:var(--text-2);border-bottom:2px solid transparent;transition:all 0.18s;}
+  .cf-tab.active{color:var(--teal);border-bottom-color:var(--teal);background:rgba(0,151,167,0.05);}
+  .cf-tab:hover:not(.active){color:var(--navy);}
+</style>
+
+<script>
+// ═══ ADMIN CASE FILE ═══
+let _adminCfComplaintId = null;
+let _adminCfAccusedList = [];
+let _adminSvPendingDocs = [];
+
+function adminCloseCaseFile() {
+  document.getElementById('adminCaseFileModal').classList.remove('open');
+  _adminCfComplaintId = null;
+}
+document.getElementById('adminCaseFileModal').addEventListener('click', e => { if(e.target===e.currentTarget) adminCloseCaseFile(); });
+
+async function adminOpenCaseFile(id) {
+  _adminCfComplaintId = id;
+  const c = _adminComplaints.find(x => x.id === id) || allComplaints.find(x => x.id === id);
+  document.getElementById('adminCfComplaintNo').textContent = c ? c.complaint_no : '#' + id;
+  if (c) {
+    document.getElementById('acf_updateStatus').value   = c.status === 'assigned' ? 'in_progress' : (c.status === 'in_progress' ? 'resolved' : 'in_progress');
+    document.getElementById('acf_updatePriority').value = c.priority || '';
+    document.getElementById('acf_updateRemarks').value  = '';
+  }
+  document.getElementById('adminCfUpdateMsg').textContent = '';
+  document.getElementById('adminCaseFileModal').classList.add('open');
+  adminSwitchCfTab('visit');
+  adminLoadPoliceStationsForPdf();
+}
+
+function adminSwitchCfTab(tab) {
+  ['visit','accused','notes','petition','notice'].forEach(t => {
+    document.getElementById('acfv-'+t).style.display = t === tab ? 'block' : 'none';
+    document.getElementById('acft-'+t).classList.toggle('active', t === tab);
+  });
+  if (tab === 'visit')    { adminLoadSiteVisit(); adminLoadCfStatusHistory(); }
+  if (tab === 'accused')  adminLoadAccused();
+  if (tab === 'notes')    adminLoadNotes();
+  if (tab === 'petition') { adminLoadPoliceStationsForPdf(); adminLoadPetitionHistory('petition'); }
+  if (tab === 'notice')   { adminLoadAccusedForNotice(); adminLoadPetitionHistory('notice'); }
+}
+
+async function adminCfDoUpdate() {
+  const status   = document.getElementById('acf_updateStatus').value;
+  const remarks  = document.getElementById('acf_updateRemarks').value.trim();
+  const priority = document.getElementById('acf_updatePriority').value;
+  const msgEl    = document.getElementById('adminCfUpdateMsg');
+  if (!remarks) { msgEl.textContent = 'Remarks are required.'; msgEl.style.color = '#e53935'; return; }
+  msgEl.textContent = 'Saving...'; msgEl.style.color = 'var(--teal)';
+  try {
+    const body = { status, remarks };
+    if (priority) body.priority = priority;
+    const res = await http.put('/api/complaints/admin/status/' + _adminCfComplaintId, body);
+    if (res.success) {
+      msgEl.textContent = '✅ Complaint updated successfully.'; msgEl.style.color = '#065f46';
+      loadComplaints({ silent: true });
+      setTimeout(() => adminLoadCfStatusHistory(), 600);
+    } else { msgEl.textContent = res.message || 'Failed.'; msgEl.style.color = '#e53935'; }
+  } catch(e) { msgEl.textContent = 'Server error.'; msgEl.style.color = '#e53935'; }
+}
+
+const _adminStatusLabelMap = { open:'Open', assigned:'Assigned to Official', in_progress:'In Progress', resolved:'Resolved', closed:'Closed', rejected:'Rejected' };
+const _adminStatusColorMap = { open:'#1565c0', assigned:'#6d28d9', in_progress:'#b45309', resolved:'#065f46', closed:'#374151', rejected:'#b91c1c' };
+const _adminRoleLabel = { admin:'Admin', official:'Official', user:'Citizen', system:'System' };
+
+function adminFmtDate(raw) {
+  if (!raw) return '—';
+  const d = new Date(raw);
+  if (isNaN(d)) return String(raw).slice(0,16).replace('T',' ');
+  return d.toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+
+async function adminLoadCfStatusHistory() {
+  const el = document.getElementById('adminCfStatusHistory');
+  if (!el) return;
+  const c = _adminComplaints.find(x => x.id === _adminCfComplaintId) || allComplaints.find(x => x.id === _adminCfComplaintId);
+  if (!c) { el.innerHTML = '<div style="font-size:0.78rem;color:var(--text-3)">Complaint data not loaded.</div>'; return; }
+  el.innerHTML = '<div style="font-size:0.78rem;color:var(--text-3)">Loading history...</div>';
+  try {
+    const trackRes = await fetch('/api/complaints/track/'+c.complaint_no).then(r=>r.json());
+    const history = trackRes.data?.history || [];
+    if (history.length === 0) { el.innerHTML = '<div style="font-size:0.78rem;color:var(--text-3);text-align:center;padding:1rem 0">No status history yet.</div>'; return; }
+    el.innerHTML = history.map((h,i) => {
+      const status = h.new_status || h.status || '';
+      const label  = _adminStatusLabelMap[status] || status.replace(/_/g,' ').replace(/\b\w/g,x=>x.toUpperCase());
+      const color  = _adminStatusColorMap[status] || 'var(--teal)';
+      const role   = _adminRoleLabel[h.changed_by_role] || h.changed_by_role || 'System';
+      const date   = adminFmtDate(h.changed_at || h.created_at);
+      const isLast = i === history.length - 1;
+      return `<div style="display:flex;gap:0.75rem;align-items:flex-start;padding:0.55rem 0;${isLast?'':'border-bottom:1px solid var(--border)'}">
+        <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0">
+          <div style="width:10px;height:10px;border-radius:50%;background:${color};border:2px solid ${color};margin-top:3px"></div>
+          ${!isLast?`<div style="width:2px;flex:1;background:var(--border);margin-top:3px;min-height:16px"></div>`:''}
+        </div>
+        <div style="flex:1;min-width:0;padding-bottom:${isLast?'0':'0.3rem'}">
+          <div style="font-size:0.78rem;font-weight:700;color:${color}">${label}</div>
+          ${h.remarks?`<div style="font-size:0.75rem;color:var(--text-1);margin-top:0.15rem;line-height:1.4">${h.remarks}</div>`:''}
+          <div style="font-size:0.69rem;color:var(--text-3);margin-top:0.2rem">${role} &nbsp;·&nbsp; ${date}</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { el.innerHTML = '<div style="font-size:0.78rem;color:#e53935">Failed to load history.</div>'; }
+}
+
+// Site Visit
+function adminToggleSvForm() {
+  const box = document.getElementById('adminSvFormBox');
+  const btn = document.getElementById('adminSvToggleBtn');
+  const opening = box.style.display === 'none';
+  box.style.display = opening ? 'block' : 'none';
+  btn.textContent = opening ? '✕ Cancel' : '+ Log New Visit';
+  if (opening) {
+    ['asv_date','asv_time','asv_area','asv_construction','asv_status'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('asv_findings').value = '';
+    document.getElementById('adminSvMsg').textContent = '';
+    _adminSvPendingDocs = [];
+    document.getElementById('asv_docPreview').innerHTML = '';
+    document.getElementById('asv_docInput').value = '';
+    document.getElementById('asv_docType').value = 'Site Visit Photo';
+  }
+}
+
+async function adminLoadSiteVisit() {
+  const el = document.getElementById('adminSvVisitList');
+  try {
+    const res = await http.get('/api/casefile/complaints/'+_adminCfComplaintId+'/site-visit');
+    const visits = res.data || [];
+    if (visits.length === 0) { el.innerHTML = '<div style="font-size:0.8rem;color:var(--text-3);text-align:center;padding:1.5rem 0">No site visits recorded yet.</div>'; return; }
+    el.innerHTML = visits.map((v,i) => {
+      const visitNo = visits.length - i;
+      const docs = v.documents || [];
+      const docsHtml = docs.length > 0 ? `<div style="margin-top:0.6rem;padding:0.5rem 0.7rem;background:rgba(0,151,167,0.04);border-radius:7px;border:1px solid rgba(0,151,167,0.12)">
+        <div style="font-size:0.72rem;font-weight:700;color:var(--teal);margin-bottom:0.35rem">📎 ${docs.length} Document${docs.length>1?'s':''} Attached</div>
+        ${docs.map(d=>`<div style="font-size:0.73rem;color:var(--text-2);padding:0.15rem 0;display:flex;align-items:center;gap:0.4rem">
+          <span style="font-size:0.65rem;background:rgba(0,151,167,0.12);color:var(--teal);border-radius:4px;padding:1px 5px">${d.doc_type}</span>
+          <span>${d.file_name}</span>${d.caption?`<span style="color:var(--text-3)">— ${d.caption}</span>`:''}
+        </div>`).join('')}</div>` : '';
+      return `<div style="border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:0.7rem;background:#fff">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem">
+          <div>
+            <span style="font-size:0.82rem;font-weight:700;color:var(--navy)">Visit ${visitNo}</span>
+            <span style="font-size:0.78rem;color:var(--teal);margin-left:0.5rem">📅 ${new Date(v.visit_date).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</span>
+            ${v.visit_time?`<span style="font-size:0.73rem;color:var(--text-2);margin-left:0.4rem">⏰ ${v.visit_time}</span>`:''}
+            <span style="font-size:0.72rem;color:var(--text-3);margin-left:0.4rem">— ${v.official_name||'Official'}</span>
+          </div>
+          <div style="display:flex;gap:0.4rem;flex-shrink:0">
+            <button onclick="adminDownloadVisitPdf(${v.id},${visitNo})" style="background:rgba(16,185,129,0.08);color:#065f46;border:1px solid rgba(16,185,129,0.25);border-radius:6px;padding:2px 8px;font-size:0.7rem;cursor:pointer">📥 PDF</button>
+            <button onclick="adminDeleteSiteVisit(${v.id})" style="background:rgba(239,68,68,0.08);color:#e53935;border:1px solid rgba(239,68,68,0.2);border-radius:6px;padding:2px 8px;font-size:0.7rem;cursor:pointer">🗑</button>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.3rem 1rem;font-size:0.78rem">
+          ${v.encroachment_area?`<div><span style="color:var(--text-2);font-weight:600">Area:</span> ${v.encroachment_area}</div>`:''}
+          ${v.construction_type?`<div><span style="color:var(--text-2);font-weight:600">Construction:</span> ${v.construction_type}</div>`:''}
+          ${v.current_status?`<div style="grid-column:1/-1"><span style="color:var(--text-2);font-weight:600">Land Status:</span> ${v.current_status}</div>`:''}
+        </div>
+        ${v.findings?`<div style="margin-top:0.5rem;background:var(--bg);border-radius:6px;padding:0.5rem 0.7rem;font-size:0.78rem;color:var(--text);line-height:1.5;border-left:3px solid var(--teal)">${v.findings}</div>`:''}
+        ${docsHtml}
+      </div>`;
+    }).join('');
+  } catch(e) { el.innerHTML = '<div style="font-size:0.8rem;color:#e53935">Error loading visits.</div>'; }
+}
+
+async function adminSaveSiteVisit() {
+  const d = document.getElementById('asv_date').value;
+  const msgEl = document.getElementById('adminSvMsg');
+  if (!d) { msgEl.textContent='Visit date is required.'; msgEl.style.color='#e53935'; return; }
+  msgEl.textContent = _adminSvPendingDocs.length>0?`Saving visit + ${_adminSvPendingDocs.length} document(s)...`:'Saving...';
+  msgEl.style.color = 'var(--teal)';
+  try {
+    const res = await http.post('/api/casefile/complaints/'+_adminCfComplaintId+'/site-visit', {
+      visit_date: d,
+      visit_time: document.getElementById('asv_time').value || null,
+      encroachment_area: document.getElementById('asv_area').value.trim() || null,
+      construction_type: document.getElementById('asv_construction').value.trim() || null,
+      current_status: document.getElementById('asv_status').value.trim() || null,
+      findings: document.getElementById('asv_findings').value.trim() || null,
+      documents: _adminSvPendingDocs,
+    });
+    msgEl.textContent = res.success ? '✅ Visit logged.' : (res.message||'Error saving.');
+    msgEl.style.color = res.success ? '#065f46' : '#e53935';
+    if (res.success) { adminLoadSiteVisit(); setTimeout(()=>adminToggleSvForm(), 900); }
+  } catch(e) { msgEl.textContent='Error: '+e.message; msgEl.style.color='#e53935'; }
+}
+
+async function adminDeleteSiteVisit(id) {
+  if (!confirm('Delete this site visit and all its attached documents?')) return;
+  try { await http.delete('/api/casefile/site-visits/'+id); adminLoadSiteVisit(); } catch(e) {}
+}
+
+function adminSvHandleFiles(files) {
+  const preview = document.getElementById('asv_docPreview');
+  Array.from(files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64 = e.target.result.split(',')[1];
+      const docType = document.getElementById('asv_docType')?.value || 'Site Visit Photo';
+      const entry = { file_name:file.name, file_data:base64, file_mime:file.type, doc_type:docType, caption:'' };
+      _adminSvPendingDocs.push(entry);
+      const idx = _adminSvPendingDocs.length - 1;
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid var(--border);border-radius:6px;padding:0.3rem 0.6rem;font-size:0.73rem';
+      row.innerHTML = `<span style="color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%">📄 ${file.name}</span><button type="button" onclick="adminSvRemoveDoc(${idx},this)" style="background:none;border:none;color:#e53935;cursor:pointer;font-size:0.75rem;padding:0 4px;flex-shrink:0">✕</button>`;
+      preview.appendChild(row);
+    };
+    reader.readAsDataURL(file);
+  });
+  document.getElementById('asv_docInput').value = '';
+}
+
+function adminSvRemoveDoc(idx, btn) {
+  _adminSvPendingDocs[idx] = null;
+  btn.closest('div').remove();
+}
+
+async function adminDownloadVisitPdf(visitId, visitNo) {
+  const token = localStorage.getItem('hydraa_token');
+  const resp = await fetch('/api/casefile/site-visits/'+visitId+'/generate-pdf', {
+    headers: { 'Authorization': 'Bearer '+token }
+  });
+  if (!resp.ok) { alert('Failed to generate PDF.'); return; }
+  const blob = await resp.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'SiteVisit_V'+visitNo+'.pdf'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Accused
+async function adminLoadAccused() {
+  try {
+    const res = await http.get('/api/casefile/complaints/'+_adminCfComplaintId+'/accused');
+    _adminCfAccusedList = res.data || [];
+    adminRenderAccusedList();
+  } catch(e) {}
+}
+
+function adminRenderAccusedList() {
+  const el = document.getElementById('adminAccusedList');
+  if (_adminCfAccusedList.length === 0) { el.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:0.83rem">No accused persons recorded yet.</div>'; return; }
+  el.innerHTML = _adminCfAccusedList.map((a,i) => `
+    <div style="border:1px solid var(--border);border-radius:10px;padding:0.9rem 1rem;margin-bottom:0.6rem;background:#fff">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.5rem">
+        <div>
+          <div style="font-weight:700;font-size:0.9rem;color:var(--navy)">${i+1}. ${a.name}</div>
+          <div style="font-size:0.78rem;color:var(--text-2);margin-top:3px">${a.phone?'📞 '+a.phone+' ':''}${a.relation?'· '+a.relation+' ':''}${a.occupation?'· '+a.occupation:''}</div>
+          ${a.address?`<div style="font-size:0.75rem;color:var(--text-3);margin-top:2px">📍 ${a.address}</div>`:''}
+          <div style="font-size:0.68rem;color:var(--text-3);margin-top:3px">Added by: ${a.added_by}</div>
+        </div>
+        <div style="display:flex;gap:0.4rem;flex-shrink:0">
+          <button onclick="adminEditAccused(${JSON.stringify(a).replace(/"/g,'&quot;')})" style="padding:4px 10px;border-radius:6px;border:1px solid rgba(59,130,246,0.3);background:rgba(59,130,246,0.08);color:#1d4ed8;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit">✏️ Edit</button>
+          <button onclick="adminDeleteAccused(${a.id})" style="padding:4px 10px;border-radius:6px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#b91c1c;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit">🗑</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function adminShowAddAccusedForm() {
+  document.getElementById('adminAccusedFormBox').style.display = 'block';
+  document.getElementById('admin_acc_edit_id').value = '';
+  ['admin_acc_name','admin_acc_phone','admin_acc_email','admin_acc_relation','admin_acc_occupation','admin_acc_aadhaar','admin_acc_address'].forEach(id => document.getElementById(id).value = '');
+}
+function adminCancelAccusedForm() { document.getElementById('adminAccusedFormBox').style.display = 'none'; }
+function adminEditAccused(a) {
+  document.getElementById('adminAccusedFormBox').style.display = 'block';
+  document.getElementById('admin_acc_edit_id').value = a.id;
+  document.getElementById('admin_acc_name').value = a.name || '';
+  document.getElementById('admin_acc_phone').value = a.phone || '';
+  document.getElementById('admin_acc_email').value = a.email || '';
+  document.getElementById('admin_acc_relation').value = a.relation || '';
+  document.getElementById('admin_acc_occupation').value = a.occupation || '';
+  document.getElementById('admin_acc_aadhaar').value = a.aadhaar_no || '';
+  document.getElementById('admin_acc_address').value = a.address || '';
+}
+async function adminSaveAccused() {
+  const name = document.getElementById('admin_acc_name').value.trim();
+  const editId = document.getElementById('admin_acc_edit_id').value;
+  const msgEl = document.getElementById('adminAccMsg');
+  if (!name) { msgEl.textContent='Name is required.'; msgEl.style.color='#e53935'; return; }
+  const payload = {
+    name, phone:document.getElementById('admin_acc_phone').value.trim()||null,
+    email:document.getElementById('admin_acc_email').value.trim()||null,
+    relation:document.getElementById('admin_acc_relation').value||null,
+    occupation:document.getElementById('admin_acc_occupation').value.trim()||null,
+    aadhaar_no:document.getElementById('admin_acc_aadhaar').value.trim()||null,
+    address:document.getElementById('admin_acc_address').value.trim()||null,
+  };
+  try {
+    const res = editId ? await http.put('/api/casefile/accused/'+editId, payload) : await http.post('/api/casefile/complaints/'+_adminCfComplaintId+'/accused', payload);
+    if (res.success) { adminCancelAccusedForm(); adminLoadAccused(); }
+    else { msgEl.textContent=res.message; msgEl.style.color='#e53935'; }
+  } catch(e) { msgEl.textContent=e.message; msgEl.style.color='#e53935'; }
+}
+async function adminDeleteAccused(id) {
+  if (!confirm('Remove this accused person?')) return;
+  await http.delete('/api/casefile/accused/'+id);
+  adminLoadAccused();
+}
+
+// Notes
+async function adminLoadNotes() {
+  try {
+    const res = await http.get('/api/casefile/complaints/'+_adminCfComplaintId+'/case-notes');
+    const notes = res.data || [];
+    const el = document.getElementById('adminNotesList');
+    if (notes.length === 0) { el.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--text-3);font-size:0.83rem">No notes yet.</div>'; return; }
+    el.innerHTML = notes.map(n => {
+      const isMe = n.author_role === 'admin';
+      return `<div style="display:flex;flex-direction:column;${isMe?'align-items:flex-end':'align-items:flex-start'}">
+        <div style="max-width:80%;background:${isMe?'linear-gradient(135deg,var(--teal),#00bcd4)':'#f1f5f9'};color:${isMe?'#fff':'var(--text)'};border-radius:${isMe?'12px 12px 2px 12px':'12px 12px 12px 2px'};padding:0.6rem 0.9rem;font-size:0.83rem">${n.message}</div>
+        <div style="font-size:0.65rem;color:var(--text-3);margin-top:3px">${n.author_name} (${n.author_role}) · ${new Date(n.created_at).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+      </div>`;
+    }).join('');
+    el.scrollTop = el.scrollHeight;
+  } catch(e) {}
+}
+async function adminAddCaseNote() {
+  const msg = document.getElementById('adminNoteInput').value.trim();
+  if (!msg) return;
+  try {
+    await http.post('/api/casefile/complaints/'+_adminCfComplaintId+'/case-notes', { message: msg });
+    document.getElementById('adminNoteInput').value = '';
+    adminLoadNotes();
+  } catch(e) {}
+}
+
+// Police stations / Petition / Notice
+async function adminLoadPoliceStationsForPdf() {
+  try {
+    const res = await http.get('/api/casefile/police-stations');
+    const stations = res.data || [];
+    const sel = document.getElementById('admin_pet_station');
+    sel.innerHTML = '<option value="">— Select Station (optional) —</option>' + stations.map(s=>`<option value="${s.id}">${s.name}${s.district_name?' ('+s.district_name+')':''}</option>`).join('');
+  } catch(e) {}
+}
+async function adminLoadAccusedForNotice() {
+  try {
+    const res = await http.get('/api/casefile/complaints/'+_adminCfComplaintId+'/accused');
+    _adminCfAccusedList = res.data || [];
+    const sel = document.getElementById('admin_ntc_accused');
+    sel.innerHTML = '<option value="">— First accused (default) —</option>' + _adminCfAccusedList.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
+  } catch(e) {}
+}
+async function adminLoadPetitionHistory(type) {
+  try {
+    const res = await http.get('/api/casefile/complaints/'+_adminCfComplaintId+'/petitions');
+    const all = res.data || [];
+    const rows = type ? all.filter(r=>r.doc_type===type) : all;
+    const elId = type==='notice' ? 'adminNoticeHistory' : 'adminPetitionHistory';
+    const el = document.getElementById(elId);
+    if (!el) return;
+    if (rows.length === 0) { el.textContent = 'No records yet.'; return; }
+    el.innerHTML = rows.map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:0.45rem 0.7rem;border:1px solid var(--border);border-radius:7px;margin-bottom:0.35rem;background:#fff">
+      <div style="font-size:0.78rem">To: <strong>${r.sent_to_name||'—'}</strong>${r.sent_to_email?`<span style="color:var(--text-3)"> · ${r.sent_to_email}</span>`:''} · ${new Date(r.created_at).toLocaleDateString('en-IN')} · <span style="font-weight:700;color:${r.send_status==='sent'?'#065f46':'var(--text-3)'}">${r.send_status}</span></div>
+    </div>`).join('');
+  } catch(e) {}
+}
+
+async function adminGeneratePetition() {
+  const msg = document.getElementById('adminPetMsg');
+  msg.textContent = 'Generating petition PDF...'; msg.style.color = 'var(--teal)';
+  try {
+    const payload = {
+      police_station_id: document.getElementById('admin_pet_station').value || null,
+      to_name:           document.getElementById('admin_pet_to_name').value.trim() || null,
+      to_address:        document.getElementById('admin_pet_to_address').value.trim() || null,
+      action_requested:  document.getElementById('admin_pet_action').value.trim() || null,
+    };
+    const token = localStorage.getItem('hydraa_token');
+    const resp = await fetch('/api/casefile/complaints/'+_adminCfComplaintId+'/generate-petition', {
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body:JSON.stringify(payload)
+    });
+    if (!resp.ok) { msg.textContent='Failed to generate PDF.'; msg.style.color='#e53935'; return; }
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'Petition_'+_adminCfComplaintId+'.pdf'; a.click();
+    URL.revokeObjectURL(url);
+    msg.textContent = '✅ Petition PDF downloaded.'; msg.style.color = '#065f46';
+    adminLoadPetitionHistory('petition');
+  } catch(e) { msg.textContent='Error: '+e.message; msg.style.color='#e53935'; }
+}
+
+async function adminGenerateNotice() {
+  const msg = document.getElementById('adminNtcMsg');
+  msg.textContent = 'Generating notice PDF...'; msg.style.color = 'var(--teal)';
+  try {
+    const payload = {
+      accused_id:    document.getElementById('admin_ntc_accused').value || null,
+      response_days: document.getElementById('admin_ntc_days').value || 15,
+    };
+    const token = localStorage.getItem('hydraa_token');
+    const resp = await fetch('/api/casefile/complaints/'+_adminCfComplaintId+'/generate-notice', {
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body:JSON.stringify(payload)
+    });
+    if (!resp.ok) { msg.textContent='Failed to generate PDF.'; msg.style.color='#e53935'; return; }
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'Notice_'+_adminCfComplaintId+'.pdf'; a.click();
+    URL.revokeObjectURL(url);
+    msg.textContent = '✅ Show Cause Notice downloaded.'; msg.style.color = '#065f46';
+    adminLoadPetitionHistory('notice');
+  } catch(e) { msg.textContent='Error: '+e.message; msg.style.color='#e53935'; }
+}
+
+async function adminSendPetition() {
+  const msg = document.getElementById('adminPetMsg');
+  msg.textContent = 'Sending petition email...'; msg.style.color = 'var(--teal)';
+  try {
+    const res = await http.post('/api/casefile/complaints/'+_adminCfComplaintId+'/send-petition', {
+      police_station_id: document.getElementById('admin_pet_station').value || null,
+      to_name:           document.getElementById('admin_pet_to_name').value.trim() || null,
+      to_address:        document.getElementById('admin_pet_to_address').value.trim() || null,
+      action_requested:  document.getElementById('admin_pet_action').value.trim() || null,
+    });
+    if (res.noEmail) { msg.textContent='⚠️ '+res.message; msg.style.color='#b45309'; }
+    else if (res.success) { msg.textContent='✅ '+res.message; msg.style.color='#065f46'; adminLoadPetitionHistory('petition'); }
+    else { msg.textContent=res.message||'Failed to send.'; msg.style.color='#e53935'; }
+  } catch(e) { msg.textContent='Error: '+(e.message||'Send failed'); msg.style.color='#e53935'; }
+}
+
+async function adminSendNotice() {
+  const msg = document.getElementById('adminNtcMsg');
+  msg.textContent = 'Sending notice email...'; msg.style.color = 'var(--teal)';
+  try {
+    const res = await http.post('/api/casefile/complaints/'+_adminCfComplaintId+'/send-notice', {
+      accused_id:    document.getElementById('admin_ntc_accused').value || null,
+      response_days: document.getElementById('admin_ntc_days').value || 15,
+    });
+    if (res.noEmail) { msg.textContent='⚠️ '+res.message; msg.style.color='#b45309'; }
+    else if (res.success) { msg.textContent='✅ '+res.message; msg.style.color='#065f46'; adminLoadPetitionHistory('notice'); }
+    else { msg.textContent=res.message||'Failed to send.'; msg.style.color='#e53935'; }
+  } catch(e) { msg.textContent='Error: '+(e.message||'Send failed'); msg.style.color='#e53935'; }
+}
+</script>
+
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js").catch(function(){});}</script>
 
 <script>
