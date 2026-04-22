@@ -663,6 +663,7 @@ function switchView(v) {
   document.getElementById('view-'+v).classList.add('active');
   document.getElementById('tb-title').textContent = v==='dashboard' ? 'Admin Dashboard' : 'All Complaints';
   if (v==='complaints') loadComplaints();
+  localStorage.setItem('hydraa_admin_view', v);
 }
 
 function resetFilters() {
@@ -1107,6 +1108,8 @@ async function init() {
     }
   } catch(e) { console.error(e); }
   loadDashboard();
+  const savedView = localStorage.getItem('hydraa_admin_view');
+  if (savedView && savedView !== 'dashboard') switchView(savedView);
 }
 
 async function loadComplaints({ silent = false } = {}) {

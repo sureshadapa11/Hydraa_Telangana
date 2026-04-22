@@ -416,6 +416,7 @@
     document.querySelectorAll('.stab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
     activeStatus = el.dataset.status;
+    localStorage.setItem('hydraa_complaints_tab', activeStatus);
     filterComplaints();
   }
 
@@ -618,6 +619,13 @@
   if (_urlStatus) {
     const _tab = document.querySelector(`.stab[data-status="${_urlStatus}"]`);
     if (_tab) setTab(_tab);
+  } else {
+    // Restore last active tab from previous session
+    const _savedTab = localStorage.getItem('hydraa_complaints_tab');
+    if (_savedTab) {
+      const _tab = document.querySelector(`.stab[data-status="${_savedTab}"]`);
+      if (_tab) setTab(_tab);
+    }
   }
   if (_urlSearch) {
     const _si = document.getElementById('filterSearch');
@@ -631,7 +639,8 @@
     if (document.querySelector('.modal.open')) return;
     const el = document.activeElement;
     if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT')) return;
-    loadComplaints();
+    const savedY = window.scrollY;
+    loadComplaints().then(() => window.scrollTo({ top: savedY, behavior: 'instant' }));
   }, 15000);
 </script>
 <script>

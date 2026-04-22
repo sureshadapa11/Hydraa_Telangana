@@ -777,6 +777,8 @@ function initDashboard() {
   }
   document.getElementById('tb-date').textContent = new Date().toLocaleDateString('en-IN', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
   loadComplaints();
+  const savedOfficialView = localStorage.getItem('hydraa_official_view');
+  if (savedOfficialView && savedOfficialView !== 'dashboard') switchView(savedOfficialView);
   Auth.startSessionCheck();
   SessionTimeout.init({ timeout: 30 * 60 * 1000, warning: 60 * 1000 }); // 30 min, 60s warning
 
@@ -785,7 +787,9 @@ function initDashboard() {
     if (document.querySelector('.modal.open')) return;
     const el = document.activeElement;
     if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT')) return;
-    loadComplaints();
+    const tbl = document.getElementById('complaintsTable');
+    const savedScroll = tbl ? tbl.scrollTop : 0;
+    loadComplaints().then(() => { if (tbl) tbl.scrollTop = savedScroll; });
   }, 15000);
 }
 
@@ -900,6 +904,7 @@ function switchView(v) {
   document.querySelectorAll('.ptab')[v==='dashboard'?0:1].classList.add('active');
   document.querySelectorAll('.sb-a')[v==='dashboard'?0:1].classList.add('active');
   document.getElementById('tb-title').textContent = v==='dashboard' ? 'Official Dashboard' : 'Assigned Complaints';
+  localStorage.setItem('hydraa_official_view', v);
 }
 
 // ── Aging badge ──────────────────────────────────────
