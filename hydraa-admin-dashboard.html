@@ -267,8 +267,8 @@
   </div>
   <nav class="sb-nav">
     <div class="sb-sec">Overview</div>
-    <a href="/hydraa-admin-dashboard.html" class="sb-a active"><span class="si">📊</span> Dashboard</a>
-    <a href="#" class="sb-a" onclick="switchView('complaints');return false;"><span class="si">📋</span> All Complaints</a>
+    <a href="#" class="sb-a active" data-view="dashboard" onclick="switchView('dashboard');return false;"><span class="si">📊</span> Dashboard</a>
+    <a href="#" class="sb-a" data-view="complaints" onclick="switchView('complaints');return false;"><span class="si">📋</span> All Complaints</a>
     <a href="/hydraa-admin-analytics.html" class="sb-a"><span class="si">📈</span> Analytics</a>
     <a href="/hydraa-admin-heatmap.html" class="sb-a"><span class="si">🗺️</span> Heatmap</a>
     <a href="/hydraa-admin-performance.html" class="sb-a"><span class="si">🏆</span> Performance</a>
@@ -661,6 +661,8 @@ function switchView(v) {
   document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.sb-a').forEach(el => el.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
+  const sbLink = document.querySelector(`.sb-a[data-view="${v}"]`);
+  if (sbLink) sbLink.classList.add('active');
   document.getElementById('tb-title').textContent = v==='dashboard' ? 'Admin Dashboard' : 'All Complaints';
   if (v==='complaints') loadComplaints();
   localStorage.setItem('hydraa_admin_view', v);
