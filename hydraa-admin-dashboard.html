@@ -2548,10 +2548,10 @@ function adminRenderOfficerCheckboxes() {
     { rank:'ACP', label:'ACP / DSP',                name:s.acp_name, phone:s.acp_phone, email:s.acp_email, color:'#6d28d9', bg:'#ede9fe' },
     { rank:'SP',  label:'Superintendent of Police', name:s.sp_name,  phone:s.sp_phone,  email:s.sp_email,  color:'#92400e', bg:'#fef9c3' },
     { rank:'CP',  label:'Commissioner of Police',   name:s.cp_name,  phone:s.cp_phone,  email:s.cp_email,  color:'#991b1b', bg:'#fee2e2' },
-  ].filter(o => o.name);
+  ].filter(o => o.name || o.email || o.phone);
   if (officers.length === 0) {
     box.innerHTML = `<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.78rem;color:#92400e">
-      ⚠️ No officer details for this station. <a href="/hydraa-admin-police-stations.html" target="_blank" style="color:var(--teal)">Add in Police Stations →</a></div>`;
+      ⚠️ No officer details for this station. <a href="/hydraa-admin-police-stations.html" style="color:var(--teal)">Add officer details →</a></div>`;
     return;
   }
   box.innerHTML = officers.map(o => `
