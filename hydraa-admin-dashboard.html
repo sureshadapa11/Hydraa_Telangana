@@ -2495,6 +2495,7 @@ let _adminPetAllStations = [];
 async function adminLoadPoliceStationsForPdf() {
   const c = _adminComplaints.find(x => x.id === _adminCfComplaintId) || allComplaints.find(x => x.id === _adminCfComplaintId);
   if (!c) return;
+  let loadError = false;
   try {
     const allRes = await http.get('/api/casefile/police-stations');
     _adminPetAllStations = allRes.data || [];
@@ -2509,11 +2510,12 @@ async function adminLoadPoliceStationsForPdf() {
     const matchRes = await http.get('/api/casefile/police-stations?' + params);
     const matched = matchRes.data || [];
     _adminPetCurrentStation = matched.length > 0 ? matched[0] : null;
-    adminRenderPetitionStation(c);
   } catch(e) {
+    loadError = true;
     const el = document.getElementById('adminPetStationInfo');
     if (el) el.textContent = 'Could not load station data.';
   }
+  if (!loadError) adminRenderPetitionStation(c);
 }
 
 function adminRenderPetitionStation(c) {
