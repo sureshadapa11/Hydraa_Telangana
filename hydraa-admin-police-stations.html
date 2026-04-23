@@ -180,11 +180,6 @@
       <div class="card-body">
         <!-- Filters -->
         <div class="filter-bar">
-          <select id="filterType" onchange="applyFilter()" style="font-weight:600">
-            <option value="">All (Districts + Commissionerates)</option>
-            <option value="district">Districts Only</option>
-            <option value="commissionerate">Commissionerates Only</option>
-          </select>
           <select id="filterDistrict" onchange="applyFilter()">
             <option value="">All Police Districts</option>
             <option>Adilabad</option>
@@ -457,13 +452,10 @@
   }
 
 function applyFilter() {
-    const type   = document.getElementById('filterType').value;
     const dist   = document.getElementById('filterDistrict').value.toLowerCase();
     const comm   = document.getElementById('filterComm').value;
     const search = document.getElementById('filterSearch').value.toLowerCase().trim();
     let data = allStations;
-    if (type === 'district')       data = data.filter(s => !s.commissionerate);
-    if (type === 'commissionerate') data = data.filter(s => !!s.commissionerate);
     if (dist)   data = data.filter(s => (s.district_name||'').toLowerCase().includes(dist));
     if (comm)   data = data.filter(s => (s.commissionerate||'').toLowerCase() === comm.toLowerCase());
     if (search) data = data.filter(s =>
@@ -480,7 +472,6 @@ function applyFilter() {
   }
 
   function resetFilter() {
-    document.getElementById('filterType').value = '';
     document.getElementById('filterDistrict').value = '';
     document.getElementById('filterComm').value = '';
     document.getElementById('filterSearch').value = '';
