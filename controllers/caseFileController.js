@@ -591,15 +591,22 @@ const addCaseFileNote = async (req, res) => {
 //  POLICE STATIONS
 // ────────────────────────────────────────────────────
 const getPoliceStations = async (req, res) => {
-  const { district_id, mandal_id } = req.query;
+  const { district_id, mandal_id, district_name, mandal_name } = req.query;
   try {
     let where = '1=1';
     const params = [];
-    if (district_id) { where += ' AND ps.district_id = ?'; params.push(district_id); }
-    if (mandal_id)   { where += ' AND ps.mandal_id = ?';   params.push(mandal_id); }
+    if (district_id)   { where += ' AND ps.district_id = ?';  params.push(district_id); }
+    if (mandal_id)     { where += ' AND ps.mandal_id = ?';    params.push(mandal_id); }
+    if (district_name) { where += ' AND d.name LIKE ?';       params.push('%' + district_name + '%'); }
+    if (mandal_name)   { where += ' AND m.name LIKE ?';       params.push('%' + mandal_name + '%'); }
 
     const [rows] = await db.query(
-      `SELECT ps.id, ps.name, ps.address, ps.phone, ps.email, ps.officer_in_charge, ps.is_active,
+      `SELECT ps.id, ps.name, ps.commissionerate, ps.address, ps.phone, ps.email, ps.officer_in_charge, ps.is_active,
+              ps.ci_name, ps.ci_phone, ps.ci_email,
+              ps.acp_name, ps.acp_phone, ps.acp_email,
+              ps.sp_name, ps.sp_phone, ps.sp_email,
+              ps.cp_name, ps.cp_phone, ps.cp_email,
+              ps.district_id, ps.mandal_id,
               d.name AS district_name, m.name AS mandal_name
        FROM police_stations ps
        LEFT JOIN districts d ON d.id = ps.district_id
@@ -616,31 +623,49 @@ const getPoliceStations = async (req, res) => {
 };
 
 const createPoliceStation = async (req, res) => {
-  const { name, district_id, mandal_id, address, phone, email, officer_in_charge } = req.body;
+  const { name, district_id, mandal_id, commissionerate, address, phone, email, officer_in_charge,
+          ci_name, ci_phone, ci_email, acp_name, acp_phone, acp_email,
+          sp_name, sp_phone, sp_email, cp_name, cp_phone, cp_email } = req.body;
   if (!name) return res.status(400).json({ success: false, message: 'Station name required.' });
   try {
     const [result] = await db.query(
-      `INSERT INTO police_stations (name, district_id, mandal_id, address, phone, email, officer_in_charge)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [name, district_id || null, mandal_id || null, address || null, phone || null, email || null, officer_in_charge || null]
+      `INSERT INTO police_stations
+         (name, district_id, mandal_id, commissionerate, address, phone, email, officer_in_charge,
+          ci_name, ci_phone, ci_email, acp_name, acp_phone, acp_email,
+          sp_name, sp_phone, sp_email, cp_name, cp_phone, cp_email)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [name, district_id||null, mandal_id||null, commissionerate||null, address||null, phone||null, email||null, officer_in_charge||null,
+       ci_name||null, ci_phone||null, ci_email||null, acp_name||null, acp_phone||null, acp_email||null,
+       sp_name||null, sp_phone||null, sp_email||null, cp_name||null, cp_phone||null, cp_email||null]
     );
     res.status(201).json({ success: true, message: 'Police station added.', id: result.insertId });
   } catch (err) {
+    console.error('createPoliceStation error:', err);
     res.status(500).json({ success: false, message: 'Server error.' });
   }
 };
 
 const updatePoliceStation = async (req, res) => {
   const { id } = req.params;
-  const { name, district_id, mandal_id, address, phone, email, officer_in_charge, is_active } = req.body;
+  const { name, district_id, mandal_id, commissionerate, address, phone, email, officer_in_charge, is_active,
+          ci_name, ci_phone, ci_email, acp_name, acp_phone, acp_email,
+          sp_name, sp_phone, sp_email, cp_name, cp_phone, cp_email } = req.body;
   try {
     await db.query(
-      `UPDATE police_stations SET name=?, district_id=?, mandal_id=?, address=?, phone=?, email=?, officer_in_charge=?, is_active=?
+      `UPDATE police_stations SET
+         name=?, district_id=?, mandal_id=?, commissionerate=?, address=?, phone=?, email=?, officer_in_charge=?, is_active=?,
+         ci_name=?, ci_phone=?, ci_email=?, acp_name=?, acp_phone=?, acp_email=?,
+         sp_name=?, sp_phone=?, sp_email=?, cp_name=?, cp_phone=?, cp_email=?
        WHERE id=?`,
-      [name, district_id || null, mandal_id || null, address || null, phone || null, email || null, officer_in_charge || null, is_active !== undefined ? is_active : 1, id]
+      [name, district_id||null, mandal_id||null, commissionerate||null, address||null, phone||null, email||null,
+       officer_in_charge||null, is_active !== undefined ? is_active : 1,
+       ci_name||null, ci_phone||null, ci_email||null, acp_name||null, acp_phone||null, acp_email||null,
+       sp_name||null, sp_phone||null, sp_email||null, cp_name||null, cp_phone||null, cp_email||null,
+       id]
     );
     res.json({ success: true, message: 'Police station updated.' });
   } catch (err) {
+    console.error('updatePoliceStation error:', err);
     res.status(500).json({ success: false, message: 'Server error.' });
   }
 };
