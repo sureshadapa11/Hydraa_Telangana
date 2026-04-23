@@ -2554,17 +2554,22 @@ function adminRenderOfficerCheckboxes() {
       ⚠️ No officer details for this station. <a href="/hydraa-admin-police-stations.html" style="color:var(--teal)">Add officer details →</a></div>`;
     return;
   }
-  box.innerHTML = officers.map(o => `
+  box.innerHTML = officers.map(o => {
+    const safeName  = (o.name  || '').replace(/"/g,'&quot;');
+    const safeEmail = (o.email || '').replace(/"/g,'&quot;');
+    const safePhone = (o.phone || '').replace(/"/g,'&quot;');
+    return `
     <label style="display:flex;align-items:flex-start;gap:0.7rem;padding:0.5rem 0.75rem;border:1.5px solid ${o.bg};border-radius:8px;cursor:pointer;background:${o.bg}33">
-      <input type="checkbox" name="adminPetOfficer" value="${o.rank}" data-name="${o.name.replace(/"/g,'&quot;')}" data-email="${(o.email||'').replace(/"/g,'&quot;')}" data-phone="${(o.phone||'').replace(/"/g,'&quot;')}" style="margin-top:2px;width:15px;height:15px;cursor:pointer">
+      <input type="checkbox" name="adminPetOfficer" value="${o.rank}" data-name="${safeName}" data-email="${safeEmail}" data-phone="${safePhone}" style="margin-top:2px;width:15px;height:15px;cursor:pointer">
       <div>
         <div style="display:flex;align-items:center;gap:0.4rem">
           <span style="font-size:0.65rem;font-weight:800;background:${o.bg};color:${o.color};padding:1px 7px;border-radius:10px;border:1px solid ${o.color}44">${o.rank}</span>
-          <span style="font-size:0.8rem;font-weight:700;color:var(--navy)">${o.name}</span>
+          ${o.name ? `<span style="font-size:0.8rem;font-weight:700;color:var(--navy)">${o.name}</span>` : '<span style="font-size:0.75rem;color:var(--text-3);font-style:italic">Name not added</span>'}
         </div>
         <div style="font-size:0.71rem;color:var(--text-2);margin-top:2px">${o.label}${o.phone?' · 📞 '+o.phone:''}${o.email?' · ✉️ '+o.email:' · <span style="color:#b45309">no email</span>'}</div>
       </div>
-    </label>`).join('');
+    </label>`;
+  }).join('');
 }
 
 function adminPetChangeStation() {
