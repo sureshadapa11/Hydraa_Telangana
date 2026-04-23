@@ -54,6 +54,7 @@
     .filter-bar{display:flex;gap:0.7rem;flex-wrap:wrap;margin-bottom:1.2rem;align-items:center;}
     .filter-bar select,.filter-bar input{padding:0.5rem 0.8rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:0.82rem;font-family:inherit;outline:none;background:var(--bg);}
     .filter-bar select:focus,.filter-bar input:focus{border-color:var(--teal);}
+    .filter-bar select:disabled{opacity:0.4;cursor:not-allowed;background:#f0f4f7;}
     .btn-primary{padding:0.55rem 1.3rem;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:var(--radius-sm);font-size:0.83rem;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .18s;}
     .btn-primary:hover{opacity:0.88;}
     .tbl-wrap{overflow-x:auto;}
@@ -180,7 +181,7 @@
       <div class="card-body">
         <!-- Filters -->
         <div class="filter-bar">
-          <select id="filterDistrict" onchange="applyFilter()">
+          <select id="filterDistrict" onchange="onDistrictFilter()">
             <option value="">All Police Districts</option>
             <option>Adilabad</option>
             <option>Jagityal</option>
@@ -204,7 +205,7 @@
             <option>Wanaparthy</option>
             <option>Yadadri Bhuvanagiri</option>
           </select>
-          <select id="filterComm" onchange="applyFilter()">
+          <select id="filterComm" onchange="onCommFilter()">
             <option value="">All Commissionerates</option>
             <option>Cyberabad</option>
             <option>Future City</option>
@@ -451,7 +452,27 @@
     document.getElementById('st-with-officers').textContent = withOfficers;
   }
 
-function applyFilter() {
+  function onDistrictFilter() {
+    const commSel = document.getElementById('filterComm');
+    if (document.getElementById('filterDistrict').value) {
+      commSel.value = ''; commSel.disabled = true;
+    } else {
+      commSel.disabled = false;
+    }
+    applyFilter();
+  }
+
+  function onCommFilter() {
+    const distSel = document.getElementById('filterDistrict');
+    if (document.getElementById('filterComm').value) {
+      distSel.value = ''; distSel.disabled = true;
+    } else {
+      distSel.disabled = false;
+    }
+    applyFilter();
+  }
+
+  function applyFilter() {
     const dist   = document.getElementById('filterDistrict').value.toLowerCase();
     const comm   = document.getElementById('filterComm').value;
     const search = document.getElementById('filterSearch').value.toLowerCase().trim();
@@ -472,8 +493,10 @@ function applyFilter() {
   }
 
   function resetFilter() {
-    document.getElementById('filterDistrict').value = '';
-    document.getElementById('filterComm').value = '';
+    const distSel = document.getElementById('filterDistrict');
+    const commSel = document.getElementById('filterComm');
+    distSel.value = ''; distSel.disabled = false;
+    commSel.value = ''; commSel.disabled = false;
     document.getElementById('filterSearch').value = '';
     applyFilter();
   }
