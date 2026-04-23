@@ -180,11 +180,47 @@
       <div class="card-body">
         <!-- Filters -->
         <div class="filter-bar">
+          <select id="filterType" onchange="applyFilter()" style="font-weight:600">
+            <option value="">All (Districts + Commissionerates)</option>
+            <option value="district">Districts Only</option>
+            <option value="commissionerate">Commissionerates Only</option>
+          </select>
           <select id="filterDistrict" onchange="applyFilter()">
-            <option value="">All Districts</option>
+            <option value="">All Police Districts</option>
+            <option>Adilabad</option>
+            <option>Jagityal</option>
+            <option>Jayashankar Bhupalpally</option>
+            <option>Jogulamba Gadwal</option>
+            <option>Kamareddy</option>
+            <option>Kothagudem</option>
+            <option>Kumarambheem Asifabad</option>
+            <option>Mahabubabad</option>
+            <option>Mahabubnagar</option>
+            <option>Medak</option>
+            <option>Mulugu</option>
+            <option>Nagarkurnool</option>
+            <option>Nalgonda</option>
+            <option>Narayanapet</option>
+            <option>Nirmal</option>
+            <option>Rajanna Sircilla</option>
+            <option>Sangareddy</option>
+            <option>Suryapet</option>
+            <option>Vikarabad</option>
+            <option>Wanaparthy</option>
+            <option>Yadadri Bhuvanagiri</option>
           </select>
           <select id="filterComm" onchange="applyFilter()">
             <option value="">All Commissionerates</option>
+            <option>Cyberabad</option>
+            <option>Future City</option>
+            <option>Hyderabad</option>
+            <option>Karimnagar</option>
+            <option>Khammam</option>
+            <option>Malkagiri</option>
+            <option>Nizamabad</option>
+            <option>Ramagundam</option>
+            <option>Siddipet</option>
+            <option>Warangal</option>
           </select>
           <input type="text" id="filterSearch" placeholder="Search station / officer..." oninput="applyFilter()" style="width:220px"/>
           <button class="btn-primary" onclick="resetFilter()" style="background:rgba(100,116,139,0.12);color:#475569;border:1.5px solid rgba(100,116,139,0.3);">↺ Reset</button>
@@ -244,7 +280,19 @@
         </div>
         <div>
           <div class="f-label">Commissionerate</div>
-          <input class="f-input" id="f-commissionerate" placeholder="e.g. Cyberabad Commissionerate"/>
+          <select class="f-input" id="f-commissionerate">
+            <option value="">— District (No Commissionerate) —</option>
+            <option>Cyberabad</option>
+            <option>Future City</option>
+            <option>Hyderabad</option>
+            <option>Karimnagar</option>
+            <option>Khammam</option>
+            <option>Malkagiri</option>
+            <option>Nizamabad</option>
+            <option>Ramagundam</option>
+            <option>Siddipet</option>
+            <option>Warangal</option>
+          </select>
         </div>
         <div>
           <div class="f-label">Station Phone</div>
@@ -349,7 +397,7 @@
       document.getElementById('sb-av').textContent = n[0].toUpperCase();
     }
     document.getElementById('tb-date').textContent = new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
-    await Promise.all([loadDistricts(), loadStations()]);
+    await Promise.all([loadDistricts(), loadStations()]); // loadDistricts used only for modal form
   });
 
   function showToast(msg, type='success') {
@@ -394,7 +442,6 @@
       const res = await http.get('/api/casefile/police-stations');
       allStations = res.data || [];
       renderStats();
-      populateCommFilter();
       applyFilter();
     } catch(e) { showToast('Failed to load stations', 'error'); }
   }
@@ -409,24 +456,20 @@
     document.getElementById('st-with-officers').textContent = withOfficers;
   }
 
-  function populateCommFilter() {
-    const sel = document.getElementById('filterComm');
-    const cur = sel.value;
-    sel.innerHTML = '<option value="">All Commissionerates</option>';
-    const comms = [...new Set(allStations.filter(s=>s.commissionerate).map(s=>s.commissionerate))].sort();
-    comms.forEach(c => sel.innerHTML += `<option value="${c}" ${c===cur?'selected':''}>${esc(c)}</option>`);
-  }
-
-  function applyFilter() {
-    const dist   = document.getElementById('filterDistrict').value;
+function applyFilter() {
+    const type   = document.getElementById('filterType').value;
+    const dist   = document.getElementById('filterDistrict').value.toLowerCase();
     const comm   = document.getElementById('filterComm').value;
     const search = document.getElementById('filterSearch').value.toLowerCase().trim();
     let data = allStations;
-    if (dist)   data = data.filter(s => String(s.district_id) === dist);
-    if (comm)   data = data.filter(s => s.commissionerate === comm);
+    if (type === 'district')       data = data.filter(s => !s.commissionerate);
+    if (type === 'commissionerate') data = data.filter(s => !!s.commissionerate);
+    if (dist)   data = data.filter(s => (s.district_name||'').toLowerCase().includes(dist));
+    if (comm)   data = data.filter(s => (s.commissionerate||'').toLowerCase() === comm.toLowerCase());
     if (search) data = data.filter(s =>
       (s.name||'').toLowerCase().includes(search) ||
       (s.district_name||'').toLowerCase().includes(search) ||
+      (s.commissionerate||'').toLowerCase().includes(search) ||
       (s.mandal_name||'').toLowerCase().includes(search) ||
       (s.ci_name||'').toLowerCase().includes(search) ||
       (s.acp_name||'').toLowerCase().includes(search) ||
@@ -437,6 +480,7 @@
   }
 
   function resetFilter() {
+    document.getElementById('filterType').value = '';
     document.getElementById('filterDistrict').value = '';
     document.getElementById('filterComm').value = '';
     document.getElementById('filterSearch').value = '';
