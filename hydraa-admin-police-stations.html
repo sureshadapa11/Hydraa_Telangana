@@ -95,6 +95,18 @@
     .toast.show{opacity:1;transform:translateY(0);}
     .toast.success{border-left:3px solid var(--green);}
     .toast.error{border-left:3px solid var(--red);}
+    .tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:1.5rem;}
+    .tab-btn{padding:0.7rem 1.6rem;font-size:0.85rem;font-weight:600;font-family:inherit;border:none;background:transparent;cursor:pointer;color:var(--text-3);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .18s;}
+    .tab-btn.active{color:var(--teal);border-bottom-color:var(--teal);}
+    .tab-btn:hover:not(.active){color:var(--text-2);}
+    .tab-pane{display:none;}
+    .tab-pane.active{display:block;}
+    .add-type-toggle{display:flex;gap:0.8rem;margin-bottom:1.2rem;}
+    .type-opt{flex:1;border:2px solid var(--border);border-radius:var(--radius);padding:1rem;cursor:pointer;text-align:center;transition:all .18s;background:var(--bg);}
+    .type-opt.selected{border-color:var(--teal);background:var(--teal-light);}
+    .type-opt .to-icon{font-size:1.6rem;margin-bottom:0.3rem;}
+    .type-opt .to-label{font-weight:700;font-size:0.88rem;color:var(--navy);}
+    .type-opt .to-sub{font-size:0.72rem;color:var(--text-3);margin-top:2px;}
     @media(max-width:900px){.stats-row{grid-template-columns:1fr 1fr;}.form-grid{grid-template-columns:1fr;}.fg-full{grid-column:1;}}
   </style>
   <link rel="manifest" href="/manifest.json">
@@ -147,7 +159,6 @@
     </div>
     <div class="tb-right">
       <div class="tb-date" id="tb-date"></div>
-      <button class="btn-primary" onclick="openAdd()">+ Add Station</button>
     </div>
   </div>
 
@@ -173,72 +184,152 @@
       </div>
     </div>
 
-    <!-- TABLE CARD -->
-    <div class="card">
-      <div class="card-hdr">
-        <div class="card-title">All Police Stations</div>
-      </div>
-      <div class="card-body">
-        <!-- Filters -->
-        <div class="filter-bar">
-          <select id="filterDistrict" onchange="onDistrictFilter()">
-            <option value="">All Police Districts</option>
-            <option>Adilabad</option>
-            <option>Jagityal</option>
-            <option>Jayashankar Bhupalpally</option>
-            <option>Jogulamba Gadwal</option>
-            <option>Kamareddy</option>
-            <option>Kothagudem</option>
-            <option>Kumarambheem Asifabad</option>
-            <option>Mahabubabad</option>
-            <option>Mahabubnagar</option>
-            <option>Medak</option>
-            <option>Mulugu</option>
-            <option>Nagarkurnool</option>
-            <option>Nalgonda</option>
-            <option>Narayanapet</option>
-            <option>Nirmal</option>
-            <option>Rajanna Sircilla</option>
-            <option>Sangareddy</option>
-            <option>Suryapet</option>
-            <option>Vikarabad</option>
-            <option>Wanaparthy</option>
-            <option>Yadadri Bhuvanagiri</option>
-          </select>
-          <select id="filterComm" onchange="onCommFilter()">
-            <option value="">All Commissionerates</option>
-            <option>Cyberabad</option>
-            <option>Future City</option>
-            <option>Hyderabad</option>
-            <option>Karimnagar</option>
-            <option>Khammam</option>
-            <option>Malkagiri</option>
-            <option>Nizamabad</option>
-            <option>Ramagundam</option>
-            <option>Siddipet</option>
-            <option>Warangal</option>
-          </select>
-          <input type="text" id="filterSearch" placeholder="Search station / officer..." oninput="applyFilter()" style="width:220px"/>
-          <button class="btn-primary" onclick="resetFilter()" style="background:rgba(100,116,139,0.12);color:#475569;border:1.5px solid rgba(100,116,139,0.3);">↺ Reset</button>
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('all')">🚔 All Police Stations</button>
+      <button class="tab-btn" onclick="switchTab('add')">+ Add New Station</button>
+    </div>
+
+    <!-- TAB 1: ALL STATIONS -->
+    <div class="tab-pane active" id="tab-all">
+      <div class="card">
+        <div class="card-body">
+          <div class="filter-bar">
+            <select id="filterDistrict" onchange="onDistrictFilter()">
+              <option value="">All Police Districts</option>
+              <option>Adilabad</option><option>Jagityal</option><option>Jayashankar Bhupalpally</option>
+              <option>Jogulamba Gadwal</option><option>Kamareddy</option><option>Kothagudem</option>
+              <option>Kumarambheem Asifabad</option><option>Mahabubabad</option><option>Mahabubnagar</option>
+              <option>Medak</option><option>Mulugu</option><option>Nagarkurnool</option>
+              <option>Nalgonda</option><option>Narayanapet</option><option>Nirmal</option>
+              <option>Rajanna Sircilla</option><option>Sangareddy</option><option>Suryapet</option>
+              <option>Vikarabad</option><option>Wanaparthy</option><option>Yadadri Bhuvanagiri</option>
+            </select>
+            <select id="filterComm" onchange="onCommFilter()">
+              <option value="">All Commissionerates</option>
+              <option>Cyberabad</option><option>Future City</option><option>Hyderabad</option>
+              <option>Karimnagar</option><option>Khammam</option><option>Malkagiri</option>
+              <option>Nizamabad</option><option>Ramagundam</option><option>Siddipet</option><option>Warangal</option>
+            </select>
+            <input type="text" id="filterSearch" placeholder="Search station / officer..." oninput="applyFilter()" style="width:220px"/>
+            <button class="btn-primary" onclick="resetFilter()" style="background:rgba(100,116,139,0.12);color:#475569;border:1.5px solid rgba(100,116,139,0.3);">↺ Reset</button>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr><th>#</th><th>Station Name</th><th>District</th><th>Mandal</th><th>Commissionerate</th><th>Station Contact</th><th>Officers</th><th>Actions</th></tr>
+              </thead>
+              <tbody id="stationsTbody">
+                <tr><td colspan="8"><div class="empty-state">Loading...</div></td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div class="tbl-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Station Name</th>
-                <th>District</th>
-                <th>Mandal</th>
-                <th>Commissionerate</th>
-                <th>Station Contact</th>
-                <th>Officers</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="stationsTbody">
-              <tr><td colspan="8"><div class="empty-state">Loading...</div></td></tr>
-            </tbody>
-          </table>
+      </div>
+    </div>
+
+    <!-- TAB 2: ADD NEW STATION -->
+    <div class="tab-pane" id="tab-add">
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">+ Add New Police Station</div>
+        </div>
+        <div class="card-body">
+
+          <!-- Step 1: District or Commissionerate -->
+          <div style="margin-bottom:1.2rem">
+            <div class="f-label" style="margin-bottom:0.6rem">Step 1 — Select Type</div>
+            <div class="add-type-toggle">
+              <div class="type-opt selected" id="typeOptDistrict" onclick="selectAddType('district')">
+                <div class="to-icon">🗺️</div>
+                <div class="to-label">Police District</div>
+                <div class="to-sub">Under SP — 21 districts</div>
+              </div>
+              <div class="type-opt" id="typeOptComm" onclick="selectAddType('commissionerate')">
+                <div class="to-icon">🏙️</div>
+                <div class="to-label">Commissionerate</div>
+                <div class="to-sub">Under CP — 10 commissionerates</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: Pick specific district or commissionerate -->
+          <div style="margin-bottom:1.2rem">
+            <div class="f-label" style="margin-bottom:0.4rem">Step 2 — Select <span id="addTypeLabel">Police District</span></div>
+            <div id="addDistrictBox">
+              <select class="f-input" id="add-district-pick" onchange="onAddDistrictPick()" style="max-width:320px">
+                <option value="">— Select District —</option>
+                <option>Adilabad</option><option>Jagityal</option><option>Jayashankar Bhupalpally</option>
+                <option>Jogulamba Gadwal</option><option>Kamareddy</option><option>Kothagudem</option>
+                <option>Kumarambheem Asifabad</option><option>Mahabubabad</option><option>Mahabubnagar</option>
+                <option>Medak</option><option>Mulugu</option><option>Nagarkurnool</option>
+                <option>Nalgonda</option><option>Narayanapet</option><option>Nirmal</option>
+                <option>Rajanna Sircilla</option><option>Sangareddy</option><option>Suryapet</option>
+                <option>Vikarabad</option><option>Wanaparthy</option><option>Yadadri Bhuvanagiri</option>
+              </select>
+            </div>
+            <div id="addCommBox" style="display:none">
+              <select class="f-input" id="add-comm-pick" onchange="onAddCommPick()" style="max-width:320px">
+                <option value="">— Select Commissionerate —</option>
+                <option>Cyberabad</option><option>Future City</option><option>Hyderabad</option>
+                <option>Karimnagar</option><option>Khammam</option><option>Malkagiri</option>
+                <option>Nizamabad</option><option>Ramagundam</option><option>Siddipet</option><option>Warangal</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Station form (shown after type selected) -->
+          <div id="addStationForm" style="display:none">
+            <div class="form-grid">
+              <div class="section-hdr">🏢 Station Details</div>
+              <div class="fg-full">
+                <div class="f-label">Station Name *</div>
+                <input class="f-input" id="add-name" placeholder="e.g. Madhapur Police Station"/>
+              </div>
+              <div id="addMandalBox">
+                <div class="f-label">Mandal</div>
+                <select class="f-input" id="add-mandal"><option value="">Select Mandal</option></select>
+              </div>
+              <div>
+                <div class="f-label">Station Phone</div>
+                <input class="f-input" id="add-phone" placeholder="+91 40 23456789"/>
+              </div>
+              <div class="fg-full">
+                <div class="f-label">Station Email</div>
+                <input class="f-input" id="add-email" placeholder="station@tspolice.gov.in" type="email"/>
+              </div>
+              <div class="fg-full">
+                <div class="f-label">Address</div>
+                <input class="f-input" id="add-address" placeholder="Station address"/>
+              </div>
+
+              <div class="section-hdr"><span class="rank-badge rank-ci" style="background:#e0f7fa;color:#006978">CI</span> Circle Inspector</div>
+              <div><div class="f-label">CI Name</div><input class="f-input" id="add-ci-name" placeholder="Name"/></div>
+              <div><div class="f-label">CI Phone</div><input class="f-input" id="add-ci-phone" placeholder="Mobile number"/></div>
+              <div class="fg-full"><div class="f-label">CI Email</div><input class="f-input" id="add-ci-email" placeholder="ci@tspolice.gov.in" type="email"/></div>
+
+              <div class="section-hdr"><span class="rank-badge" style="background:#ede9fe;color:#6d28d9">ACP/DSP</span> Asst. Commissioner / Dy. Superintendent</div>
+              <div><div class="f-label">ACP/DSP Name</div><input class="f-input" id="add-acp-name" placeholder="Name"/></div>
+              <div><div class="f-label">ACP/DSP Phone</div><input class="f-input" id="add-acp-phone" placeholder="Mobile number"/></div>
+              <div class="fg-full"><div class="f-label">ACP/DSP Email</div><input class="f-input" id="add-acp-email" placeholder="acp@tspolice.gov.in" type="email"/></div>
+
+              <div class="section-hdr"><span class="rank-badge" style="background:#fef9c3;color:#92400e">SP</span> Superintendent of Police (District)</div>
+              <div><div class="f-label">SP Name</div><input class="f-input" id="add-sp-name" placeholder="Name"/></div>
+              <div><div class="f-label">SP Phone</div><input class="f-input" id="add-sp-phone" placeholder="Mobile number"/></div>
+              <div class="fg-full"><div class="f-label">SP Email</div><input class="f-input" id="add-sp-email" placeholder="sp@tspolice.gov.in" type="email"/></div>
+
+              <div class="section-hdr"><span class="rank-badge" style="background:#fee2e2;color:#991b1b">CP</span> Commissioner of Police (Commissionerate)</div>
+              <div><div class="f-label">CP Name</div><input class="f-input" id="add-cp-name" placeholder="Name"/></div>
+              <div><div class="f-label">CP Phone</div><input class="f-input" id="add-cp-phone" placeholder="Mobile number"/></div>
+              <div class="fg-full"><div class="f-label">CP Email</div><input class="f-input" id="add-cp-email" placeholder="cp@tspolice.gov.in" type="email"/></div>
+            </div>
+            <div id="addMsg" style="margin-top:0.8rem;font-size:0.8rem;min-height:1.2rem"></div>
+            <div style="margin-top:1.2rem;display:flex;gap:0.7rem">
+              <button class="btn-save" onclick="saveNewStation()">💾 Save Station</button>
+              <button class="btn-cancel" onclick="clearAddForm()">✕ Clear</button>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -384,6 +475,104 @@
   let allStations = [];
   let allDistricts = [];
   let editingId = null;
+  let _addType = 'district';
+  let _addDistrictId = null;
+  let _addCommName = null;
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', (tab==='all'&&i===0)||(tab==='add'&&i===1)));
+    document.getElementById('tab-all').classList.toggle('active', tab==='all');
+    document.getElementById('tab-add').classList.toggle('active', tab==='add');
+  }
+
+  function selectAddType(type) {
+    _addType = type;
+    document.getElementById('typeOptDistrict').classList.toggle('selected', type==='district');
+    document.getElementById('typeOptComm').classList.toggle('selected', type==='commissionerate');
+    document.getElementById('addTypeLabel').textContent = type==='district' ? 'Police District' : 'Commissionerate';
+    document.getElementById('addDistrictBox').style.display = type==='district' ? '' : 'none';
+    document.getElementById('addCommBox').style.display    = type==='commissionerate' ? '' : 'none';
+    document.getElementById('addStationForm').style.display = 'none';
+    document.getElementById('add-district-pick').value = '';
+    document.getElementById('add-comm-pick').value = '';
+    _addDistrictId = null; _addCommName = null;
+  }
+
+  async function onAddDistrictPick() {
+    const name = document.getElementById('add-district-pick').value;
+    if (!name) { document.getElementById('addStationForm').style.display='none'; return; }
+    // find matching admin district_id
+    const match = allDistricts.find(d => d.name.toLowerCase().includes(name.toLowerCase()) || name.toLowerCase().includes(d.name.toLowerCase().split(' ')[0]));
+    _addDistrictId = match?.id || null;
+    _addCommName = null;
+    // load mandals
+    const mandalSel = document.getElementById('add-mandal');
+    mandalSel.innerHTML = '<option value="">Select Mandal</option>';
+    if (_addDistrictId) {
+      try {
+        const res = await http.get('/api/admin/mandals?district_id=' + _addDistrictId);
+        (res.data||[]).forEach(m => mandalSel.innerHTML += `<option value="${m.id}">${esc(m.name)}</option>`);
+      } catch(e) {}
+    }
+    document.getElementById('addMandalBox').style.display = '';
+    document.getElementById('addStationForm').style.display = '';
+  }
+
+  function onAddCommPick() {
+    const name = document.getElementById('add-comm-pick').value;
+    if (!name) { document.getElementById('addStationForm').style.display='none'; return; }
+    _addCommName = name;
+    _addDistrictId = null;
+    document.getElementById('addMandalBox').style.display = 'none';
+    document.getElementById('addStationForm').style.display = '';
+  }
+
+  function clearAddForm() {
+    ['name','phone','email','address','ci-name','ci-phone','ci-email','acp-name','acp-phone','acp-email','sp-name','sp-phone','sp-email','cp-name','cp-phone','cp-email']
+      .forEach(k => { const el = document.getElementById('add-'+k); if(el) el.value=''; });
+    document.getElementById('add-mandal').value = '';
+    document.getElementById('addMsg').textContent = '';
+  }
+
+  async function saveNewStation() {
+    const name = document.getElementById('add-name').value.trim();
+    const msg = document.getElementById('addMsg');
+    if (!name) { msg.textContent='Station name is required.'; msg.style.color='#e53935'; return; }
+    if (!_addDistrictId && !_addCommName) { msg.textContent='Please select a district or commissionerate first.'; msg.style.color='#e53935'; return; }
+    msg.textContent='Saving...'; msg.style.color='var(--teal)';
+    const body = {
+      name,
+      district_id:     _addDistrictId || null,
+      mandal_id:       document.getElementById('add-mandal')?.value || null,
+      commissionerate: _addCommName || null,
+      phone:           document.getElementById('add-phone').value.trim()||null,
+      email:           document.getElementById('add-email').value.trim()||null,
+      address:         document.getElementById('add-address').value.trim()||null,
+      ci_name:         document.getElementById('add-ci-name').value.trim()||null,
+      ci_phone:        document.getElementById('add-ci-phone').value.trim()||null,
+      ci_email:        document.getElementById('add-ci-email').value.trim()||null,
+      acp_name:        document.getElementById('add-acp-name').value.trim()||null,
+      acp_phone:       document.getElementById('add-acp-phone').value.trim()||null,
+      acp_email:       document.getElementById('add-acp-email').value.trim()||null,
+      sp_name:         document.getElementById('add-sp-name').value.trim()||null,
+      sp_phone:        document.getElementById('add-sp-phone').value.trim()||null,
+      sp_email:        document.getElementById('add-sp-email').value.trim()||null,
+      cp_name:         document.getElementById('add-cp-name').value.trim()||null,
+      cp_phone:        document.getElementById('add-cp-phone').value.trim()||null,
+      cp_email:        document.getElementById('add-cp-email').value.trim()||null,
+    };
+    try {
+      const res = await http.post('/api/casefile/police-stations', body);
+      if (res.success) {
+        showToast('Station added successfully.');
+        clearAddForm();
+        loadStations();
+        switchTab('all');
+      } else {
+        msg.textContent = res.message||'Failed to save.'; msg.style.color='#e53935';
+      }
+    } catch(e) { msg.textContent='Server error.'; msg.style.color='#e53935'; }
+  }
 
   document.addEventListener('DOMContentLoaded', async () => {
     const info = Auth.getUser();
