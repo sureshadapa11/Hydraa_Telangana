@@ -2499,18 +2499,19 @@ async function adminAddCaseNote() {
 
 // Police stations / Petition / Notice
 let _adminPetCurrentStation = null;
-let _adminPetAllStations = [];
+let _adminPetAllStations   = [];
+let _adminPetComplaint     = null;
 
 async function adminLoadPoliceStationsForPdf() {
   const c = _adminComplaints.find(x => x.id === _adminCfComplaintId) || allComplaints.find(x => x.id === _adminCfComplaintId);
   if (!c) return;
+  _adminPetComplaint = c;
 
-  // Show complaint location as hint
   const hint = document.getElementById('adminPetLocationHint');
   if (hint) {
     const parts = [c.district_name, c.mandal_name].filter(Boolean);
     hint.textContent = parts.length
-      ? '📍 Complaint location: ' + parts.join(', ') + ' — use the dropdowns below to find the right station'
+      ? '📍 Complaint location: ' + parts.join(', ') + ' — suggested matches are shown at the top of each dropdown'
       : '📍 Complaint location not specified — select district or commissionerate manually';
   }
 
@@ -2518,16 +2519,37 @@ async function adminLoadPoliceStationsForPdf() {
     const allRes = await http.get('/api/casefile/police-stations');
     _adminPetAllStations = allRes.data || [];
 
-    // Populate district dropdown from unique district_names in DB
     const districts = [...new Set(_adminPetAllStations.map(s => s.district_name).filter(Boolean))].sort();
     const comms     = [...new Set(_adminPetAllStations.map(s => s.commissionerate).filter(Boolean))].sort();
 
+    // Infer suggested commissionerate from stations that share the complaint's district
+    const suggestedComm = (_adminPetAllStations
+      .filter(s => s.district_name === c.district_name || s.mandal_name === c.mandal_name)
+      .map(s => s.commissionerate).filter(Boolean)[0]) || null;
+
     const distSel = document.getElementById('adminPetDistrictSel');
     const commSel = document.getElementById('adminPetCommSel');
-    if (distSel) distSel.innerHTML = '<option value="">— Select District —</option>' + districts.map(d => `<option value="${d}">${d}</option>`).join('');
-    if (commSel) commSel.innerHTML = '<option value="">— Select Commissionerate —</option>' + comms.map(c => `<option value="${c}">${c}</option>`).join('');
 
-    // Reset station + recipients
+    // District dropdown — complaint district on top
+    if (distSel) {
+      const matched = districts.filter(d => d === c.district_name);
+      const rest    = districts.filter(d => d !== c.district_name);
+      distSel.innerHTML = '<option value="">— Select District —</option>' +
+        (matched.length ? `<optgroup label="📍 Suggested">${matched.map(d=>`<option value="${d}">${d}</option>`).join('')}</optgroup><optgroup label="All Districts">` : '') +
+        rest.map(d => `<option value="${d}">${d}</option>`).join('') +
+        (matched.length ? '</optgroup>' : '');
+    }
+
+    // Commissionerate dropdown — suggested comm on top
+    if (commSel) {
+      const matched = suggestedComm ? comms.filter(cm => cm === suggestedComm) : [];
+      const rest    = comms.filter(cm => cm !== suggestedComm);
+      commSel.innerHTML = '<option value="">— Select Commissionerate —</option>' +
+        (matched.length ? `<optgroup label="📍 Suggested">${matched.map(cm=>`<option value="${cm}">${cm}</option>`).join('')}</optgroup><optgroup label="All Commissionerates">` : '') +
+        rest.map(cm => `<option value="${cm}">${cm}</option>`).join('') +
+        (matched.length ? '</optgroup>' : '');
+    }
+
     _adminPetCurrentStation = null;
     adminPetResetStationAndOfficers('Select a police station to see officers.');
   } catch(e) {
@@ -2568,11 +2590,25 @@ function adminPetFilterStations() {
     stationSel.innerHTML = '<option value="">— Select district or commissionerate first —</option>';
     return;
   }
+
   let filtered = _adminPetAllStations;
   if (distVal) filtered = filtered.filter(s => s.district_name === distVal);
   if (commVal) filtered = filtered.filter(s => s.commissionerate === commVal);
+
+  // Split: mandal match first, then district match, then rest
+  const c = _adminPetComplaint;
+  const mandalMatch   = c ? filtered.filter(s => s.mandal_name   === c.mandal_name)   : [];
+  const districtMatch = c ? filtered.filter(s => s.district_name === c.district_name && s.mandal_name !== c.mandal_name) : [];
+  const rest          = filtered.filter(s =>
+    !(c && s.mandal_name === c.mandal_name) &&
+    !(c && s.district_name === c.district_name)
+  );
+
+  const toOpts = arr => arr.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
   stationSel.innerHTML = '<option value="">— Select Station —</option>' +
-    filtered.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    (mandalMatch.length   ? `<optgroup label="📍 Matches complaint mandal (${c.mandal_name})">${toOpts(mandalMatch)}</optgroup>` : '') +
+    (districtMatch.length ? `<optgroup label="📍 Same district (${c.district_name})">${toOpts(districtMatch)}</optgroup>` : '') +
+    (rest.length          ? `<optgroup label="Other Stations">${toOpts(rest)}</optgroup>` : '');
 }
 
 function onAdminPetStationChange() {
