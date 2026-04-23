@@ -1725,31 +1725,40 @@ setInterval(() => {
 
       <!-- PETITION TAB -->
       <div id="acfv-petition" style="display:none">
-        <div style="font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:0.2rem">📨 Petition — Request for Action</div>
-        <div style="font-size:0.76rem;color:var(--text-2);margin-bottom:0.9rem">Station and officers auto-matched from complaint location. Select recipients to address the petition.</div>
+        <div style="font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:0.5rem">📨 Petition — Request for Action</div>
 
-        <!-- Station card -->
-        <div style="border:1.5px solid rgba(11,32,64,0.15);border-radius:10px;overflow:hidden;margin-bottom:0.9rem">
-          <div style="background:linear-gradient(135deg,#0b2040,#1565c0);padding:0.45rem 0.85rem;display:flex;align-items:center;justify-content:space-between">
-            <span style="font-size:0.72rem;font-weight:700;color:#fff">🚔 Matched Police Station</span>
-            <button onclick="adminPetChangeStation()" style="font-size:0.68rem;background:rgba(255,255,255,0.18);color:#fff;border:none;border-radius:5px;padding:2px 8px;cursor:pointer;font-family:inherit">↺ Change</button>
+        <!-- Complaint location hint -->
+        <div id="adminPetLocationHint" style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:0.45rem 0.85rem;font-size:0.76rem;color:#0369a1;margin-bottom:0.8rem">📍 Loading complaint location...</div>
+
+        <!-- Step 1: District or Commissionerate (mutual disable) -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:0.7rem">
+          <div>
+            <label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem;color:var(--text-2)">District</label>
+            <select id="adminPetDistrictSel" class="m-select" style="width:100%" onchange="onAdminPetDistrictChange()">
+              <option value="">— Select District —</option>
+            </select>
           </div>
-          <div id="adminPetStationInfo" style="padding:0.65rem 0.85rem;font-size:0.78rem;color:var(--text-2)">Loading station...</div>
+          <div>
+            <label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem;color:var(--text-2)">Commissionerate</label>
+            <select id="adminPetCommSel" class="m-select" style="width:100%" onchange="onAdminPetCommChange()">
+              <option value="">— Select Commissionerate —</option>
+            </select>
+          </div>
         </div>
 
-        <!-- Change station override -->
-        <div id="adminPetChangeStationBox" style="display:none;margin-bottom:0.8rem">
-          <label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem;color:var(--text-2)">Select Different Station</label>
-          <select id="admin_pet_station_override" class="m-select" style="width:100%" onchange="adminPetApplyStationOverride()">
-            <option value="">— Select Station —</option>
+        <!-- Step 2: Police Station filtered by above -->
+        <div style="margin-bottom:0.8rem">
+          <label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem;color:var(--text-2)">🚔 Police Station</label>
+          <select id="adminPetStationSel" class="m-select" style="width:100%" onchange="onAdminPetStationChange()">
+            <option value="">— Select district or commissionerate first —</option>
           </select>
         </div>
 
-        <!-- Officer recipient checkboxes -->
+        <!-- Step 3: Officer recipients -->
         <div style="margin-bottom:0.8rem">
           <div style="font-size:0.73rem;font-weight:700;margin-bottom:0.5rem;color:var(--navy)">👮 Select Recipients</div>
           <div id="adminPetOfficersBox" style="display:flex;flex-direction:column;gap:0.4rem">
-            <div style="font-size:0.78rem;color:var(--text-3)">Loading officer details...</div>
+            <div style="font-size:0.78rem;color:var(--text-3)">Select a police station to see officers.</div>
           </div>
         </div>
 
@@ -2495,54 +2504,97 @@ let _adminPetAllStations = [];
 async function adminLoadPoliceStationsForPdf() {
   const c = _adminComplaints.find(x => x.id === _adminCfComplaintId) || allComplaints.find(x => x.id === _adminCfComplaintId);
   if (!c) return;
-  let loadError = false;
+
+  // Show complaint location as hint
+  const hint = document.getElementById('adminPetLocationHint');
+  if (hint) {
+    const parts = [c.district_name, c.mandal_name].filter(Boolean);
+    hint.textContent = parts.length
+      ? '📍 Complaint location: ' + parts.join(', ') + ' — use the dropdowns below to find the right station'
+      : '📍 Complaint location not specified — select district or commissionerate manually';
+  }
+
   try {
     const allRes = await http.get('/api/casefile/police-stations');
     _adminPetAllStations = allRes.data || [];
-    const overrideSel = document.getElementById('admin_pet_station_override');
-    if (overrideSel) {
-      overrideSel.innerHTML = '<option value="">— Select Station —</option>' +
-        _adminPetAllStations.map(s => `<option value="${s.id}">${s.name}${s.district_name?' ('+s.district_name+')':''}</option>`).join('');
-    }
-    const params = new URLSearchParams();
-    if (c.mandal_id)   params.append('mandal_id',   c.mandal_id);
-    if (c.district_id) params.append('district_id', c.district_id);
-    const matchRes = await http.get('/api/casefile/police-stations?' + params);
-    const matched = matchRes.data || [];
-    _adminPetCurrentStation = matched.length > 0 ? matched[0] : null;
+
+    // Populate district dropdown from unique district_names in DB
+    const districts = [...new Set(_adminPetAllStations.map(s => s.district_name).filter(Boolean))].sort();
+    const comms     = [...new Set(_adminPetAllStations.map(s => s.commissionerate).filter(Boolean))].sort();
+
+    const distSel = document.getElementById('adminPetDistrictSel');
+    const commSel = document.getElementById('adminPetCommSel');
+    if (distSel) distSel.innerHTML = '<option value="">— Select District —</option>' + districts.map(d => `<option value="${d}">${d}</option>`).join('');
+    if (commSel) commSel.innerHTML = '<option value="">— Select Commissionerate —</option>' + comms.map(c => `<option value="${c}">${c}</option>`).join('');
+
+    // Reset station + recipients
+    _adminPetCurrentStation = null;
+    adminPetResetStationAndOfficers('Select a police station to see officers.');
   } catch(e) {
-    loadError = true;
-    const el = document.getElementById('adminPetStationInfo');
-    if (el) el.textContent = 'Could not load station data.';
+    if (hint) hint.textContent = '⚠️ Could not load police station data. Please try again.';
   }
-  if (!loadError) adminRenderPetitionStation(c);
 }
 
-function adminRenderPetitionStation(c) {
-  const s = _adminPetCurrentStation;
-  const infoEl = document.getElementById('adminPetStationInfo');
-  if (!infoEl) return;
-  if (s) {
-    infoEl.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.3rem 1rem">
-      <div><div style="font-size:0.6rem;color:var(--text-3);font-weight:700;text-transform:uppercase">Station</div><div style="font-weight:700;color:var(--navy)">${s.name}</div></div>
-      <div><div style="font-size:0.6rem;color:var(--text-3);font-weight:700;text-transform:uppercase">Commissionerate</div><div>${s.commissionerate||'—'}</div></div>
-      <div><div style="font-size:0.6rem;color:var(--text-3);font-weight:700;text-transform:uppercase">District</div><div>${s.district_name||c.district_name||'—'}</div></div>
-      <div><div style="font-size:0.6rem;color:var(--text-3);font-weight:700;text-transform:uppercase">Mandal</div><div>${s.mandal_name||c.mandal_name||'—'}</div></div>
-      ${s.phone?`<div><div style="font-size:0.6rem;color:var(--text-3);font-weight:700;text-transform:uppercase">Phone</div><div>📞 ${s.phone}</div></div>`:''}
-      ${s.email?`<div><div style="font-size:0.6rem;color:var(--text-3);font-weight:700;text-transform:uppercase">Email</div><div>✉️ ${s.email}</div></div>`:''}
-    </div>`;
-  } else {
-    infoEl.innerHTML = `<span style="color:#b45309">⚠️ No station matched for <strong>${c.mandal_name||c.district_name||'this location'}</strong>. Use "Change" to pick one manually.</span>`;
+function adminPetResetStationAndOfficers(msg) {
+  const stationSel = document.getElementById('adminPetStationSel');
+  if (stationSel) stationSel.innerHTML = '<option value="">— Select district or commissionerate first —</option>';
+  const box = document.getElementById('adminPetOfficersBox');
+  if (box) box.innerHTML = `<div style="font-size:0.78rem;color:var(--text-3)">${msg||'Select a police station to see officers.'}</div>`;
+  _adminPetCurrentStation = null;
+}
+
+function onAdminPetDistrictChange() {
+  const distSel = document.getElementById('adminPetDistrictSel');
+  const commSel = document.getElementById('adminPetCommSel');
+  if (distSel.value) { commSel.value = ''; commSel.disabled = true; }
+  else               { commSel.disabled = false; }
+  adminPetFilterStations();
+}
+
+function onAdminPetCommChange() {
+  const distSel = document.getElementById('adminPetDistrictSel');
+  const commSel = document.getElementById('adminPetCommSel');
+  if (commSel.value) { distSel.value = ''; distSel.disabled = true; }
+  else               { distSel.disabled = false; }
+  adminPetFilterStations();
+}
+
+function adminPetFilterStations() {
+  const distVal = document.getElementById('adminPetDistrictSel').value;
+  const commVal = document.getElementById('adminPetCommSel').value;
+  const stationSel = document.getElementById('adminPetStationSel');
+  adminPetResetStationAndOfficers('Select a police station to see officers.');
+  if (!distVal && !commVal) {
+    stationSel.innerHTML = '<option value="">— Select district or commissionerate first —</option>';
+    return;
   }
+  let filtered = _adminPetAllStations;
+  if (distVal) filtered = filtered.filter(s => s.district_name === distVal);
+  if (commVal) filtered = filtered.filter(s => s.commissionerate === commVal);
+  stationSel.innerHTML = '<option value="">— Select Station —</option>' +
+    filtered.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+}
+
+function onAdminPetStationChange() {
+  const id = parseInt(document.getElementById('adminPetStationSel').value);
+  if (!id) {
+    _adminPetCurrentStation = null;
+    adminPetResetStationAndOfficers('Select a police station to see officers.');
+    return;
+  }
+  _adminPetCurrentStation = _adminPetAllStations.find(s => s.id === id) || null;
   adminRenderOfficerCheckboxes();
 }
+
+function adminPetChangeStation() {}        // kept to avoid reference errors — no longer used
+function adminPetApplyStationOverride() {} // kept to avoid reference errors — no longer used
 
 function adminRenderOfficerCheckboxes() {
   const s = _adminPetCurrentStation;
   const box = document.getElementById('adminPetOfficersBox');
   if (!box) return;
   if (!s) {
-    box.innerHTML = '<div style="font-size:0.78rem;color:var(--text-3)">No station selected. Use "↺ Change" to pick a station first.</div>';
+    box.innerHTML = '<div style="font-size:0.78rem;color:var(--text-3)">Select a police station above to see officers.</div>';
     return;
   }
   const officers = [
