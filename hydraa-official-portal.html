@@ -1732,33 +1732,45 @@ document.addEventListener('DOMContentLoaded',function(){
 
       <!-- ── PETITION TAB ── -->
       <div id="cfv-petition" style="display:none">
-        <div style="font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:0.3rem">📨 Petition — Request for Action</div>
-        <div style="font-size:0.76rem;color:var(--text-2);margin-bottom:1rem">Formal petition to Police Station, Revenue Department, Collector, or Commissionerate.</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;margin-bottom:0.8rem">
-          <div>
-            <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Send to Police Station</label>
-            <select id="pet_station" class="m-select" style="width:100%">
-              <option value="">— Select Station (optional) —</option>
-            </select>
+        <div style="font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:0.2rem">📨 Petition — Request for Action</div>
+        <div style="font-size:0.76rem;color:var(--text-2);margin-bottom:0.9rem">Station and officers auto-matched from complaint location. Select recipients to address the petition.</div>
+
+        <!-- Station card -->
+        <div style="border:1.5px solid rgba(11,32,64,0.15);border-radius:10px;overflow:hidden;margin-bottom:0.9rem">
+          <div style="background:linear-gradient(135deg,#0b2040,#1565c0);padding:0.45rem 0.85rem;display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:0.72rem;font-weight:700;color:#fff">🚔 Matched Police Station</span>
+            <button onclick="petChangeStation()" style="font-size:0.68rem;background:rgba(255,255,255,0.18);color:#fff;border:none;border-radius:5px;padding:2px 8px;cursor:pointer;font-family:inherit">↺ Change</button>
           </div>
-          <div>
-            <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Or: Custom Recipient Name</label>
-            <input type="text" id="pet_to_name" class="m-select" style="width:100%" placeholder="e.g. The District Collector"/>
-          </div>
-          <div style="grid-column:1/-1">
-            <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Recipient Address</label>
-            <input type="text" id="pet_to_address" class="m-select" style="width:100%" placeholder="Full address of the recipient"/>
-          </div>
-          <div style="grid-column:1/-1">
-            <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Action Requested <span style="font-weight:400;color:var(--text-3)">(leave blank for default text)</span></label>
-            <textarea id="pet_action" class="m-textarea" rows="2" placeholder="Specific action you are requesting..."></textarea>
+          <div id="petStationInfo" style="padding:0.65rem 0.85rem;font-size:0.78rem;color:var(--text-2)">Loading station...</div>
+        </div>
+
+        <!-- Change station override -->
+        <div id="petChangeStationBox" style="display:none;margin-bottom:0.8rem">
+          <label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem;color:var(--text-2)">Select Different Station</label>
+          <select id="pet_station_override" class="m-select" style="width:100%" onchange="petApplyStationOverride()">
+            <option value="">— Select Station —</option>
+          </select>
+        </div>
+
+        <!-- Officer recipient checkboxes -->
+        <div style="margin-bottom:0.8rem">
+          <div style="font-size:0.73rem;font-weight:700;margin-bottom:0.5rem;color:var(--navy)">👮 Select Recipients</div>
+          <div id="petOfficersBox" style="display:flex;flex-direction:column;gap:0.4rem">
+            <div style="font-size:0.78rem;color:var(--text-3)">Loading officer details...</div>
           </div>
         </div>
+
+        <!-- Action requested -->
+        <div style="margin-bottom:0.8rem">
+          <label style="font-size:0.73rem;font-weight:700;display:block;margin-bottom:0.3rem">Action Requested <span style="font-weight:400;color:var(--text-3)">(leave blank for default text)</span></label>
+          <textarea id="pet_action" class="m-textarea" rows="2" placeholder="Specific action you are requesting..."></textarea>
+        </div>
+
         <div style="display:flex;gap:0.6rem;flex-wrap:wrap">
-          <button onclick="generatePetition()" style="background:linear-gradient(135deg,#0b2040,#006978);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">⬇ Download PDF</button>
-          <button onclick="sendPetition()" style="background:linear-gradient(135deg,#0097a7,#00bcd4);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">📧 Send to Station</button>
+          <button onclick="generatePetition()" style="background:linear-gradient(135deg,#0b2040,#006978);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">⬇ Download PDF(s)</button>
+          <button onclick="sendPetition()" style="background:linear-gradient(135deg,#0097a7,#00bcd4);color:#fff;border:none;border-radius:8px;padding:0.65rem 1.5rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit">📧 Send Email(s)</button>
         </div>
-        <div id="petMsg" style="font-size:0.8rem;margin-top:0.5rem"></div>
+        <div id="petMsg" style="font-size:0.8rem;margin-top:0.5rem;min-height:1.2rem"></div>
         <div style="margin-top:1rem">
           <div style="font-size:0.75rem;font-weight:700;color:var(--text-2);margin-bottom:0.5rem">📋 Petition History</div>
           <div id="petitionHistory" style="font-size:0.78rem;color:var(--text-2)">Loading...</div>
@@ -2455,13 +2467,103 @@ async function addCaseNote() {
 }
 
 // ── PDF ──
+let _petCurrentStation = null;
+let _petAllStations = [];
+
 async function loadPoliceStationsForPdf() {
+  const c = allComplaints.find(x => x.id === _cfComplaintId);
+  if (!c) return;
   try {
-    const res = await http.get('/api/casefile/police-stations');
-    const stations = res.data || [];
-    const sel = document.getElementById('pet_station');
-    sel.innerHTML = '<option value="">— Select Station (optional) —</option>' + stations.map(s => `<option value="${s.id}">${s.name}${s.district_name?' ('+s.district_name+')':''}</option>`).join('');
-  } catch(e) {}
+    const allRes = await http.get('/api/casefile/police-stations');
+    _petAllStations = allRes.data || [];
+    const overrideSel = document.getElementById('pet_station_override');
+    if (overrideSel) {
+      overrideSel.innerHTML = '<option value="">— Select Station —</option>' +
+        _petAllStations.map(s => `<option value="${s.id}">${s.name}${s.district_name?' ('+s.district_name+')':''}</option>`).join('');
+    }
+    // Auto-match by mandal_id or district_id
+    const params = new URLSearchParams();
+    if (c.mandal_id)   params.append('mandal_id',   c.mandal_id);
+    if (c.district_id) params.append('district_id', c.district_id);
+    const matchRes = await http.get('/api/casefile/police-stations?' + params);
+    const matched = matchRes.data || [];
+    _petCurrentStation = matched.length > 0 ? matched[0] : null;
+    renderPetitionStation(c);
+  } catch(e) {
+    const el = document.getElementById('petStationInfo');
+    if (el) el.textContent = 'Could not load station data.';
+  }
+}
+
+function renderPetitionStation(c) {
+  const s = _petCurrentStation;
+  const infoEl = document.getElementById('petStationInfo');
+  if (!infoEl) return;
+  if (s) {
+    infoEl.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.3rem 1rem">
+      <div><div style="font-size:0.6rem;color:var(--text-3);font-weight:700;text-transform:uppercase">Station</div><div style="font-weight:700;color:var(--navy)">${s.name}</div></div>
+      <div><div style="font-size:0.6rem;color:var(--text-3);font-weight:700;text-transform:uppercase">Commissionerate</div><div>${s.commissionerate||'—'}</div></div>
+      <div><div style="font-size:0.6rem;color:var(--text-3);font-weight:700;text-transform:uppercase">District</div><div>${s.district_name||c.district_name||'—'}</div></div>
+      <div><div style="font-size:0.6rem;color:var(--text-3);font-weight:700;text-transform:uppercase">Mandal</div><div>${s.mandal_name||c.mandal_name||'—'}</div></div>
+      ${s.phone?`<div><div style="font-size:0.6rem;color:var(--text-3);font-weight:700;text-transform:uppercase">Phone</div><div>📞 ${s.phone}</div></div>`:''}
+      ${s.email?`<div><div style="font-size:0.6rem;color:var(--text-3);font-weight:700;text-transform:uppercase">Email</div><div>✉️ ${s.email}</div></div>`:''}
+    </div>`;
+  } else {
+    infoEl.innerHTML = `<span style="color:#b45309">⚠️ No station matched for <strong>${c.mandal_name||c.district_name||'this location'}</strong>. Use "Change" to pick one manually.</span>`;
+  }
+  renderOfficerCheckboxes('pet');
+}
+
+function renderOfficerCheckboxes(prefix) {
+  const s = _petCurrentStation;
+  const box = document.getElementById(prefix+'OfficersBox');
+  if (!box) return;
+  if (!s) {
+    box.innerHTML = '<div style="font-size:0.78rem;color:var(--text-3)">No station selected. Use "↺ Change" to pick a station first.</div>';
+    return;
+  }
+  const officers = [
+    { rank:'CI',  label:'Circle Inspector',             name:s.ci_name,  phone:s.ci_phone,  email:s.ci_email,  color:'#006978', bg:'#e0f7fa' },
+    { rank:'ACP', label:'ACP / DSP',                    name:s.acp_name, phone:s.acp_phone, email:s.acp_email, color:'#6d28d9', bg:'#ede9fe' },
+    { rank:'SP',  label:'Superintendent of Police',     name:s.sp_name,  phone:s.sp_phone,  email:s.sp_email,  color:'#92400e', bg:'#fef9c3' },
+    { rank:'CP',  label:'Commissioner of Police',       name:s.cp_name,  phone:s.cp_phone,  email:s.cp_email,  color:'#991b1b', bg:'#fee2e2' },
+  ].filter(o => o.name);
+  if (officers.length === 0) {
+    box.innerHTML = `<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.78rem;color:#92400e">
+      ⚠️ No officer details for this station. <a href="/hydraa-admin-police-stations.html" target="_blank" style="color:var(--teal)">Add in Police Stations →</a></div>`;
+    return;
+  }
+  box.innerHTML = officers.map(o => `
+    <label style="display:flex;align-items:flex-start;gap:0.7rem;padding:0.5rem 0.75rem;border:1.5px solid ${o.bg};border-radius:8px;cursor:pointer;background:${o.bg}33">
+      <input type="checkbox" name="${prefix}Officer" value="${o.rank}" data-name="${escHtml(o.name)}" data-email="${escHtml(o.email||'')}" data-phone="${escHtml(o.phone||'')}" style="margin-top:2px;width:15px;height:15px;cursor:pointer">
+      <div>
+        <div style="display:flex;align-items:center;gap:0.4rem">
+          <span style="font-size:0.65rem;font-weight:800;background:${o.bg};color:${o.color};padding:1px 7px;border-radius:10px;border:1px solid ${o.color}44">${o.rank}</span>
+          <span style="font-size:0.8rem;font-weight:700;color:var(--navy)">${escHtml(o.name)}</span>
+        </div>
+        <div style="font-size:0.71rem;color:var(--text-2);margin-top:2px">${o.label}${o.phone?' · 📞 '+escHtml(o.phone):''}${o.email?' · ✉️ '+escHtml(o.email):' · <span style="color:#b45309">no email</span>'}</div>
+      </div>
+    </label>`).join('');
+}
+
+function petChangeStation() {
+  const box = document.getElementById('petChangeStationBox');
+  if (box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+function petApplyStationOverride() {
+  const id = parseInt(document.getElementById('pet_station_override').value);
+  if (!id) return;
+  _petCurrentStation = _petAllStations.find(s => s.id === id) || null;
+  const c = allComplaints.find(x => x.id === _cfComplaintId);
+  renderPetitionStation(c);
+  document.getElementById('petChangeStationBox').style.display = 'none';
+}
+
+function getSelectedOfficers(prefix) {
+  return [...document.querySelectorAll(`input[name="${prefix}Officer"]:checked`)].map(cb => ({
+    rank: cb.value, name: cb.dataset.name, email: cb.dataset.email, phone: cb.dataset.phone,
+  }));
 }
 
 async function loadAccusedForNotice() {
@@ -2496,30 +2598,29 @@ async function loadPetitionHistory(type) {
 
 async function generatePetition() {
   const msg = document.getElementById('petMsg');
-  msg.textContent = 'Generating petition PDF...'; msg.style.color = 'var(--teal)';
-  try {
-    const stationId = document.getElementById('pet_station').value;
-    const payload = {
-      police_station_id: stationId || null,
-      to_name:          document.getElementById('pet_to_name').value.trim() || null,
-      to_address:       document.getElementById('pet_to_address').value.trim() || null,
-      action_requested: document.getElementById('pet_action').value.trim() || null,
-    };
-    const token = localStorage.getItem('hydraa_official_token');
-    const resp = await fetch(`/api/casefile/complaints/${_cfComplaintId}/generate-petition`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify(payload),
-    });
-    if (!resp.ok) { msg.textContent = 'Failed to generate PDF.'; msg.style.color='#e53935'; return; }
-    const blob = await resp.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `Petition_${_cfComplaintId}.pdf`; a.click();
-    URL.revokeObjectURL(url);
-    msg.textContent = '✅ Petition PDF downloaded.'; msg.style.color='#065f46';
-    loadPetitionHistory('petition');
-  } catch(e) { msg.textContent = 'Error: ' + e.message; msg.style.color='#e53935'; }
+  const officers = getSelectedOfficers('pet');
+  if (officers.length === 0) { msg.textContent = '⚠️ Please select at least one recipient.'; msg.style.color='#b45309'; return; }
+  msg.textContent = `Generating ${officers.length} petition PDF(s)...`; msg.style.color='var(--teal)';
+  const action = document.getElementById('pet_action').value.trim() || null;
+  const token  = localStorage.getItem('hydraa_official_token') || localStorage.getItem('hydraa_token');
+  let done = 0;
+  for (const o of officers) {
+    try {
+      const resp = await fetch(`/api/casefile/complaints/${_cfComplaintId}/generate-petition`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ police_station_id: _petCurrentStation?.id||null, to_name: o.rank+' '+o.name, to_email: o.email||null, action_requested: action }),
+      });
+      if (resp.ok) {
+        const blob = await resp.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href=url; a.download=`Petition_${_cfComplaintId}_${o.rank}.pdf`; a.click();
+        URL.revokeObjectURL(url); done++;
+      }
+    } catch(e) {}
+  }
+  msg.textContent = `✅ ${done} petition PDF(s) downloaded.`; msg.style.color='#065f46';
+  loadPetitionHistory('petition');
 }
 
 async function generateNotice() {
@@ -2549,23 +2650,21 @@ async function generateNotice() {
 
 async function sendPetition() {
   const msg = document.getElementById('petMsg');
-  msg.textContent = 'Sending petition email...'; msg.style.color = 'var(--teal)';
-  try {
-    const res = await http.post(`/api/casefile/complaints/${_cfComplaintId}/send-petition`, {
-      police_station_id: document.getElementById('pet_station').value || null,
-      to_name:           document.getElementById('pet_to_name').value.trim() || null,
-      to_address:        document.getElementById('pet_to_address').value.trim() || null,
-      action_requested:  document.getElementById('pet_action').value.trim() || null,
-    });
-    if (res.noEmail) {
-      msg.textContent = '⚠️ ' + res.message; msg.style.color = '#b45309';
-    } else if (res.success) {
-      msg.textContent = '✅ ' + res.message; msg.style.color = '#065f46';
-      loadPetitionHistory('petition');
-    } else {
-      msg.textContent = res.message || 'Failed to send.'; msg.style.color = '#e53935';
-    }
-  } catch(e) { msg.textContent = 'Error: ' + (e.message || 'Send failed'); msg.style.color='#e53935'; }
+  const officers = getSelectedOfficers('pet').filter(o => o.email);
+  if (officers.length === 0) { msg.textContent = '⚠️ No recipients with email selected. Add emails in Police Stations management.'; msg.style.color='#b45309'; return; }
+  msg.textContent = `Sending petition to ${officers.length} officer(s)...`; msg.style.color='var(--teal)';
+  const action = document.getElementById('pet_action').value.trim() || null;
+  let sent = 0;
+  for (const o of officers) {
+    try {
+      const res = await http.post(`/api/casefile/complaints/${_cfComplaintId}/send-petition`, {
+        police_station_id: _petCurrentStation?.id||null, to_name: o.rank+' '+o.name, to_email: o.email, action_requested: action,
+      });
+      if (res.success || res.noEmail) sent++;
+    } catch(e) {}
+  }
+  msg.textContent = `✅ Petition sent to ${sent} officer(s).`; msg.style.color='#065f46';
+  loadPetitionHistory('petition');
 }
 
 async function sendNotice() {

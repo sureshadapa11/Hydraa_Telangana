@@ -795,7 +795,7 @@ function fmtDate(d) {
 // ────────────────────────────────────────────────────
 const generatePetition = async (req, res) => {
   const { complaint_id } = req.params;
-  const { to_name, to_address, police_station_id, action_requested } = req.body;
+  const { to_name, to_address, to_email, police_station_id, action_requested } = req.body;
   const generated_by_id   = req.user.id;
   const generated_by_role = req.user.role;
 
@@ -803,18 +803,18 @@ const generatePetition = async (req, res) => {
     const { complaint, accused, visitReport, history, documents } = await fetchComplaintFull(complaint_id);
     if (!complaint) return res.status(404).json({ success: false, message: 'Complaint not found.' });
 
-    let stationName = to_name || '';
-    let stationEmail = null;
-    if (police_station_id) {
+    let recipientName  = to_name || '';
+    let recipientEmail = to_email || null;
+    if (police_station_id && !to_name) {
       const [[ps]] = await db.query('SELECT name, email FROM police_stations WHERE id = ?', [police_station_id]);
-      if (ps) { stationName = ps.name; stationEmail = ps.email; }
+      if (ps) { recipientName = ps.name; if (!recipientEmail) recipientEmail = ps.email; }
     }
 
     // Record in petition_notices
     await db.query(
       `INSERT INTO petition_notices (complaint_id, doc_type, generated_by_id, generated_by_role, sent_to_name, sent_to_email, sent_to_type, police_station_id, send_status)
        VALUES (?, 'petition', ?, ?, ?, ?, 'police_station', ?, 'generated')`,
-      [complaint_id, generated_by_id, generated_by_role, stationName, stationEmail, police_station_id || null]
+      [complaint_id, generated_by_id, generated_by_role, recipientName, recipientEmail, police_station_id || null]
     );
 
     res.setHeader('Content-Type', 'application/pdf');
@@ -835,7 +835,7 @@ const generatePetition = async (req, res) => {
     // To block
     doc.font('Helvetica-Bold').fontSize(10).text('To,');
     doc.font('Helvetica').fontSize(10)
-       .text(stationName || 'The Station House Officer')
+       .text(recipientName || 'The Station House Officer')
        .text(to_address || '');
     doc.moveDown(0.5);
     doc.font('Helvetica-Bold').text('Sub: ', { continued: true });
@@ -1110,7 +1110,7 @@ function generatePdfToBuffer(buildFn) {
 // ────────────────────────────────────────────────────
 const sendPetitionEmail = async (req, res) => {
   const { complaint_id } = req.params;
-  const { to_name, to_address, police_station_id, action_requested } = req.body;
+  const { to_name, to_address, to_email, police_station_id, action_requested } = req.body;
   const generated_by_id   = req.user.id;
   const generated_by_role = req.user.role;
 
@@ -1118,15 +1118,15 @@ const sendPetitionEmail = async (req, res) => {
     const { complaint, accused, visitReport, history, documents } = await fetchComplaintFull(complaint_id);
     if (!complaint) return res.status(404).json({ success: false, message: 'Complaint not found.' });
 
-    let stationName = to_name || '';
-    let stationEmail = null;
-    if (police_station_id) {
+    let recipientName  = to_name || '';
+    let recipientEmail = to_email || null;
+    if (police_station_id && !to_name) {
       const [[ps]] = await db.query('SELECT name, email FROM police_stations WHERE id = ?', [police_station_id]);
-      if (ps) { stationName = ps.name; stationEmail = ps.email; }
+      if (ps) { recipientName = ps.name; if (!recipientEmail) recipientEmail = ps.email; }
     }
 
-    if (!stationEmail) {
-      return res.json({ success: false, noEmail: true, message: 'No email address on record for the selected station. Please download and send manually.' });
+    if (!recipientEmail) {
+      return res.json({ success: false, noEmail: true, message: 'No email address for this officer. Please update in Police Stations management.' });
     }
 
     const pdfBuffer = await generatePdfToBuffer((doc) => {
@@ -1138,7 +1138,7 @@ const sendPetitionEmail = async (req, res) => {
       doc.moveDown(0.5);
       doc.font('Helvetica-Bold').fontSize(10).text('To,');
       doc.font('Helvetica').fontSize(10)
-         .text(stationName || 'The Station House Officer')
+         .text(recipientName || 'The Station House Officer')
          .text(to_address || '');
       doc.moveDown(0.5);
       doc.font('Helvetica-Bold').text('Sub: ', { continued: true });
@@ -1237,19 +1237,19 @@ const sendPetitionEmail = async (req, res) => {
     });
 
     await sendMail({
-      to: stationEmail,
+      to: recipientEmail,
       subject: `HYDRAA Petition — Complaint ${complaint.complaint_no}`,
-      html: `<p>Dear Sir/Madam,</p><p>Please find the attached petition from HYDRAA regarding complaint <strong>${complaint.complaint_no}</strong> — ${complaint.title}.</p><p>Please take necessary action as requested in the petition and inform this office at the earliest.</p><br/><p>Regards,<br/><strong>HYDRAA — Government of Telangana</strong></p>`,
+      html: `<p>Dear ${recipientName || 'Sir/Madam'},</p><p>Please find the attached petition from HYDRAA regarding complaint <strong>${complaint.complaint_no}</strong> — ${complaint.title}.</p><p>Please take necessary action as requested in the petition and inform this office at the earliest.</p><br/><p>Regards,<br/><strong>HYDRAA — Government of Telangana</strong></p>`,
       attachments: [{ name: `Petition_${complaint.complaint_no}.pdf`, content: pdfBuffer.toString('base64') }],
     });
 
     await db.query(
       `INSERT INTO petition_notices (complaint_id, doc_type, generated_by_id, generated_by_role, sent_to_name, sent_to_email, sent_to_type, police_station_id, send_status, sent_at)
        VALUES (?, 'petition', ?, ?, ?, ?, 'police_station', ?, 'sent', NOW())`,
-      [complaint_id, generated_by_id, generated_by_role, stationName, stationEmail, police_station_id || null]
+      [complaint_id, generated_by_id, generated_by_role, recipientName, recipientEmail, police_station_id || null]
     );
 
-    res.json({ success: true, message: `Petition sent to ${stationEmail}` });
+    res.json({ success: true, message: `Petition sent to ${recipientEmail}` });
   } catch (err) {
     console.error('sendPetitionEmail error:', err);
     res.status(500).json({ success: false, message: 'Failed to send petition email. ' + err.message });
