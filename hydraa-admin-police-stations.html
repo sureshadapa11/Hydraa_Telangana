@@ -57,13 +57,14 @@
     .filter-bar select:disabled{opacity:0.4;cursor:not-allowed;background:#f0f4f7;}
     .btn-primary{padding:0.55rem 1.3rem;background:linear-gradient(135deg,var(--teal),#00bcd4);color:#fff;border:none;border-radius:var(--radius-sm);font-size:0.83rem;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .18s;}
     .btn-primary:hover{opacity:0.88;}
-    .tbl-wrap{overflow-x:auto;}
-    table{width:100%;border-collapse:collapse;font-size:0.82rem;}
-    thead th{background:var(--bg);color:var(--text-3);font-weight:700;font-size:0.68rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.7rem 0.9rem;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+    .tbl-wrap{overflow-x:hidden;}
+    table{width:100%;border-collapse:collapse;font-size:0.8rem;table-layout:fixed;}
+    thead th{background:var(--bg);color:var(--text-3);font-weight:700;font-size:0.66rem;letter-spacing:0.07em;text-transform:uppercase;padding:0.6rem 0.7rem;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     tbody tr{border-bottom:1px solid #f0f4f7;transition:background .12s;}
     tbody tr:hover{background:#f8fbfd;}
-    tbody td{padding:0.65rem 0.9rem;color:var(--text);vertical-align:middle;}
-    .rank-chip{display:inline-flex;align-items:center;gap:3px;font-size:0.66rem;font-weight:700;padding:0.18rem 0.5rem;border-radius:20px;margin:1px;}
+    tbody td{padding:0.55rem 0.7rem;color:var(--text);vertical-align:middle;overflow:hidden;text-overflow:ellipsis;}
+    col.c-num{width:36px;} col.c-name{width:22%;} col.c-loc{width:18%;} col.c-contact{width:16%;} col.c-officers{width:28%;} col.c-actions{width:96px;}
+    .rank-chip{display:inline-flex;align-items:center;gap:2px;font-size:0.62rem;font-weight:700;padding:0.14rem 0.4rem;border-radius:20px;margin:1px;white-space:nowrap;}
     .rank-ci  {background:#e0f7fa;color:#006978;}
     .rank-acp {background:#ede9fe;color:#6d28d9;}
     .rank-sp  {background:#fef9c3;color:#92400e;}
@@ -216,11 +217,12 @@
           </div>
           <div class="tbl-wrap">
             <table>
+              <colgroup><col class="c-num"><col class="c-name"><col class="c-loc"><col class="c-contact"><col class="c-officers"><col class="c-actions"></colgroup>
               <thead>
-                <tr><th>#</th><th>Station Name</th><th>District</th><th>Mandal</th><th>Commissionerate</th><th>Station Contact</th><th>Officers</th><th>Actions</th></tr>
+                <tr><th>#</th><th>Station Name</th><th>District / Commissionerate</th><th>Contact</th><th>Officers</th><th>Actions</th></tr>
               </thead>
               <tbody id="stationsTbody">
-                <tr><td colspan="8"><div class="empty-state">Loading...</div></td></tr>
+                <tr><td colspan="6"><div class="empty-state">Loading...</div></td></tr>
               </tbody>
             </table>
           </div>
@@ -702,16 +704,17 @@
   function renderTable(data) {
     const tbody = document.getElementById('stationsTbody');
     if (!data.length) {
-      tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state">No police stations found.</div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">No police stations found.</div></td></tr>';
       return;
     }
-    tbody.innerHTML = data.map((s, i) => `
+    tbody.innerHTML = data.map((s, i) => {
+      const loc = [s.district_name, s.commissionerate].filter(Boolean);
+      const locText = loc.length ? loc.join(' / ') : '—';
+      return `
       <tr>
         <td style="color:var(--text-3);font-size:0.75rem">${i+1}</td>
         <td style="font-weight:700;color:var(--navy)">${esc(s.name)}</td>
-        <td style="font-size:0.8rem">${esc(s.district_name||'—')}</td>
-        <td style="font-size:0.8rem">${esc(s.mandal_name||'—')}</td>
-        <td style="font-size:0.78rem;color:var(--text-2)">${esc(s.commissionerate||'—')}</td>
+        <td style="font-size:0.78rem;color:var(--text-2)">${esc(locText)}</td>
         <td style="font-size:0.76rem">
           ${s.phone ? `<div>📞 ${esc(s.phone)}</div>` : ''}
           ${s.email ? `<div style="color:var(--teal-dark)">✉️ ${esc(s.email)}</div>` : ''}
@@ -722,7 +725,8 @@
           <button class="btn-edit" onclick="openEdit(${s.id})">✏️ Edit</button>
           <button class="btn-del" onclick="deleteStation(${s.id},'${esc(s.name)}')" style="margin-left:4px">🗑 Del</button>
         </td>
-      </tr>`).join('');
+      </tr>`;
+    }).join('');
   }
 
   // ── Modal helpers ──
