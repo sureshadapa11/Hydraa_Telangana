@@ -166,11 +166,15 @@ const Auth = {
   },
 
   requireLogin(role) {
-    if (!http.getToken()) {
-      if (role === 'admin')    window.location.href = '/hydraa-admin-login.html';
-      else if (role === 'official') window.location.href = '/hydraa-official-portal.html';
-      else                     window.location.href = '/hydraa-login.html';
-    }
+    const token = http.getToken();
+    const user  = this.getUser();
+    const redirect = () => {
+      if (role === 'admin')         window.location.href = '/hydraa-admin-login.html';
+      else if (role === 'official') window.location.href = '/hydraa-official-login.html';
+      else                          window.location.href = '/hydraa-login.html';
+    };
+    if (!token || !user) { redirect(); return; }
+    if (role && user.role !== role) { redirect(); return; }
   },
 
   logout() {
