@@ -1118,7 +1118,7 @@ async function openTimeline(complaint_no) {
     const history   = trackRes.data?.history   || [];
 
     // Also fetch comments with auth
-    const token = localStorage.getItem('hydraa_token');
+    const token = http.getToken();
     let comments = [];
     try {
       const cRes = await fetch(`/api/complaints/${complaint.id}/comments`, {
@@ -1210,7 +1210,7 @@ function removePhoto(idx, el) {
 }
 
 async function uploadPendingPhotos(complaintId) {
-  const token = localStorage.getItem('hydraa_token');
+  const token = http.getToken();
   for (const photo of _pendingPhotos) {
     try {
       await fetch(`/api/complaints/${complaintId}/photos`, {

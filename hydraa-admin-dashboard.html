@@ -1374,7 +1374,7 @@ async function openTimeline(complaint_no) {
     const complaint = trackRes.data?.complaint || {};
     const history   = trackRes.data?.history   || [];
 
-    const token = localStorage.getItem('hydraa_token');
+    const token = http.getToken();
     let comments = [];
     if (complaint.id) {
       try {
@@ -2007,7 +2007,7 @@ async function adminSearchLandRecords() {
 
   try {
     const params = new URLSearchParams({ district, mandal, village, survey_no: survey, khata_no: khata });
-    const token  = localStorage.getItem('hydraa_token') || localStorage.getItem('hydraa_official_token');
+    const token  = http.getToken();
     const resp   = await fetch(`/api/land/search?${params}`, { headers: { 'Authorization': `Bearer ${token}` } });
     const json   = await resp.json();
 
@@ -2387,7 +2387,7 @@ function adminSvRemoveDoc(idx, btn) {
 }
 
 async function adminDownloadVisitPdf(visitId, visitNo) {
-  const token = localStorage.getItem('hydraa_token');
+  const token = http.getToken();
   const resp = await fetch('/api/casefile/site-visits/'+visitId+'/generate-pdf', {
     headers: { 'Authorization': 'Bearer '+token }
   });
