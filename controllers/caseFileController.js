@@ -751,14 +751,19 @@ async function fetchComplaintFull(complaint_id) {
 //  HELPER — draw PDF header
 // ────────────────────────────────────────────────────
 function drawPdfHeader(doc, title) {
-  doc.rect(0, 0, doc.page.width, 80).fill('#0b2040');
-  doc.fill('#ffffff').font('Helvetica-Bold').fontSize(16)
-     .text('HYDRAA — Hyderabad Disaster Response & Asset Protection Agency', 40, 20, { width: doc.page.width - 80, align: 'center' });
-  doc.fill('#4dd6e8').font('Helvetica').fontSize(10)
-     .text('Government of Telangana', 40, 42, { width: doc.page.width - 80, align: 'center' });
-  doc.fill('#f4a820').font('Helvetica-Bold').fontSize(12)
-     .text(title, 40, 58, { width: doc.page.width - 80, align: 'center' });
-  doc.y = 100;
+  // Dark navy bar
+  doc.rect(0, 0, doc.page.width, 90).fill('#0b2040');
+  doc.fill('#ffffff').font('Helvetica-Bold').fontSize(15)
+     .text('HYDRAA', 40, 14, { width: doc.page.width - 80, align: 'center' });
+  doc.fill('#4dd6e8').font('Helvetica').fontSize(8.5)
+     .text('Hyderabad Disaster Response & Asset Protection Agency', 40, 31, { width: doc.page.width - 80, align: 'center' });
+  doc.fill('#ffffff').font('Helvetica').fontSize(8)
+     .text('Government of Telangana  |  HYDRAA Bhavan, Tank Bund Road, Hyderabad – 500 063  |  hydraa.telangana.gov.in', 40, 46, { width: doc.page.width - 80, align: 'center' });
+  // Thin gold divider
+  doc.rect(40, 60, doc.page.width - 80, 1).fill('#f4a820');
+  doc.fill('#f4a820').font('Helvetica-Bold').fontSize(11)
+     .text(title, 40, 67, { width: doc.page.width - 80, align: 'center' });
+  doc.y = 108;
   doc.fill('#000000');
 }
 
@@ -767,10 +772,10 @@ function drawPdfHeader(doc, title) {
 // ────────────────────────────────────────────────────
 function sectionHead(doc, text) {
   doc.moveDown(0.5);
-  doc.rect(40, doc.y, doc.page.width - 80, 22).fill('#0b2040');
-  doc.fill('#ffffff').font('Helvetica-Bold').fontSize(10)
-     .text(text, 48, doc.y - 16);
-  doc.fill('#000000').font('Helvetica').fontSize(10);
+  doc.rect(40, doc.y, doc.page.width - 80, 20).fill('#0b2040');
+  doc.fill('#ffffff').font('Helvetica-Bold').fontSize(9)
+     .text(text, 48, doc.y - 14);
+  doc.fill('#000000').font('Helvetica').fontSize(9.5);
   doc.moveDown(0.4);
 }
 
@@ -783,11 +788,42 @@ function kvRow(doc, key, value) {
 }
 
 // ────────────────────────────────────────────────────
+//  HELPER — horizontal rule
+// ────────────────────────────────────────────────────
+function hRule(doc) {
+  doc.moveDown(0.3);
+  doc.rect(40, doc.y, doc.page.width - 80, 0.5).fill('#cccccc');
+  doc.fill('#000000');
+  doc.moveDown(0.3);
+}
+
+// ────────────────────────────────────────────────────
 //  FORMAT DATE
 // ────────────────────────────────────────────────────
 function fmtDate(d) {
   if (!d) return '—';
-  return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+
+// ────────────────────────────────────────────────────
+//  GENERATE PETITION NUMBER
+// ────────────────────────────────────────────────────
+function numberToWords(n) {
+  const w = ['zero','one','two','three','four','five','six','seven','eight','nine','ten',
+             'eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty',
+             'thirty','forty','fifty','sixty'];
+  if (n <= 20) return w[n];
+  if (n === 30) return w[21]; if (n === 45) return 'forty-five'; if (n === 60) return w[23];
+  return String(n);
+}
+
+function petitionNo(complaint_id) {
+  const yr = new Date().getFullYear();
+  return `HYDRAA/PET/${yr}/${String(complaint_id).padStart(5, '0')}`;
+}
+function noticeNo(complaint_id) {
+  const yr = new Date().getFullYear();
+  return `HYDRAA/SCN/${yr}/${String(complaint_id).padStart(5, '0')}`;
 }
 
 // ────────────────────────────────────────────────────
@@ -823,123 +859,146 @@ const generatePetition = async (req, res) => {
     const doc = new PDFDocument({ margin: 40, size: 'A4' });
     doc.pipe(res);
 
-    drawPdfHeader(doc, 'PETITION — Request for Action');
+    drawPdfHeader(doc, 'PETITION — REQUEST FOR POLICE ACTION');
 
-    // Reference & date
-    doc.moveDown(0.5);
-    doc.font('Helvetica').fontSize(10);
-    doc.text(`Ref No: ${complaint.complaint_no}`, { align: 'right' });
+    // Petition number, date, MOST URGENT tag
+    const petNo = petitionNo(complaint_id);
+    doc.font('Helvetica-Bold').fontSize(9).fill('#cc0000')
+       .text('MOST URGENT', { align: 'right' });
+    doc.fill('#000000').font('Helvetica').fontSize(9);
+    doc.text(`Petition No: ${petNo}`, { align: 'right' });
     doc.text(`Date: ${fmtDate(new Date())}`, { align: 'right' });
-    doc.moveDown(0.5);
+    doc.text(`Ref. Complaint No: ${complaint.complaint_no}  (Filed: ${fmtDate(complaint.created_at)})`, { align: 'right' });
+    hRule(doc);
 
     // To block
     doc.font('Helvetica-Bold').fontSize(10).text('To,');
     doc.font('Helvetica').fontSize(10)
        .text(recipientName || 'The Station House Officer')
-       .text(to_address || '');
-    doc.moveDown(0.5);
-    doc.font('Helvetica-Bold').text('Sub: ', { continued: true });
-    doc.font('Helvetica').text(`Request for action regarding complaint ${complaint.complaint_no} — ${complaint.title}`);
-    doc.font('Helvetica-Bold').text('Ref: ', { continued: true });
-    doc.font('Helvetica').text(`HYDRAA Complaint No. ${complaint.complaint_no} dated ${fmtDate(complaint.created_at)}`);
-    doc.moveDown(0.5);
-    doc.font('Helvetica').fontSize(10)
-       .text('Sir/Madam,', { indent: 20 }).moveDown(0.3)
-       .text('This is to bring to your kind attention the following complaint registered with this office. The details are as follows:', { indent: 20 });
+       .text(to_address || (complaint.mandal_name ? `${complaint.mandal_name} Police Station, ${complaint.district_name || ''}` : ''));
+    doc.moveDown(0.6);
 
-    // Complainant
+    doc.font('Helvetica-Bold').fontSize(10).text('Sub: ', { continued: true });
+    doc.font('Helvetica').text(`Request for police action under HYDRAA Act, 2024 — Complaint No. ${complaint.complaint_no} — ${complaint.title || complaint.category_name}`);
+    doc.moveDown(0.2);
+    doc.font('Helvetica-Bold').text('Ref: ', { continued: true });
+    doc.font('Helvetica').text(`HYDRAA Complaint No. ${complaint.complaint_no} dated ${fmtDate(complaint.created_at)}, registered under ${complaint.category_name || 'General'}`);
+    hRule(doc);
+
+    doc.font('Helvetica').fontSize(10)
+       .text('Sir / Madam,', { indent: 20 }).moveDown(0.4)
+       .text(
+         `This office has received a complaint under the provisions of the Hyderabad Disaster Response and Assets Protection Agency Act, 2024 (HYDRAA Act). After preliminary verification, it has been found that the complaint involves encroachment / illegal construction / unauthorised activity within the jurisdiction of your police station. The matter requires immediate police assistance to facilitate HYDRAA's field operations. The details are furnished below:`,
+         { indent: 20, align: 'justify' }
+       );
+
+    // 1. Complainant
     sectionHead(doc, '1. COMPLAINANT DETAILS');
     kvRow(doc, 'Name', complaint.citizen_name);
-    kvRow(doc, 'Phone', complaint.citizen_phone);
+    kvRow(doc, 'Mobile', complaint.citizen_phone);
     kvRow(doc, 'Email', complaint.citizen_email);
 
-    // Complaint details
+    // 2. Complaint details
     sectionHead(doc, '2. COMPLAINT DETAILS');
-    kvRow(doc, 'Complaint No', complaint.complaint_no);
-    kvRow(doc, 'Date Filed', fmtDate(complaint.created_at));
+    kvRow(doc, 'HYDRAA Complaint No', complaint.complaint_no);
+    kvRow(doc, 'Date of Filing', fmtDate(complaint.created_at));
     kvRow(doc, 'Category', complaint.category_name);
     kvRow(doc, 'Sub-Category', complaint.subcategory_name);
     kvRow(doc, 'Priority', (complaint.priority || '').toUpperCase());
-    kvRow(doc, 'Status', (complaint.status || '').toUpperCase());
-    kvRow(doc, 'Address of Complaint', complaint.address);
+    kvRow(doc, 'Current Status', (complaint.status || '').toUpperCase());
+    kvRow(doc, 'Location / Address', complaint.address);
+    kvRow(doc, 'District', complaint.district_name);
+    kvRow(doc, 'Mandal', complaint.mandal_name);
     doc.moveDown(0.3);
-    doc.font('Helvetica-Bold').fontSize(9).text('Description:');
-    doc.font('Helvetica').fontSize(9).text(complaint.description || '—', { indent: 10 });
+    doc.font('Helvetica-Bold').fontSize(9).text('Description of Complaint:');
+    doc.font('Helvetica').fontSize(9).text(complaint.description || '—', { indent: 10, align: 'justify' });
 
-    // Land details
+    // 3. Land/Property
     if (complaint.land_survey_no || complaint.khata_no) {
       sectionHead(doc, '3. LAND / PROPERTY DETAILS');
       kvRow(doc, 'District', complaint.land_district || complaint.district_name);
       kvRow(doc, 'Mandal', complaint.land_mandal || complaint.mandal_name);
-      kvRow(doc, 'Village', complaint.land_village);
+      kvRow(doc, 'Village / Locality', complaint.land_village);
       kvRow(doc, 'Survey No', complaint.land_survey_no);
       kvRow(doc, 'Khata No', complaint.khata_no);
-      kvRow(doc, 'Land Address', complaint.land_address);
+      kvRow(doc, 'Property Address', complaint.land_address);
     }
 
-    // Accused
+    // 4. Accused
     if (accused.length > 0) {
-      sectionHead(doc, `4. ACCUSED PERSON(S) — ${accused.length} person(s)`);
+      sectionHead(doc, `4. ACCUSED / OFFENDER DETAILS (${accused.length} person(s))`);
       accused.forEach((a, i) => {
+        if (i > 0) doc.moveDown(0.3);
         doc.font('Helvetica-Bold').fontSize(9).text(`Accused ${i + 1}:`);
         kvRow(doc, 'Name', a.name);
-        kvRow(doc, 'Phone', a.phone);
+        kvRow(doc, 'Mobile', a.phone);
         kvRow(doc, 'Address', a.address);
-        kvRow(doc, 'Relation', a.relation);
+        kvRow(doc, 'Relation to Complainant', a.relation);
         kvRow(doc, 'Occupation', a.occupation);
-        if (i < accused.length - 1) doc.moveDown(0.3);
       });
     }
 
-    // Site visit
+    // 5. Site visit
     if (visitReport) {
-      sectionHead(doc, '5. SITE VISIT REPORT');
-      kvRow(doc, 'Visited On', fmtDate(visitReport.visit_date));
+      sectionHead(doc, '5. HYDRAA FIELD INSPECTION REPORT');
+      kvRow(doc, 'Date of Inspection', fmtDate(visitReport.visit_date));
       kvRow(doc, 'Time', visitReport.visit_time || '—');
-      kvRow(doc, 'Inspecting Official', visitReport.official_name);
+      kvRow(doc, 'Inspecting Officer', visitReport.official_name);
       kvRow(doc, 'Encroachment Area', visitReport.encroachment_area);
-      kvRow(doc, 'Construction Type', visitReport.construction_type);
-      kvRow(doc, 'Current Status of Land', visitReport.current_status);
+      kvRow(doc, 'Type of Construction', visitReport.construction_type);
+      kvRow(doc, 'Current Status of Site', visitReport.current_status);
       if (visitReport.findings) {
         doc.moveDown(0.2);
-        doc.font('Helvetica-Bold').fontSize(9).text('Findings:');
-        doc.font('Helvetica').fontSize(9).text(visitReport.findings, { indent: 10 });
+        doc.font('Helvetica-Bold').fontSize(9).text('Field Findings:');
+        doc.font('Helvetica').fontSize(9).text(visitReport.findings, { indent: 10, align: 'justify' });
       }
     }
 
-    // Documents
+    // 6. Documents
     if (documents.length > 0) {
-      sectionHead(doc, '6. EVIDENCE & DOCUMENTS COLLECTED');
+      sectionHead(doc, '6. ENCLOSURES / EVIDENCE DOCUMENTS');
       documents.forEach((d, i) => {
-        doc.font('Helvetica').fontSize(9)
-           .text(`${i + 1}. [${d.doc_type}] ${d.file_name}${d.caption ? ' — ' + d.caption : ''} (uploaded by ${d.uploaded_by_role} on ${fmtDate(d.created_at)})`);
+        doc.font('Helvetica').fontSize(8.5)
+           .text(`${i + 1}.  [${d.doc_type}]  ${d.file_name}${d.caption ? '  —  ' + d.caption : ''}  (Uploaded: ${fmtDate(d.created_at)})`);
       });
     }
 
-    // Complaint history
+    // 7. Complaint status history
     if (history.length > 0) {
-      sectionHead(doc, '7. COMPLAINT HISTORY');
+      sectionHead(doc, '7. ACTION TRAIL / STATUS HISTORY');
       history.forEach(h => {
         doc.font('Helvetica').fontSize(8)
-           .text(`${fmtDate(h.changed_at)} — ${(h.old_status || 'new').toUpperCase()} → ${h.new_status.toUpperCase()} (by ${h.changed_by_role})${h.remarks ? ': ' + h.remarks : ''}`);
+           .text(`${fmtDate(h.changed_at)}  —  ${(h.old_status || 'NEW').toUpperCase()} → ${h.new_status.toUpperCase()}  (${h.changed_by_role})${h.remarks ? ':  ' + h.remarks : ''}`);
       });
     }
 
-    // Action requested
-    sectionHead(doc, '8. ACTION REQUESTED');
-    doc.font('Helvetica').fontSize(10)
-       .text(action_requested || 'You are requested to take necessary action as per applicable laws and regulations and inform this office of the action taken at the earliest.', { indent: 10 });
+    // 8. Action requested
+    sectionHead(doc, '8. ACTION REQUESTED FROM POLICE');
+    doc.font('Helvetica').fontSize(9.5).text(
+      action_requested ||
+      `You are hereby requested to: (i) register an FIR / complaint as applicable under the Indian Penal Code and relevant sections; (ii) provide police protection to HYDRAA field teams during inspection and demolition proceedings; (iii) prevent the accused from obstructing HYDRAA operations; and (iv) intimate this office of the action taken within 7 days, as required under the HYDRAA Act, 2024.`,
+      { indent: 10, align: 'justify' }
+    );
 
-    // Signature
-    doc.moveDown(1.5);
-    doc.font('Helvetica').fontSize(10)
-       .text('Yours faithfully,', { indent: 20 }).moveDown(1.5);
-    doc.font('Helvetica-Bold').fontSize(10)
-       .text('________________________________', { align: 'right' });
+    // Signature block
+    doc.moveDown(2);
+    doc.font('Helvetica').fontSize(10).text('Yours faithfully,', { indent: 20 }).moveDown(2);
+    const sigX = doc.page.width - 240;
+    doc.font('Helvetica-Bold').fontSize(10).text('________________________________', sigX, doc.y);
     doc.font('Helvetica').fontSize(9)
-       .text('Authorized Signatory', { align: 'right' })
-       .text('HYDRAA — Government of Telangana', { align: 'right' })
-       .text(`Date: ${fmtDate(new Date())}`, { align: 'right' });
+       .text('Commissioner / Authorised Officer', sigX)
+       .text('HYDRAA — Hyderabad Disaster Response &', sigX)
+       .text('Asset Protection Agency', sigX)
+       .text('Government of Telangana', sigX)
+       .text(`Date: ${fmtDate(new Date())}`, sigX);
+
+    // Copy to
+    hRule(doc);
+    doc.font('Helvetica-Bold').fontSize(8.5).text('Copy to:', 40, doc.y);
+    doc.font('Helvetica').fontSize(8.5)
+       .text(`1. The Superintendent of Police / Deputy Commissioner of Police, ${complaint.district_name || 'concerned district'}.`)
+       .text('2. The Director, HYDRAA, Hyderabad (for records).')
+       .text('3. Office file.');
 
     doc.end();
   } catch (err) {
@@ -977,7 +1036,7 @@ const generateNotice = async (req, res) => {
        targetAccused?.name || 'Accused Person', targetAccused?.email || null]
     );
 
-    const noticeNo = `HYD-NOTICE-${complaint.complaint_no}-${Date.now().toString().slice(-5)}`;
+    const scnNo = noticeNo(complaint_id);
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="Notice_${complaint.complaint_no}.pdf"`);
@@ -987,11 +1046,12 @@ const generateNotice = async (req, res) => {
 
     drawPdfHeader(doc, 'SHOW CAUSE NOTICE');
 
-    doc.moveDown(0.5);
-    doc.font('Helvetica').fontSize(10);
-    doc.text(`Notice No: ${noticeNo}`, { align: 'right' });
+    // Notice number + date
+    doc.font('Helvetica').fontSize(9);
+    doc.text(`Notice No: ${scnNo}`, { align: 'right' });
     doc.text(`Date: ${fmtDate(new Date())}`, { align: 'right' });
-    doc.moveDown(0.5);
+    doc.text(`Ref. Complaint No: ${complaint.complaint_no}  (Filed: ${fmtDate(complaint.created_at)})`, { align: 'right' });
+    hRule(doc);
 
     // To block
     doc.font('Helvetica-Bold').fontSize(10).text('To,');
@@ -1002,84 +1062,108 @@ const generateNotice = async (req, res) => {
     } else {
       doc.font('Helvetica').fontSize(10).text('The Accused Person / Responsible Party');
     }
+    doc.moveDown(0.6);
 
-    doc.moveDown(0.5);
-    doc.font('Helvetica-Bold').text('Sub: ', { continued: true });
-    doc.font('Helvetica').text('Show Cause Notice — Action under HYDRAA Act');
+    doc.font('Helvetica-Bold').fontSize(10).text('Sub: ', { continued: true });
+    doc.font('Helvetica').text(`Show Cause Notice — Action under HYDRAA Act, 2024 — ${complaint.category_name || 'Encroachment / Unauthorised Construction'}`);
+    doc.moveDown(0.2);
     doc.font('Helvetica-Bold').text('Ref: ', { continued: true });
-    doc.font('Helvetica').text(`Complaint No. ${complaint.complaint_no} dated ${fmtDate(complaint.created_at)}`);
+    doc.font('Helvetica').text(`HYDRAA Complaint No. ${complaint.complaint_no} dated ${fmtDate(complaint.created_at)}`);
+    hRule(doc);
 
-    doc.moveDown(0.5);
-    doc.font('Helvetica').fontSize(10).text('Sir/Madam,', { indent: 20 }).moveDown(0.3);
-    doc.text('It has been brought to the notice of this office that you have been involved in the following violation/encroachment within the jurisdiction of HYDRAA. You are hereby called upon to show cause why action should not be initiated against you under the provisions of applicable laws.', { indent: 20 });
+    doc.font('Helvetica').fontSize(10).text('Sir / Madam,', { indent: 20 }).moveDown(0.4);
+    doc.text(
+      `It has been brought to the notice of this office that you have been involved in the encroachment / unauthorised construction / illegal activity detailed herein, within the jurisdiction of the Hyderabad Disaster Response and Assets Protection Agency (HYDRAA), established under the HYDRAA Act, 2024. After field inspection and verification by HYDRAA officials, a prima facie case of violation has been established against you.`,
+      { indent: 20, align: 'justify' }
+    ).moveDown(0.3);
+    doc.text(
+      `You are hereby called upon to SHOW CAUSE, in writing, within the stipulated period below, as to why action should not be initiated against you under the provisions of the HYDRAA Act, 2024 and other applicable laws.`,
+      { indent: 20, align: 'justify' }
+    );
 
-    // Violation details
-    sectionHead(doc, '1. NATURE OF VIOLATION / COMPLAINT');
-    kvRow(doc, 'Complaint No', complaint.complaint_no);
+    // 1. Violation
+    sectionHead(doc, '1. NATURE OF ALLEGED VIOLATION');
+    kvRow(doc, 'HYDRAA Complaint No', complaint.complaint_no);
     kvRow(doc, 'Date of Complaint', fmtDate(complaint.created_at));
-    kvRow(doc, 'Category', complaint.category_name);
-    kvRow(doc, 'Location', complaint.address);
+    kvRow(doc, 'Category of Violation', complaint.category_name);
+    kvRow(doc, 'Sub-Category', complaint.subcategory_name);
+    kvRow(doc, 'Location / Address', complaint.address);
+    kvRow(doc, 'District', complaint.district_name);
+    kvRow(doc, 'Mandal', complaint.mandal_name);
     doc.moveDown(0.3);
-    doc.font('Helvetica-Bold').fontSize(9).text('Details of Violation:');
-    doc.font('Helvetica').fontSize(9).text(complaint.description || '—', { indent: 10 });
+    doc.font('Helvetica-Bold').fontSize(9).text('Details of Alleged Violation:');
+    doc.font('Helvetica').fontSize(9).text(complaint.description || '—', { indent: 10, align: 'justify' });
 
-    // Land
+    // 2. Property
     if (complaint.land_survey_no || complaint.khata_no) {
       sectionHead(doc, '2. PROPERTY / LAND DETAILS');
       kvRow(doc, 'Survey No', complaint.land_survey_no);
       kvRow(doc, 'Khata No', complaint.khata_no);
-      kvRow(doc, 'Village', complaint.land_village);
+      kvRow(doc, 'Village / Locality', complaint.land_village);
       kvRow(doc, 'Mandal', complaint.land_mandal || complaint.mandal_name);
       kvRow(doc, 'District', complaint.land_district || complaint.district_name);
     }
 
-    // Site visit findings
+    // 3. Inspection findings
     if (visitReport) {
-      sectionHead(doc, '3. INSPECTION FINDINGS');
-      kvRow(doc, 'Inspected On', fmtDate(visitReport.visit_date));
+      sectionHead(doc, '3. HYDRAA FIELD INSPECTION REPORT');
+      kvRow(doc, 'Date of Inspection', fmtDate(visitReport.visit_date));
+      kvRow(doc, 'Inspecting Officer', visitReport.official_name);
       kvRow(doc, 'Encroachment Area', visitReport.encroachment_area);
-      kvRow(doc, 'Construction Type', visitReport.construction_type);
+      kvRow(doc, 'Type of Construction', visitReport.construction_type);
+      kvRow(doc, 'Current Status of Site', visitReport.current_status);
       if (visitReport.findings) {
         doc.moveDown(0.2);
-        doc.font('Helvetica').fontSize(9).text(visitReport.findings, { indent: 10 });
+        doc.font('Helvetica-Bold').fontSize(9).text('Inspection Findings:');
+        doc.font('Helvetica').fontSize(9).text(visitReport.findings, { indent: 10, align: 'justify' });
       }
     }
 
-    // Response requirement
-    sectionHead(doc, '4. RESPONSE REQUIRED');
-    doc.font('Helvetica').fontSize(10).text(
-      `You are hereby directed to appear before this office or submit a written explanation within ${response_days || 15} days from the date of this notice (i.e., on or before ${fmtDate(deadline)}).`,
+    // 4. Response required
+    sectionHead(doc, '4. SHOW CAUSE — RESPONSE REQUIRED');
+    doc.font('Helvetica').fontSize(9.5).text(
+      `You are hereby DIRECTED to submit a written reply / explanation to this office within ${response_days || 15} (${numberToWords(parseInt(response_days) || 15)}) days from the date of this notice, i.e., on or before ${fmtDate(deadline)}.`,
       { indent: 10 }
     ).moveDown(0.3);
-    doc.text('Failure to respond within the stipulated time will result in ex-parte action being taken against you as per applicable laws, including but not limited to demolition of unauthorized structures, legal proceedings, and/or penalty under HYDRAA Act.', { indent: 10 });
+    doc.text(
+      `Your response must be addressed to: The Commissioner / Authorised Officer, HYDRAA, HYDRAA Bhavan, Tank Bund Road, Hyderabad – 500 063, or submitted in person at the HYDRAA office during working hours.`,
+      { indent: 10, align: 'justify' }
+    ).moveDown(0.3);
+    doc.font('Helvetica-Bold').fontSize(9.5).fill('#cc0000')
+       .text('IMPORTANT: Failure to respond within the prescribed period will result in ex-parte proceedings being initiated against you without further notice.', { indent: 10 });
+    doc.fill('#000000');
 
-    // Consequences
-    sectionHead(doc, '5. CONSEQUENCES OF NON-COMPLIANCE');
+    // 5. Consequences
+    sectionHead(doc, '5. CONSEQUENCES OF NON-COMPLIANCE (HYDRAA Act, 2024)');
     const consequences = [
-      'Demolition of unauthorized constructions at your cost',
-      'Recovery of encroached government/public land',
-      'Legal proceedings under applicable acts',
-      'Penalty and fine as per HYDRAA regulations',
+      'Demolition / removal of unauthorised structures at your cost under Section 16(1) of HYDRAA Act, 2024',
+      'Recovery of encroached Government / public / FTL / buffer zone land',
+      'Prosecution under applicable provisions of the Bharatiya Nyaya Sanhita (BNS), 2023',
+      'Levy of penalty and fine as prescribed under HYDRAA Act, 2024',
+      'Recovery of cost of demolition and restoration from the accused as arrears of land revenue',
     ];
     consequences.forEach((c, i) => {
-      doc.font('Helvetica').fontSize(9).text(`${i + 1}. ${c}`, { indent: 10 });
+      doc.font('Helvetica').fontSize(9).text(`${i + 1}.  ${c}`, { indent: 10 });
     });
 
     // Signature
-    doc.moveDown(1.5);
-    doc.font('Helvetica').fontSize(10).text('Issued by authority of:', { indent: 20 }).moveDown(1.5);
-    doc.font('Helvetica-Bold').fontSize(10)
-       .text('________________________________', { align: 'right' });
+    doc.moveDown(2);
+    doc.font('Helvetica').fontSize(10).text('Issued under the authority of:', { indent: 20 }).moveDown(2);
+    const sigX2 = doc.page.width - 240;
+    doc.font('Helvetica-Bold').fontSize(10).text('________________________________', sigX2, doc.y);
     doc.font('Helvetica').fontSize(9)
-       .text('Authorized Signatory', { align: 'right' })
-       .text('HYDRAA — Government of Telangana', { align: 'right' })
-       .text(`Date: ${fmtDate(new Date())}`, { align: 'right' });
+       .text('Commissioner / Authorised Officer', sigX2)
+       .text('HYDRAA — Hyderabad Disaster Response &', sigX2)
+       .text('Asset Protection Agency', sigX2)
+       .text('Government of Telangana', sigX2)
+       .text(`Date: ${fmtDate(new Date())}`, sigX2);
 
-    doc.moveDown(1);
-    doc.rect(40, doc.y, doc.page.width - 80, 1).fill('#cccccc');
-    doc.moveDown(0.3);
-    doc.font('Helvetica').fontSize(8).fill('#666666')
-       .text('This is an official notice issued by HYDRAA. For queries contact HYDRAA office, Hyderabad, Telangana.', { align: 'center' });
+    hRule(doc);
+    doc.font('Helvetica').fontSize(7.5).fill('#555555')
+       .text(
+         'This is an official notice issued under the HYDRAA Act, 2024 by the Government of Telangana. Any attempt to tamper with, destroy, or obstruct the service of this notice is a punishable offence. For queries: HYDRAA Bhavan, Tank Bund Road, Hyderabad – 500 063.',
+         { align: 'center' }
+       );
 
     doc.end();
   } catch (err) {
