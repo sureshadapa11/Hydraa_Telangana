@@ -1062,6 +1062,7 @@ const generateNotice = async (req, res) => {
       doc.font('Helvetica').fontSize(10)
          .text(targetAccused.name)
          .text(targetAccused.address || 'Address not on record');
+      if (targetAccused.phone) doc.text(`Mobile: ${targetAccused.phone}`);
     } else {
       doc.font('Helvetica').fontSize(10).text('The Accused Person / Responsible Party');
     }
@@ -1151,7 +1152,7 @@ const generateNotice = async (req, res) => {
 
     // Signature
     doc.moveDown(2);
-    doc.font('Helvetica').fontSize(10).text('Issued under the authority of:', { indent: 20 }).moveDown(2);
+    doc.font('Helvetica').fontSize(10).text('Yours faithfully,', { indent: 20 }).moveDown(2);
     const sigX2 = doc.page.width - 240;
     doc.font('Helvetica-Bold').fontSize(10).text('________________________________', sigX2, doc.y);
     doc.font('Helvetica').fontSize(9)
@@ -1161,11 +1162,22 @@ const generateNotice = async (req, res) => {
        .text('Government of Telangana', sigX2)
        .text(`Date: ${fmtDate(new Date())}`, sigX2);
 
+    // Copy to
+    const noticeY = doc.y + 8;
+    hRule(doc);
+    doc.font('Helvetica-Bold').fontSize(8.5).text('Copy to:', 40, doc.y);
+    doc.font('Helvetica').fontSize(8.5)
+       .text('1. The complainant (for information).')
+       .text('2. The Director, HYDRAA, Hyderabad (for records).')
+       .text('3. Office file.');
+
+    // Disclaimer footer — explicit x reset so it renders full-width centered
     hRule(doc);
     doc.font('Helvetica').fontSize(7.5).fill('#555555')
        .text(
          'This is an official notice issued under the HYDRAA Act, 2024 by the Government of Telangana. Any attempt to tamper with, destroy, or obstruct the service of this notice is a punishable offence. For queries: HYDRAA Bhavan, Tank Bund Road, Hyderabad – 500 063.',
-         { align: 'center' }
+         40, doc.y,
+         { align: 'center', width: doc.page.width - 80 }
        );
 
     doc.end();
