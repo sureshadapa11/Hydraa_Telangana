@@ -517,6 +517,9 @@ const uploadDocument = async (req, res) => {
     return res.status(400).json({ success: false, message: 'file_name and file_data required.' });
   }
 
+  const VALID_DOC_TYPES = ['Survey Map','Ownership Proof','Encroachment Photo','Legal Document','Site Visit Photo','Notice Copy','Other'];
+  const safeDocType = VALID_DOC_TYPES.includes(doc_type) ? doc_type : 'Other';
+
   try {
     const [[cnt]] = await db.query(
       'SELECT COUNT(*) AS c FROM complaint_documents WHERE complaint_id = ?', [complaint_id]
@@ -528,7 +531,7 @@ const uploadDocument = async (req, res) => {
     await db.query(
       `INSERT INTO complaint_documents (complaint_id, doc_type, file_name, file_data, file_mime, caption, uploaded_by_id, uploaded_by_role)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [complaint_id, doc_type || 'Other', file_name, file_data, file_mime || null, caption || null, uploader_id, uploader_role]
+      [complaint_id, safeDocType, file_name, file_data, file_mime || null, caption || null, uploader_id, uploader_role]
     );
     res.json({ success: true, message: 'Document uploaded.' });
   } catch (err) {
