@@ -739,7 +739,7 @@ async function fetchComplaintFull(complaint_id) {
   );
 
   const [documents] = await db.query(
-    `SELECT doc_type, file_name, caption, uploaded_by_role, created_at
+    `SELECT id, doc_type, file_name, file_mime, file_data, caption, uploaded_by_role, created_at
      FROM complaint_documents WHERE complaint_id = ? ORDER BY created_at ASC`,
     [complaint_id]
   );
@@ -993,7 +993,7 @@ const generatePetition = async (req, res) => {
        .text('2. The Director, HYDRAA, Hyderabad (for records).')
        .text('3. Office file.');
 
-    // Enclosures — listed at end in proper government letter format
+    // Enclosures — listed at end with images embedded
     if (documents.length > 0) {
       doc.moveDown(1.2);
       hRule(doc);
@@ -1001,6 +1001,14 @@ const generatePetition = async (req, res) => {
       documents.forEach((d, i) => {
         doc.font('Helvetica').fontSize(8.5)
            .text(`${i + 1}.  [${d.doc_type}]  ${d.file_name}${d.caption ? '  —  ' + d.caption : ''}  (Uploaded: ${fmtDate(d.created_at)})`);
+        if (d.file_mime && d.file_mime.startsWith('image/') && d.file_data) {
+          try {
+            const imgBuf = Buffer.isBuffer(d.file_data) ? d.file_data : Buffer.from(d.file_data);
+            doc.moveDown(0.2);
+            doc.image(imgBuf, { fit: [450, 300], align: 'center' });
+            doc.moveDown(0.4);
+          } catch (_) { /* skip unembeddable image */ }
+        }
       });
     }
 
@@ -1336,11 +1344,22 @@ const sendPetitionEmail = async (req, res) => {
          .text(`Date: ${fmtDate(new Date())}`, { align: 'right' });
     });
 
+    const petDocAttachments = documents
+      .filter(d => d.file_data)
+      .map(d => ({
+        name: d.file_name,
+        content: (Buffer.isBuffer(d.file_data) ? d.file_data : Buffer.from(d.file_data)).toString('base64'),
+        type: d.file_mime || 'application/octet-stream',
+      }));
+
     await sendMail({
       to: recipientEmail,
       subject: `HYDRAA Petition — Complaint ${complaint.complaint_no}`,
       html: `<p>Dear ${recipientName || 'Sir/Madam'},</p><p>Please find the attached petition from HYDRAA regarding complaint <strong>${complaint.complaint_no}</strong> — ${complaint.title}.</p><p>Please take necessary action as requested in the petition and inform this office at the earliest.</p><br/><p>Regards,<br/><strong>HYDRAA — Government of Telangana</strong></p>`,
-      attachments: [{ name: `Petition_${complaint.complaint_no}.pdf`, content: pdfBuffer.toString('base64') }],
+      attachments: [
+        { name: `Petition_${complaint.complaint_no}.pdf`, content: pdfBuffer.toString('base64') },
+        ...petDocAttachments,
+      ],
     });
 
     await db.query(
@@ -1366,7 +1385,7 @@ const sendNoticeEmail = async (req, res) => {
   const generated_by_role = req.user.role;
 
   try {
-    const { complaint, accused, visitReport } = await fetchComplaintFull(complaint_id);
+    const { complaint, accused, visitReport, documents: noticeDocuments } = await fetchComplaintFull(complaint_id);
     if (!complaint) return res.status(404).json({ success: false, message: 'Complaint not found.' });
 
     let targetAccused = accused[0] || null;
@@ -1465,11 +1484,22 @@ const sendNoticeEmail = async (req, res) => {
          .text('This is an official notice issued by HYDRAA. For queries contact HYDRAA office, Hyderabad, Telangana.', { align: 'center' });
     });
 
+    const noticeFileAttachments = noticeDocuments
+      .filter(d => d.file_data)
+      .map(d => ({
+        name: d.file_name,
+        content: (Buffer.isBuffer(d.file_data) ? d.file_data : Buffer.from(d.file_data)).toString('base64'),
+        type: d.file_mime || 'application/octet-stream',
+      }));
+
     await sendMail({
       to: targetAccused.email,
       subject: `Show Cause Notice — HYDRAA Complaint ${complaint.complaint_no}`,
       html: `<p>Dear ${targetAccused.name},</p><p>Please find the attached Show Cause Notice issued by HYDRAA regarding complaint <strong>${complaint.complaint_no}</strong>.</p><p>You are required to respond within <strong>${response_days || 15} days</strong>. Failure to respond will result in ex-parte action as per applicable laws.</p><br/><p>Regards,<br/><strong>HYDRAA — Government of Telangana</strong></p>`,
-      attachments: [{ name: `Notice_${complaint.complaint_no}.pdf`, content: pdfBuffer.toString('base64') }],
+      attachments: [
+        { name: `Notice_${complaint.complaint_no}.pdf`, content: pdfBuffer.toString('base64') },
+        ...noticeFileAttachments,
+      ],
     });
 
     await db.query(
