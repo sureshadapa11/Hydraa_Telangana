@@ -1003,7 +1003,9 @@ const generatePetition = async (req, res) => {
            .text(`${i + 1}.  [${d.doc_type}]  ${d.file_name}${d.caption ? '  —  ' + d.caption : ''}  (Uploaded: ${fmtDate(d.created_at)})`);
         if (d.file_mime && d.file_mime.startsWith('image/') && d.file_data) {
           try {
-            const imgBuf = Buffer.isBuffer(d.file_data) ? d.file_data : Buffer.from(d.file_data);
+            // file_data is stored as base64 string — decode to binary for PDFKit
+            const b64 = Buffer.isBuffer(d.file_data) ? d.file_data.toString() : d.file_data;
+            const imgBuf = Buffer.from(b64, 'base64');
             doc.moveDown(0.2);
             doc.image(imgBuf, { fit: [450, 300], align: 'center' });
             doc.moveDown(0.4);
@@ -1344,12 +1346,12 @@ const sendPetitionEmail = async (req, res) => {
          .text(`Date: ${fmtDate(new Date())}`, { align: 'right' });
     });
 
+    // file_data is stored as base64 string — use directly, no re-encoding
     const petDocAttachments = documents
       .filter(d => d.file_data)
       .map(d => ({
         name: d.file_name,
-        content: (Buffer.isBuffer(d.file_data) ? d.file_data : Buffer.from(d.file_data)).toString('base64'),
-        type: d.file_mime || 'application/octet-stream',
+        content: Buffer.isBuffer(d.file_data) ? d.file_data.toString() : d.file_data,
       }));
 
     await sendMail({
@@ -1484,12 +1486,12 @@ const sendNoticeEmail = async (req, res) => {
          .text('This is an official notice issued by HYDRAA. For queries contact HYDRAA office, Hyderabad, Telangana.', { align: 'center' });
     });
 
+    // file_data is stored as base64 string — use directly, no re-encoding
     const noticeFileAttachments = noticeDocuments
       .filter(d => d.file_data)
       .map(d => ({
         name: d.file_name,
-        content: (Buffer.isBuffer(d.file_data) ? d.file_data : Buffer.from(d.file_data)).toString('base64'),
-        type: d.file_mime || 'application/octet-stream',
+        content: Buffer.isBuffer(d.file_data) ? d.file_data.toString() : d.file_data,
       }));
 
     await sendMail({
