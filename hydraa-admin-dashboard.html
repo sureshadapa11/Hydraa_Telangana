@@ -2725,7 +2725,7 @@ async function adminGeneratePetition() {
   if (officers.length === 0) { msg.textContent = '⚠️ Please select at least one recipient.'; msg.style.color='#b45309'; return; }
   msg.textContent = `Generating ${officers.length} petition PDF(s)...`; msg.style.color = 'var(--teal)';
   const action = document.getElementById('admin_pet_action').value.trim() || null;
-  const token = localStorage.getItem('hydraa_token');
+  const token = localStorage.getItem('hydraa_admin_token');
   let done = 0;
   for (const o of officers) {
     try {
@@ -2753,7 +2753,7 @@ async function adminGenerateNotice() {
       accused_id:    document.getElementById('admin_ntc_accused').value || null,
       response_days: document.getElementById('admin_ntc_days').value || 15,
     };
-    const token = localStorage.getItem('hydraa_token');
+    const token = localStorage.getItem('hydraa_admin_token');
     const resp = await fetch('/api/casefile/complaints/'+_adminCfComplaintId+'/generate-notice', {
       method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body:JSON.stringify(payload)
     });
