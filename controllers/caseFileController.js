@@ -955,26 +955,17 @@ const generatePetition = async (req, res) => {
       }
     }
 
-    // 6. Documents
-    if (documents.length > 0) {
-      sectionHead(doc, '6. ENCLOSURES / EVIDENCE DOCUMENTS');
-      documents.forEach((d, i) => {
-        doc.font('Helvetica').fontSize(8.5)
-           .text(`${i + 1}.  [${d.doc_type}]  ${d.file_name}${d.caption ? '  —  ' + d.caption : ''}  (Uploaded: ${fmtDate(d.created_at)})`);
-      });
-    }
-
-    // 7. Complaint status history
+    // 6. Complaint status history
     if (history.length > 0) {
-      sectionHead(doc, '7. ACTION TRAIL / STATUS HISTORY');
+      sectionHead(doc, '6. ACTION TRAIL / STATUS HISTORY');
       history.forEach(h => {
         doc.font('Helvetica').fontSize(8)
            .text(`${fmtDate(h.changed_at)}  —  ${(h.old_status || 'NEW').toUpperCase()} → ${h.new_status.toUpperCase()}  (${h.changed_by_role})${h.remarks ? ':  ' + h.remarks : ''}`);
       });
     }
 
-    // 8. Action requested
-    sectionHead(doc, '8. ACTION REQUESTED FROM POLICE');
+    // 7. Action requested
+    sectionHead(doc, '7. ACTION REQUESTED FROM POLICE');
     doc.font('Helvetica').fontSize(9.5).text(
       action_requested ||
       `You are hereby requested to: (i) register an FIR / complaint as applicable under the Indian Penal Code and relevant sections; (ii) provide police protection to HYDRAA field teams during inspection and demolition proceedings; (iii) prevent the accused from obstructing HYDRAA operations; and (iv) intimate this office of the action taken within 7 days, as required under the HYDRAA Act, 2024.`,
@@ -1000,6 +991,17 @@ const generatePetition = async (req, res) => {
        .text(`1. The Superintendent of Police / Deputy Commissioner of Police, ${complaint.district_name || 'concerned district'}.`)
        .text('2. The Director, HYDRAA, Hyderabad (for records).')
        .text('3. Office file.');
+
+    // Enclosures — listed at end in proper government letter format
+    if (documents.length > 0) {
+      doc.moveDown(1.2);
+      hRule(doc);
+      doc.font('Helvetica-Bold').fontSize(9).text('ENCLOSURES / EVIDENCE DOCUMENTS', 40, doc.y).moveDown(0.3);
+      documents.forEach((d, i) => {
+        doc.font('Helvetica').fontSize(8.5)
+           .text(`${i + 1}.  [${d.doc_type}]  ${d.file_name}${d.caption ? '  —  ' + d.caption : ''}  (Uploaded: ${fmtDate(d.created_at)})`);
+      });
+    }
 
     doc.end();
   } catch (err) {
