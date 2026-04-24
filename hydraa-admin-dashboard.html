@@ -1957,12 +1957,45 @@ async function adminSaveLandRecordToDocOnly(btn) {
   btn.disabled = true; btn.textContent = '⏳ Saving...';
   try {
     const now = new Date();
-    const text = ['BHU BHARATHI LAND RECORD',`Fetched on: ${now.toLocaleString('en-IN')}`,'─'.repeat(40),`Pattadar / Owner   : ${d.pattadarName||'—'}`,`Father / Husband   : ${d.fatherName||'—'}`,`Passbook No.       : ${d.passbook||'—'}`,`District           : ${d.district||'—'}`,`Mandal             : ${d.mandal||'—'}`,`Village            : ${d.village||'—'}`,`Survey No.         : ${d.surveyNo||'—'}`,`Khata No.          : ${d.khataNo||'—'}`,`Area               : ${d.area||'—'}`,`Land Type          : ${d.landType||'—'}`,`Classification     : ${d.landClassification||'—'}`,`Mutation Status    : ${d.mutationStatus||'—'}`,`Last Mutation      : ${d.lastMutation||'—'}`].join('\n');
-    const res = await http.post('/api/casefile/complaints/' + _adminCfComplaintId + '/documents', { doc_type:'Land Record', file_name:`LandRecord_Survey${d.surveyNo||'X'}_${now.getTime()}.txt`, file_data: btoa(unescape(encodeURIComponent(text))), file_mime:'text/plain', caption:`Bhu Bharathi — Survey ${d.surveyNo||''}, ${d.village||''}, ${d.district||''}` });
-    btn.textContent = res.success ? '✅ Saved!' : '❌ Failed';
-    btn.style.background = res.success ? '#10b981' : '#ef4444';
-  } catch(e) { btn.textContent = '❌ Error'; }
-  setTimeout(() => { btn.textContent = orig; btn.style.background = '#0b2040'; btn.disabled = false; }, 2500);
+    const text = [
+      'BHU BHARATHI LAND RECORD',
+      `Fetched on: ${now.toLocaleString('en-IN')}`,
+      '-'.repeat(40),
+      `Pattadar / Owner   : ${d.pattadarName||'N/A'}`,
+      `Father / Husband   : ${d.fatherName||'N/A'}`,
+      `Passbook No.       : ${d.passbook||'N/A'}`,
+      `District           : ${d.district||'N/A'}`,
+      `Mandal             : ${d.mandal||'N/A'}`,
+      `Village            : ${d.village||'N/A'}`,
+      `Survey No.         : ${d.surveyNo||'N/A'}`,
+      `Khata No.          : ${d.khataNo||'N/A'}`,
+      `Area               : ${d.area||'N/A'}`,
+      `Land Type          : ${d.landType||'N/A'}`,
+      `Classification     : ${d.landClassification||'N/A'}`,
+      `Mutation Status    : ${d.mutationStatus||'N/A'}`,
+      `Last Mutation      : ${d.lastMutation||'N/A'}`,
+    ].join('\n');
+    const bytes = new TextEncoder().encode(text);
+    const b64 = btoa(String.fromCharCode(...bytes));
+    const res = await http.post('/api/casefile/complaints/' + _adminCfComplaintId + '/documents', {
+      doc_type: 'Land Record',
+      file_name: `LandRecord_Survey${d.surveyNo||'X'}_${now.getTime()}.txt`,
+      file_data: b64,
+      file_mime: 'text/plain',
+      caption: `Bhu Bharathi - Survey ${d.surveyNo||''}, ${d.village||''}, ${d.district||''}`,
+    });
+    if (res.success) {
+      btn.textContent = '✅ Saved to Documents!';
+      btn.style.background = '#10b981';
+      setTimeout(() => { btn.textContent = orig; btn.style.background = '#0b2040'; btn.disabled = false; }, 2500);
+      return;
+    }
+    throw new Error(res.message || 'Save failed');
+  } catch(e) {
+    btn.textContent = '❌ ' + (e.message || 'Error');
+    btn.style.background = '#ef4444';
+    setTimeout(() => { btn.textContent = orig; btn.style.background = '#0b2040'; btn.disabled = false; }, 3000);
+  }
 }
 
 async function adminSaveLandRecordToDoc(btn) {
@@ -2248,8 +2281,7 @@ async function adminSearchLandRecords() {
             <a href="https://bhubharati.telangana.gov.in/knowLandStatus" target="_blank" rel="noopener" style="font-size:0.72rem;color:#0097a7;font-weight:700;text-decoration:none;">🔗 Open in Bhu Bharathi Portal ↗</a>
             <div style="display:flex;gap:0.5rem;">
               <button onclick="adminPrintLandRecord()" style="font-size:0.68rem;font-weight:700;background:#0b1f3a;color:#fff;border:none;border-radius:6px;padding:0.3rem 0.6rem;cursor:pointer;">🖨️ Save as PDF</button>
-              <button onclick="adminSaveLandRecordToNotes(this)" style="font-size:0.68rem;font-weight:700;background:#0097a7;color:#fff;border:none;border-radius:6px;padding:0.3rem 0.6rem;cursor:pointer;">📌 Save to Notes</button>
-              <button onclick="adminSaveLandRecordToDocOnly(this)" style="font-size:0.68rem;font-weight:700;background:#0b2040;color:#fff;border:none;border-radius:6px;padding:0.3rem 0.6rem;cursor:pointer;">💾 Save to Documents</button>
+              <button onclick="adminSaveLandRecordToDocOnly(this)" id="adminSaveDocBtn" style="font-size:0.68rem;font-weight:700;background:#0b2040;color:#fff;border:none;border-radius:6px;padding:0.3rem 0.6rem;cursor:pointer;">💾 Save to Documents</button>
             </div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr">
@@ -2269,7 +2301,6 @@ async function adminSearchLandRecords() {
             ${adminLsRow('Last Mutation',    d.lastMutation)}
           </div>
         </div>
-        <button onclick="adminSaveLandRecordToDoc(this)" style="background:linear-gradient(135deg,#0b2040,#006978);color:#fff;border:none;border-radius:8px;padding:0.55rem 1.2rem;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit">✅ Save & View in Land Data Tab</button>
       </div>`;
     res.style.display = 'block';
   } catch(e) {

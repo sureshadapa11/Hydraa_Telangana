@@ -1322,7 +1322,6 @@ async function searchLandRecords() {
             <a href="https://bhubharati.telangana.gov.in/knowLandStatus" target="_blank" rel="noopener" style="font-size:0.72rem;color:#0097a7;font-weight:700;text-decoration:none;">🔗 Open in Bhu Bharathi Portal ↗</a>
             <div style="display:flex;gap:0.5rem;">
               <button onclick="printLandRecord()" style="font-size:0.68rem;font-weight:700;background:#0b1f3a;color:#fff;border:none;border-radius:6px;padding:0.3rem 0.6rem;cursor:pointer;">🖨️ Save as PDF</button>
-              <button onclick="saveLandRecordToNotes()" id="saveNotesBtn" style="font-size:0.68rem;font-weight:700;background:#0097a7;color:#fff;border:none;border-radius:6px;padding:0.3rem 0.6rem;cursor:pointer;">📌 Save to Notes</button>
               <button onclick="saveLandRecordToDoc(this)" id="saveDocBtn" style="font-size:0.68rem;font-weight:700;background:#0b2040;color:#fff;border:none;border-radius:6px;padding:0.3rem 0.6rem;cursor:pointer;">💾 Save to Documents</button>
             </div>
           </div>
@@ -1343,7 +1342,6 @@ async function searchLandRecords() {
             ${landRow('Last Mutation',      d.lastMutation)}
           </div>
         </div>
-        <button onclick="saveLandRecordToDoc(this)" style="background:linear-gradient(135deg,#0b2040,#006978);color:#fff;border:none;border-radius:8px;padding:0.55rem 1.2rem;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;width:100%">✅ Save & View in Land Data Tab</button>
       </div>`;
     res.style.display = 'block';
   } catch(e) {
@@ -1389,7 +1387,8 @@ async function saveLandRecordToDoc(btn) {
       d.encumbrance     ? `⚠ ENCUMBRANCE: ${d.encumbranceDetails || 'Yes'}` : '',
     ].filter(l => l !== '').join('\n');
 
-    const b64 = btoa(unescape(encodeURIComponent(text)));
+    const bytes = new TextEncoder().encode(text);
+    const b64 = btoa(String.fromCharCode(...bytes));
     const fileName = `LandRecord_Survey${d.surveyNo || 'X'}_${now.getTime()}.txt`;
     const res = await http.post(`/api/casefile/complaints/${_cfComplaintId}/documents`, {
       doc_type: 'Land Record',
@@ -1399,13 +1398,16 @@ async function saveLandRecordToDoc(btn) {
       caption: `Bhu Bharathi — Survey ${d.surveyNo || ''}, ${d.village || ''}, ${d.district || ''}`,
     });
     if (res.success) {
-      document.getElementById('cfLandModal').classList.remove('open');
-      switchCfTab('landdata');
+      btn.textContent = '✅ Saved to Documents!';
+      btn.style.background = '#10b981';
+      setTimeout(() => { btn.textContent = orig; btn.style.background = '#0b2040'; btn.disabled = false; }, 2500);
       return;
     }
-  } catch(e) { /* fall through */ }
-  btn.textContent = '❌ Failed';
-  setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 2000);
+    throw new Error(res.message || 'Save failed');
+  } catch(e) {
+    btn.textContent = '❌ ' + (e.message || 'Failed');
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 3000);
+  }
 }
 
 function landRow(label, val, color) {
