@@ -1898,6 +1898,73 @@ function adminSwitchCfTab(tab) {
   if (tab === 'docs')      adminLoadCfDocs();
 }
 
+function adminPrintLandRecord() {
+  const d = window._lastLandRecord;
+  if (!d) return;
+  const printArea = document.getElementById('adminLandPrintArea');
+  if (!printArea) { window.print(); return; }
+  printArea.innerHTML = `
+    <div style="font-family:sans-serif;max-width:700px;margin:0 auto;">
+      <div style="border-bottom:2px solid #0097a7;padding-bottom:12px;margin-bottom:16px;">
+        <div style="font-size:18px;font-weight:800;color:#0b1f3a;">HYDRAA — Bhu Bharathi Land Record</div>
+        <div style="font-size:12px;color:#64748b;">Printed: ${new Date().toLocaleString('en-IN')}</div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        ${[['Pattadar / Owner',d.pattadarName],['Father / Husband',d.fatherName],['Passbook No.',d.passbook],['Pattadar Phone',d.pattadarPhone],['District',d.district],['Mandal',d.mandal],['Village',d.village],['Survey No.',d.surveyNo],['Khata No.',d.khataNo],['Area',d.area],['Land Type',d.landType],['Classification',d.landClassification],['Mutation Status',d.mutationStatus],['Last Mutation',d.lastMutation],['Prohibited',d.isProhibited?'YES — '+(d.prohibitionReason||''):'No'],['Court Attachment',d.courtAttachment?'YES — Case: '+(d.courtCaseNo||''):'No'],['Pending Mutation',d.pendingMutation?'YES':'No'],['Encumbrance',d.encumbrance?'YES — '+(d.encumbranceDetails||''):'No']].filter(r=>r[1]).map(([l,v])=>`<tr><td style="padding:6px 10px;font-weight:700;color:#64748b;background:#f8fafc;width:40%;border:1px solid #e2e8f0;">${l}</td><td style="padding:6px 10px;color:#0d2137;border:1px solid #e2e8f0;">${v}</td></tr>`).join('')}
+      </table>
+      <div style="margin-top:16px;font-size:10px;color:#94a3b8;text-align:center;">Source: Bhu Bharathi Land Records Portal, Government of Telangana</div>
+    </div>`;
+  printArea.style.display = 'block';
+  window.print();
+  printArea.style.display = 'none';
+}
+
+async function adminSaveLandRecordToNotes(btn) {
+  const d = window._lastLandRecord;
+  if (!d) return;
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = '⏳ Saving...';
+  const lines = [
+    '📋 Bhu Bharathi Land Record — Admin Search Result',
+    '─────────────────────────────',
+    `Pattadar: ${d.pattadarName||'—'}`,
+    `Father/Husband: ${d.fatherName||'—'}`,
+    `Passbook No.: ${d.passbook||'—'}`,
+    `District: ${d.district||'—'} | Mandal: ${d.mandal||'—'} | Village: ${d.village||'—'}`,
+    `Survey No.: ${d.surveyNo||'—'} | Khata No.: ${d.khataNo||'—'}`,
+    `Area: ${d.area||'—'} | Type: ${d.landType||'—'}`,
+    `Classification: ${d.landClassification||'—'}`,
+    `Mutation: ${d.mutationStatus||'—'} (${d.lastMutation||'—'})`,
+    '─────────────────────────────',
+    `Prohibited: ${d.isProhibited?'YES — '+(d.prohibitionReason||''):'No'}`,
+    `Court Attachment: ${d.courtAttachment?'YES — Case: '+(d.courtCaseNo||''):'No'}`,
+    `Pending Mutation: ${d.pendingMutation?'YES':'No'}`,
+    `Encumbrance: ${d.encumbrance?'YES — '+(d.encumbranceDetails||''):'No'}`,
+    `Searched on: ${new Date().toLocaleString('en-IN')}`,
+  ].join('\n');
+  try {
+    const res = await http.post('/api/complaints/' + _adminCfComplaintId + '/comments', { message: lines, is_internal: 1 });
+    btn.textContent = res.success ? '✅ Saved to Notes' : '❌ Failed';
+    btn.style.background = res.success ? '#10b981' : '#ef4444';
+  } catch(e) { btn.textContent = '❌ Error'; }
+  setTimeout(() => { btn.textContent = orig; btn.style.background = '#0097a7'; btn.disabled = false; }, 2500);
+}
+
+async function adminSaveLandRecordToDocOnly(btn) {
+  const d = window._lastLandRecord;
+  if (!d) return;
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = '⏳ Saving...';
+  try {
+    const now = new Date();
+    const text = ['BHU BHARATHI LAND RECORD',`Fetched on: ${now.toLocaleString('en-IN')}`,'─'.repeat(40),`Pattadar / Owner   : ${d.pattadarName||'—'}`,`Father / Husband   : ${d.fatherName||'—'}`,`Passbook No.       : ${d.passbook||'—'}`,`District           : ${d.district||'—'}`,`Mandal             : ${d.mandal||'—'}`,`Village            : ${d.village||'—'}`,`Survey No.         : ${d.surveyNo||'—'}`,`Khata No.          : ${d.khataNo||'—'}`,`Area               : ${d.area||'—'}`,`Land Type          : ${d.landType||'—'}`,`Classification     : ${d.landClassification||'—'}`,`Mutation Status    : ${d.mutationStatus||'—'}`,`Last Mutation      : ${d.lastMutation||'—'}`].join('\n');
+    const res = await http.post('/api/casefile/complaints/' + _adminCfComplaintId + '/documents', { doc_type:'Land Record', file_name:`LandRecord_Survey${d.surveyNo||'X'}_${now.getTime()}.txt`, file_data: btoa(unescape(encodeURIComponent(text))), file_mime:'text/plain', caption:`Bhu Bharathi — Survey ${d.surveyNo||''}, ${d.village||''}, ${d.district||''}` });
+    btn.textContent = res.success ? '✅ Saved!' : '❌ Failed';
+    btn.style.background = res.success ? '#10b981' : '#ef4444';
+  } catch(e) { btn.textContent = '❌ Error'; }
+  setTimeout(() => { btn.textContent = orig; btn.style.background = '#0b2040'; btn.disabled = false; }, 2500);
+}
+
 async function adminSaveLandRecordToDoc(btn) {
   const d = window._lastLandRecord;
   if (!d) return;
@@ -2177,6 +2244,14 @@ async function adminSearchLandRecords() {
         ${alertsHtml}${clearBadge}
         <div style="border:1.5px solid rgba(0,151,167,0.18);border-radius:10px;overflow:hidden">
           <div style="background:rgba(0,151,167,0.06);padding:0.55rem 0.85rem;font-size:0.72rem;font-weight:800;color:#006978;border-bottom:1px solid rgba(0,151,167,0.1)">📄 Bhu Bharathi Land Record</div>
+          <div style="padding:0.4rem 0.85rem;background:#e0f7fa;border-bottom:1px solid rgba(0,151,167,0.1);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.4rem;">
+            <a href="https://bhubharati.telangana.gov.in/knowLandStatus" target="_blank" rel="noopener" style="font-size:0.72rem;color:#0097a7;font-weight:700;text-decoration:none;">🔗 Open in Bhu Bharathi Portal ↗</a>
+            <div style="display:flex;gap:0.5rem;">
+              <button onclick="adminPrintLandRecord()" style="font-size:0.68rem;font-weight:700;background:#0b1f3a;color:#fff;border:none;border-radius:6px;padding:0.3rem 0.6rem;cursor:pointer;">🖨️ Save as PDF</button>
+              <button onclick="adminSaveLandRecordToNotes(this)" style="font-size:0.68rem;font-weight:700;background:#0097a7;color:#fff;border:none;border-radius:6px;padding:0.3rem 0.6rem;cursor:pointer;">📌 Save to Notes</button>
+              <button onclick="adminSaveLandRecordToDocOnly(this)" style="font-size:0.68rem;font-weight:700;background:#0b2040;color:#fff;border:none;border-radius:6px;padding:0.3rem 0.6rem;cursor:pointer;">💾 Save to Documents</button>
+            </div>
+          </div>
           <div style="display:grid;grid-template-columns:1fr 1fr">
             ${adminLsRow('Pattadar / Owner', d.pattadarName)}
             ${adminLsRow('Father / Husband', d.fatherName)}

@@ -1343,6 +1343,7 @@ async function searchLandRecords() {
             ${landRow('Last Mutation',      d.lastMutation)}
           </div>
         </div>
+        <button onclick="saveLandRecordToDoc(this)" style="background:linear-gradient(135deg,#0b2040,#006978);color:#fff;border:none;border-radius:8px;padding:0.55rem 1.2rem;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;width:100%">✅ Save & View in Land Data Tab</button>
       </div>`;
     res.style.display = 'block';
   } catch(e) {
@@ -1398,8 +1399,8 @@ async function saveLandRecordToDoc(btn) {
       caption: `Bhu Bharathi — Survey ${d.surveyNo || ''}, ${d.village || ''}, ${d.district || ''}`,
     });
     if (res.success) {
-      btn.textContent = '✅ Saved!';
-      setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 2000);
+      document.getElementById('cfLandModal').classList.remove('open');
+      switchCfTab('landdata');
       return;
     }
   } catch(e) { /* fall through */ }
@@ -1493,10 +1494,9 @@ async function saveLandRecordToNotes() {
   ].join('\n');
 
   try {
-    const token = localStorage.getItem('hydraa_official_token') || localStorage.getItem('hydraa_token');
     const res = await fetch(`/api/complaints/${complaintId}/comments`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${http.getToken()}` },
       body: JSON.stringify({ message: lines, is_internal: 1 })
     });
     const json = await res.json();
