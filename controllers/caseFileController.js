@@ -30,7 +30,7 @@ const getAccused = async (req, res) => {
 const addAccused = async (req, res) => {
   const { complaint_id } = req.params;
   const { name, phone, email, address, aadhaar_no, relation, occupation } = req.body;
-  const role = req.user.role;
+  const addedBy = req.user.role === 'user' ? 'citizen' : (req.user.role || 'official');
 
   if (!name || !name.trim()) {
     return res.status(400).json({ success: false, message: 'Accused name is required.' });
@@ -41,7 +41,7 @@ const addAccused = async (req, res) => {
       `INSERT INTO accused_persons (complaint_id, name, phone, email, address, aadhaar_no, relation, occupation, added_by)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [complaint_id, name.trim(), phone || null, email || null, address || null,
-       aadhaar_no || null, relation || null, occupation || null, role]
+       aadhaar_no || null, relation || null, occupation || null, addedBy]
     );
     res.status(201).json({ success: true, message: 'Accused person added.', id: result.insertId });
   } catch (err) {
