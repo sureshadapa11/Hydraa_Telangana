@@ -2406,7 +2406,7 @@ function svRemoveDoc(idx, btn) {
 }
 
 async function downloadVisitPdf(visitId, visitNo) {
-  const token = localStorage.getItem('hydraa_official_token') || localStorage.getItem('hydraa_token');
+  const token = http.getToken();
   const resp = await fetch(`/api/casefile/site-visits/${visitId}/generate-pdf`, {
     headers: { 'Authorization': 'Bearer ' + token }
   });
