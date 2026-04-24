@@ -1898,6 +1898,55 @@ function adminSwitchCfTab(tab) {
   if (tab === 'docs')      adminLoadCfDocs();
 }
 
+async function adminSaveLandRecordToDoc(btn) {
+  const d = window._lastLandRecord;
+  if (!d) return;
+  const orig = btn.textContent;
+  btn.textContent = '⏳ Saving...'; btn.disabled = true;
+  try {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+    const timeStr = now.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true });
+    const text = [
+      'BHU BHARATHI LAND RECORD',
+      `Fetched on: ${dateStr} at ${timeStr}`,
+      '─'.repeat(40),
+      `Pattadar / Owner   : ${d.pattadarName || '—'}`,
+      `Father / Husband   : ${d.fatherName || '—'}`,
+      `Passbook No.       : ${d.passbook || '—'}`,
+      `Pattadar Phone     : ${d.pattadarPhone || '—'}`,
+      `District           : ${d.district || '—'}`,
+      `Mandal             : ${d.mandal || '—'}`,
+      `Village            : ${d.village || '—'}`,
+      `Survey No.         : ${d.surveyNo || '—'}`,
+      `Khata No.          : ${d.khataNo || '—'}`,
+      `Area               : ${d.area || '—'}`,
+      `Land Type          : ${d.landType || '—'}`,
+      `Classification     : ${d.landClassification || '—'}`,
+      `Mutation Status    : ${d.mutationStatus || '—'}`,
+      `Last Mutation      : ${d.lastMutation || '—'}`,
+      '─'.repeat(40),
+      d.isProhibited    ? '⚠ PROHIBITED PROPERTY' : '',
+      d.courtAttachment ? `⚠ COURT ATTACHMENT${d.courtCaseNo ? ': ' + d.courtCaseNo : ''}` : '',
+      d.pendingMutation ? '⚠ MUTATION PENDING' : '',
+      d.encumbrance     ? `⚠ ENCUMBRANCE: ${d.encumbranceDetails || 'Yes'}` : '',
+    ].filter(l => l !== '').join('\n');
+
+    const b64 = btoa(unescape(encodeURIComponent(text)));
+    const fileName = `LandRecord_Survey${d.surveyNo || 'X'}_${now.getTime()}.txt`;
+    await http.post('/api/casefile/complaints/' + _adminCfComplaintId + '/documents', {
+      doc_type: 'Land Record',
+      file_name: fileName,
+      file_data: b64,
+      file_mime: 'text/plain',
+      caption: `Bhu Bharathi — Survey ${d.surveyNo || ''}, ${d.village || ''}, ${d.district || ''}`,
+    });
+  } catch(e) { /* non-critical — proceed to switch tab */ }
+  document.getElementById('adminCfLandModal').classList.remove('open');
+  adminSwitchCfTab('landdata');
+  btn.textContent = orig; btn.disabled = false;
+}
+
 async function adminLoadCfDocs() {
   const el = document.getElementById('adminCfDocsContent');
   el.innerHTML = '<div style="text-align:center;color:var(--text-3);font-size:0.8rem;padding:2rem 0">Loading...</div>';
@@ -2145,7 +2194,7 @@ async function adminSearchLandRecords() {
             ${adminLsRow('Last Mutation',    d.lastMutation)}
           </div>
         </div>
-        <button onclick="document.getElementById('adminCfLandModal').classList.remove('open');adminSwitchCfTab('landdata');" style="background:linear-gradient(135deg,#0b2040,#006978);color:#fff;border:none;border-radius:8px;padding:0.55rem 1.2rem;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit">✅ Save & View in Land Data Tab</button>
+        <button onclick="adminSaveLandRecordToDoc(this)" style="background:linear-gradient(135deg,#0b2040,#006978);color:#fff;border:none;border-radius:8px;padding:0.55rem 1.2rem;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit">✅ Save & View in Land Data Tab</button>
       </div>`;
     res.style.display = 'block';
   } catch(e) {

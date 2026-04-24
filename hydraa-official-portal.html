@@ -1322,7 +1322,8 @@ async function searchLandRecords() {
             <a href="https://bhubharati.telangana.gov.in/knowLandStatus" target="_blank" rel="noopener" style="font-size:0.72rem;color:#0097a7;font-weight:700;text-decoration:none;">🔗 Open in Bhu Bharathi Portal ↗</a>
             <div style="display:flex;gap:0.5rem;">
               <button onclick="printLandRecord()" style="font-size:0.68rem;font-weight:700;background:#0b1f3a;color:#fff;border:none;border-radius:6px;padding:0.3rem 0.6rem;cursor:pointer;">🖨️ Save as PDF</button>
-              <button onclick="saveLandRecordToNotes()" id="saveNotesBtn" style="font-size:0.68rem;font-weight:700;background:#0097a7;color:#fff;border:none;border-radius:6px;padding:0.3rem 0.6rem;cursor:pointer;">📌 Save to Complaint Notes</button>
+              <button onclick="saveLandRecordToNotes()" id="saveNotesBtn" style="font-size:0.68rem;font-weight:700;background:#0097a7;color:#fff;border:none;border-radius:6px;padding:0.3rem 0.6rem;cursor:pointer;">📌 Save to Notes</button>
+              <button onclick="saveLandRecordToDoc(this)" id="saveDocBtn" style="font-size:0.68rem;font-weight:700;background:#0b2040;color:#fff;border:none;border-radius:6px;padding:0.3rem 0.6rem;cursor:pointer;">💾 Save to Documents</button>
             </div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;">
@@ -1351,6 +1352,59 @@ async function searchLandRecords() {
     btn.textContent = '🔍 Search Land Records';
     btn.disabled = false;
   }
+}
+
+async function saveLandRecordToDoc(btn) {
+  const d = window._lastLandRecord;
+  if (!d) return;
+  const orig = btn.textContent;
+  btn.textContent = '⏳ Saving...'; btn.disabled = true;
+  try {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+    const timeStr = now.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true });
+    const text = [
+      'BHU BHARATHI LAND RECORD',
+      `Fetched on: ${dateStr} at ${timeStr}`,
+      '─'.repeat(40),
+      `Pattadar / Owner   : ${d.pattadarName || '—'}`,
+      `Father / Husband   : ${d.fatherName || '—'}`,
+      `Passbook No.       : ${d.passbook || '—'}`,
+      `Pattadar Phone     : ${d.pattadarPhone || '—'}`,
+      `District           : ${d.district || '—'}`,
+      `Mandal             : ${d.mandal || '—'}`,
+      `Village            : ${d.village || '—'}`,
+      `Survey No.         : ${d.surveyNo || '—'}`,
+      `Khata No.          : ${d.khataNo || '—'}`,
+      `Area               : ${d.area || '—'}`,
+      `Land Type          : ${d.landType || '—'}`,
+      `Classification     : ${d.landClassification || '—'}`,
+      `Mutation Status    : ${d.mutationStatus || '—'}`,
+      `Last Mutation      : ${d.lastMutation || '—'}`,
+      '─'.repeat(40),
+      d.isProhibited    ? '⚠ PROHIBITED PROPERTY' : '',
+      d.courtAttachment ? `⚠ COURT ATTACHMENT${d.courtCaseNo ? ': ' + d.courtCaseNo : ''}` : '',
+      d.pendingMutation ? '⚠ MUTATION PENDING' : '',
+      d.encumbrance     ? `⚠ ENCUMBRANCE: ${d.encumbranceDetails || 'Yes'}` : '',
+    ].filter(l => l !== '').join('\n');
+
+    const b64 = btoa(unescape(encodeURIComponent(text)));
+    const fileName = `LandRecord_Survey${d.surveyNo || 'X'}_${now.getTime()}.txt`;
+    const res = await http.post(`/api/casefile/complaints/${_cfComplaintId}/documents`, {
+      doc_type: 'Land Record',
+      file_name: fileName,
+      file_data: b64,
+      file_mime: 'text/plain',
+      caption: `Bhu Bharathi — Survey ${d.surveyNo || ''}, ${d.village || ''}, ${d.district || ''}`,
+    });
+    if (res.success) {
+      btn.textContent = '✅ Saved!';
+      setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 2000);
+      return;
+    }
+  } catch(e) { /* fall through */ }
+  btn.textContent = '❌ Failed';
+  setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 2000);
 }
 
 function landRow(label, val, color) {
