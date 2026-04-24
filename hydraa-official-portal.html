@@ -1732,31 +1732,40 @@ document.addEventListener('DOMContentLoaded',function(){
 
       <!-- ── PETITION TAB ── -->
       <div id="cfv-petition" style="display:none">
-        <div style="font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:0.2rem">📨 Petition — Request for Action</div>
-        <div style="font-size:0.76rem;color:var(--text-2);margin-bottom:0.9rem">Station and officers auto-matched from complaint location. Select recipients to address the petition.</div>
+        <div style="font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:0.5rem">📨 Petition — Request for Action</div>
 
-        <!-- Station card -->
-        <div style="border:1.5px solid rgba(11,32,64,0.15);border-radius:10px;overflow:hidden;margin-bottom:0.9rem">
-          <div style="background:linear-gradient(135deg,#0b2040,#1565c0);padding:0.45rem 0.85rem;display:flex;align-items:center;justify-content:space-between">
-            <span style="font-size:0.72rem;font-weight:700;color:#fff">🚔 Matched Police Station</span>
-            <button onclick="petChangeStation()" style="font-size:0.68rem;background:rgba(255,255,255,0.18);color:#fff;border:none;border-radius:5px;padding:2px 8px;cursor:pointer;font-family:inherit">↺ Change</button>
+        <!-- Complaint location hint -->
+        <div id="petLocationHint" style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:0.45rem 0.85rem;font-size:0.76rem;color:#0369a1;margin-bottom:0.8rem">📍 Loading complaint location...</div>
+
+        <!-- Step 1: District or Commissionerate (mutual disable) -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:0.7rem">
+          <div>
+            <label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem;color:var(--text-2)">District</label>
+            <select id="petDistrictSel" class="m-select" style="width:100%" onchange="onPetDistrictChange()">
+              <option value="">— Select District —</option>
+            </select>
           </div>
-          <div id="petStationInfo" style="padding:0.65rem 0.85rem;font-size:0.78rem;color:var(--text-2)">Loading station...</div>
+          <div>
+            <label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem;color:var(--text-2)">Commissionerate</label>
+            <select id="petCommSel" class="m-select" style="width:100%" onchange="onPetCommChange()">
+              <option value="">— Select Commissionerate —</option>
+            </select>
+          </div>
         </div>
 
-        <!-- Change station override -->
-        <div id="petChangeStationBox" style="display:none;margin-bottom:0.8rem">
-          <label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem;color:var(--text-2)">Select Different Station</label>
-          <select id="pet_station_override" class="m-select" style="width:100%" onchange="petApplyStationOverride()">
-            <option value="">— Select Station —</option>
+        <!-- Step 2: Police Station filtered by above -->
+        <div style="margin-bottom:0.8rem">
+          <label style="font-size:0.72rem;font-weight:700;display:block;margin-bottom:0.3rem;color:var(--text-2)">🚔 Police Station</label>
+          <select id="petStationSel" class="m-select" style="width:100%" onchange="onPetStationChange()">
+            <option value="">— Select district or commissionerate first —</option>
           </select>
         </div>
 
-        <!-- Officer recipient checkboxes -->
+        <!-- Step 3: Officer recipients -->
         <div style="margin-bottom:0.8rem">
           <div style="font-size:0.73rem;font-weight:700;margin-bottom:0.5rem;color:var(--navy)">👮 Select Recipients</div>
           <div id="petOfficersBox" style="display:flex;flex-direction:column;gap:0.4rem">
-            <div style="font-size:0.78rem;color:var(--text-3)">Loading officer details...</div>
+            <div style="font-size:0.78rem;color:var(--text-3)">Select a police station to see officers.</div>
           </div>
         </div>
 
@@ -2468,49 +2477,130 @@ async function addCaseNote() {
 
 // ── PDF ──
 let _petCurrentStation = null;
-let _petAllStations = [];
+let _petAllStations    = [];
+let _petComplaint      = null;
+
+const _PET_DISTRICTS = [
+  'Adilabad','Jagityal','Jayashankar Bhupalpally','Jogulamba Gadwal','Kamareddy',
+  'Kothagudem','Kumarambheem Asifabad','Mahabubabad','Mahabubnagar','Medak',
+  'Mulugu','Nagarkurnool','Nalgonda','Narayanapet','Nirmal','Rajanna Sircilla',
+  'Sangareddy','Suryapet','Vikarabad','Wanaparthy','Yadadri Bhuvanagiri'
+];
+const _PET_COMMS = [
+  'Cyberabad','Future City','Hyderabad','Karimnagar','Khammam',
+  'Malkagiri','Nizamabad','Ramagundam','Siddipet','Warangal'
+];
+
+function _petEsc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 async function loadPoliceStationsForPdf() {
   const c = allComplaints.find(x => x.id === _cfComplaintId);
   if (!c) return;
+  _petComplaint = c;
+
+  const hint = document.getElementById('petLocationHint');
+  if (hint) {
+    const parts = [c.district_name, c.mandal_name].filter(Boolean);
+    hint.textContent = parts.length
+      ? '📍 Complaint location: ' + parts.join(', ') + ' — suggested matches are shown at the top of each dropdown'
+      : '📍 Complaint location not specified — select district or commissionerate manually';
+  }
+
   try {
     const allRes = await http.get('/api/casefile/police-stations');
     _petAllStations = allRes.data || [];
-    const overrideSel = document.getElementById('pet_station_override');
-    if (overrideSel) {
-      overrideSel.innerHTML = '<option value="">— Select Station —</option>' +
-        _petAllStations.map(s => `<option value="${s.id}">${s.name}${s.district_name?' ('+s.district_name+')':''}</option>`).join('');
+
+    const suggestedComm = (_petAllStations
+      .filter(s => s.district_name === c.district_name || s.mandal_name === c.mandal_name)
+      .map(s => s.commissionerate).filter(Boolean)[0]) || null;
+
+    const suggestedDist = _PET_DISTRICTS.find(d =>
+      c.district_name && c.district_name.toLowerCase().includes(d.toLowerCase())
+    ) || null;
+
+    const distSel = document.getElementById('petDistrictSel');
+    const commSel = document.getElementById('petCommSel');
+
+    if (distSel) {
+      const matched = suggestedDist ? [suggestedDist] : [];
+      const rest    = _PET_DISTRICTS.filter(d => d !== suggestedDist);
+      distSel.innerHTML = '<option value="">— Select District —</option>' +
+        (matched.length ? `<optgroup label="📍 Suggested">${matched.map(d=>`<option value="${d}">${d}</option>`).join('')}</optgroup><optgroup label="All Districts">` : '') +
+        rest.map(d => `<option value="${d}">${d}</option>`).join('') +
+        (matched.length ? '</optgroup>' : '');
     }
-    // Auto-match by mandal_id or district_id
-    const params = new URLSearchParams();
-    if (c.mandal_id)   params.append('mandal_id',   c.mandal_id);
-    if (c.district_id) params.append('district_id', c.district_id);
-    const matchRes = await http.get('/api/casefile/police-stations?' + params);
-    const matched = matchRes.data || [];
-    _petCurrentStation = matched.length > 0 ? matched[0] : null;
-    renderPetitionStation(c);
+
+    if (commSel) {
+      const matched = suggestedComm ? [suggestedComm] : [];
+      const rest    = _PET_COMMS.filter(cm => cm !== suggestedComm);
+      commSel.innerHTML = '<option value="">— Select Commissionerate —</option>' +
+        (matched.length ? `<optgroup label="📍 Suggested">${matched.map(cm=>`<option value="${cm}">${cm}</option>`).join('')}</optgroup><optgroup label="All Commissionerates">` : '') +
+        rest.map(cm => `<option value="${cm}">${cm}</option>`).join('') +
+        (matched.length ? '</optgroup>' : '');
+    }
+
+    _petCurrentStation = null;
+    petResetStationAndOfficers('Select a police station to see officers.');
   } catch(e) {
-    const el = document.getElementById('petStationInfo');
-    if (el) el.textContent = 'Could not load station data.';
+    if (hint) hint.textContent = '⚠️ Could not load police station data. Please try again.';
   }
 }
 
-function renderPetitionStation(c) {
-  const s = _petCurrentStation;
-  const infoEl = document.getElementById('petStationInfo');
-  if (!infoEl) return;
-  if (s) {
-    infoEl.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.3rem 1rem">
-      <div><div style="font-size:0.6rem;color:var(--text-3);font-weight:700;text-transform:uppercase">Station</div><div style="font-weight:700;color:var(--navy)">${s.name}</div></div>
-      <div><div style="font-size:0.6rem;color:var(--text-3);font-weight:700;text-transform:uppercase">Commissionerate</div><div>${s.commissionerate||'—'}</div></div>
-      <div><div style="font-size:0.6rem;color:var(--text-3);font-weight:700;text-transform:uppercase">District</div><div>${s.district_name||c.district_name||'—'}</div></div>
-      <div><div style="font-size:0.6rem;color:var(--text-3);font-weight:700;text-transform:uppercase">Mandal</div><div>${s.mandal_name||c.mandal_name||'—'}</div></div>
-      ${s.phone?`<div><div style="font-size:0.6rem;color:var(--text-3);font-weight:700;text-transform:uppercase">Phone</div><div>📞 ${s.phone}</div></div>`:''}
-      ${s.email?`<div><div style="font-size:0.6rem;color:var(--text-3);font-weight:700;text-transform:uppercase">Email</div><div>✉️ ${s.email}</div></div>`:''}
-    </div>`;
-  } else {
-    infoEl.innerHTML = `<span style="color:#b45309">⚠️ No station matched for <strong>${c.mandal_name||c.district_name||'this location'}</strong>. Use "Change" to pick one manually.</span>`;
+function petResetStationAndOfficers(msg) {
+  const stationSel = document.getElementById('petStationSel');
+  if (stationSel) stationSel.innerHTML = '<option value="">— Select district or commissionerate first —</option>';
+  const box = document.getElementById('petOfficersBox');
+  if (box) box.innerHTML = `<div style="font-size:0.78rem;color:var(--text-3)">${msg||'Select a police station to see officers.'}</div>`;
+  _petCurrentStation = null;
+}
+
+function onPetDistrictChange() {
+  const distSel = document.getElementById('petDistrictSel');
+  const commSel = document.getElementById('petCommSel');
+  if (distSel.value) { commSel.value = ''; commSel.disabled = true; }
+  else               { commSel.disabled = false; }
+  petFilterStations();
+}
+
+function onPetCommChange() {
+  const distSel = document.getElementById('petDistrictSel');
+  const commSel = document.getElementById('petCommSel');
+  if (commSel.value) { distSel.value = ''; distSel.disabled = true; }
+  else               { distSel.disabled = false; }
+  petFilterStations();
+}
+
+function petFilterStations() {
+  const distVal = document.getElementById('petDistrictSel').value;
+  const commVal = document.getElementById('petCommSel').value;
+  const stationSel = document.getElementById('petStationSel');
+  petResetStationAndOfficers('Select a police station to see officers.');
+  if (!distVal && !commVal) {
+    stationSel.innerHTML = '<option value="">— Select district or commissionerate first —</option>';
+    return;
   }
+  let filtered = _petAllStations;
+  if (distVal) filtered = filtered.filter(s => s.district_name && s.district_name.toLowerCase().includes(distVal.toLowerCase()));
+  if (commVal) filtered = filtered.filter(s => s.commissionerate === commVal);
+
+  const c = _petComplaint;
+  const mandalMatch   = c ? filtered.filter(s => s.mandal_name   === c.mandal_name) : [];
+  const districtMatch = c ? filtered.filter(s => s.district_name === c.district_name && s.mandal_name !== c.mandal_name) : [];
+  const rest          = filtered.filter(s =>
+    !(c && s.mandal_name === c.mandal_name) &&
+    !(c && s.district_name === c.district_name)
+  );
+  const toOpts = arr => arr.map(s => `<option value="${s.id}">${_petEsc(s.name)}</option>`).join('');
+  stationSel.innerHTML = '<option value="">— Select Station —</option>' +
+    (mandalMatch.length   ? `<optgroup label="📍 Matches complaint mandal (${_petEsc(c.mandal_name||'')})">${toOpts(mandalMatch)}</optgroup>` : '') +
+    (districtMatch.length ? `<optgroup label="📍 Same district (${_petEsc(c.district_name||'')})">${toOpts(districtMatch)}</optgroup>` : '') +
+    (rest.length          ? `<optgroup label="Other Stations">${toOpts(rest)}</optgroup>` : '');
+}
+
+function onPetStationChange() {
+  const id = parseInt(document.getElementById('petStationSel').value);
+  if (!id) { petResetStationAndOfficers('Select a police station to see officers.'); return; }
+  _petCurrentStation = _petAllStations.find(s => s.id === id) || null;
   renderOfficerCheckboxes('pet');
 }
 
@@ -2519,45 +2609,36 @@ function renderOfficerCheckboxes(prefix) {
   const box = document.getElementById(prefix+'OfficersBox');
   if (!box) return;
   if (!s) {
-    box.innerHTML = '<div style="font-size:0.78rem;color:var(--text-3)">No station selected. Use "↺ Change" to pick a station first.</div>';
+    box.innerHTML = '<div style="font-size:0.78rem;color:var(--text-3)">Select a police station above to see officers.</div>';
     return;
   }
   const officers = [
-    { rank:'CI',  label:'Circle Inspector',             name:s.ci_name,  phone:s.ci_phone,  email:s.ci_email,  color:'#006978', bg:'#e0f7fa' },
-    { rank:'ACP', label:'ACP / DSP',                    name:s.acp_name, phone:s.acp_phone, email:s.acp_email, color:'#6d28d9', bg:'#ede9fe' },
-    { rank:'SP',  label:'Superintendent of Police',     name:s.sp_name,  phone:s.sp_phone,  email:s.sp_email,  color:'#92400e', bg:'#fef9c3' },
-    { rank:'CP',  label:'Commissioner of Police',       name:s.cp_name,  phone:s.cp_phone,  email:s.cp_email,  color:'#991b1b', bg:'#fee2e2' },
+    { rank:'CI',  label:'Circle Inspector',         name:s.ci_name,  phone:s.ci_phone,  email:s.ci_email,  color:'#006978', bg:'#e0f7fa' },
+    { rank:'ACP', label:'ACP / DSP',                name:s.acp_name, phone:s.acp_phone, email:s.acp_email, color:'#6d28d9', bg:'#ede9fe' },
+    { rank:'SP',  label:'Superintendent of Police', name:s.sp_name,  phone:s.sp_phone,  email:s.sp_email,  color:'#92400e', bg:'#fef9c3' },
+    { rank:'CP',  label:'Commissioner of Police',   name:s.cp_name,  phone:s.cp_phone,  email:s.cp_email,  color:'#991b1b', bg:'#fee2e2' },
   ].filter(o => o.name || o.email || o.phone);
   if (officers.length === 0) {
     box.innerHTML = `<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.78rem;color:#92400e">
       ⚠️ No officer details available for this station. Please contact the admin to add officer information.</div>`;
     return;
   }
-  box.innerHTML = officers.map(o => `
+  box.innerHTML = officers.map(o => {
+    const safeName  = _petEsc(o.name  || '');
+    const safeEmail = _petEsc(o.email || '');
+    const safePhone = _petEsc(o.phone || '');
+    return `
     <label style="display:flex;align-items:flex-start;gap:0.7rem;padding:0.5rem 0.75rem;border:1.5px solid ${o.bg};border-radius:8px;cursor:pointer;background:${o.bg}33">
-      <input type="checkbox" name="${prefix}Officer" value="${o.rank}" data-name="${escHtml(o.name)}" data-email="${escHtml(o.email||'')}" data-phone="${escHtml(o.phone||'')}" style="margin-top:2px;width:15px;height:15px;cursor:pointer">
+      <input type="checkbox" name="${prefix}Officer" value="${o.rank}" data-name="${safeName}" data-email="${safeEmail}" data-phone="${safePhone}" style="margin-top:2px;width:15px;height:15px;cursor:pointer">
       <div>
         <div style="display:flex;align-items:center;gap:0.4rem">
           <span style="font-size:0.65rem;font-weight:800;background:${o.bg};color:${o.color};padding:1px 7px;border-radius:10px;border:1px solid ${o.color}44">${o.rank}</span>
-          <span style="font-size:0.8rem;font-weight:700;color:var(--navy)">${escHtml(o.name)}</span>
+          ${o.name ? `<span style="font-size:0.8rem;font-weight:700;color:var(--navy)">${safeName}</span>` : '<span style="font-size:0.75rem;color:var(--text-3);font-style:italic">Name not added</span>'}
         </div>
-        <div style="font-size:0.71rem;color:var(--text-2);margin-top:2px">${o.label}${o.phone?' · 📞 '+escHtml(o.phone):''}${o.email?' · ✉️ '+escHtml(o.email):' · <span style="color:#b45309">no email</span>'}</div>
+        <div style="font-size:0.71rem;color:var(--text-2);margin-top:2px">${o.label}${o.phone?' · 📞 '+safePhone:''}${o.email?' · ✉️ '+safeEmail:' · <span style="color:#b45309">no email</span>'}</div>
       </div>
-    </label>`).join('');
-}
-
-function petChangeStation() {
-  const box = document.getElementById('petChangeStationBox');
-  if (box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
-}
-
-function petApplyStationOverride() {
-  const id = parseInt(document.getElementById('pet_station_override').value);
-  if (!id) return;
-  _petCurrentStation = _petAllStations.find(s => s.id === id) || null;
-  const c = allComplaints.find(x => x.id === _cfComplaintId);
-  renderPetitionStation(c);
-  document.getElementById('petChangeStationBox').style.display = 'none';
+    </label>`;
+  }).join('');
 }
 
 function getSelectedOfficers(prefix) {
