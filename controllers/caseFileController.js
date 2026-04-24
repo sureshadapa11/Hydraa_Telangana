@@ -776,8 +776,9 @@ function sectionHead(doc, text) {
   doc.rect(40, y, doc.page.width - 80, 20).fill('#0b2040');
   doc.fill('#ffffff').font('Helvetica-Bold').fontSize(9)
      .text(text, 48, y + 5, { width: doc.page.width - 100, lineBreak: false });
-  doc.y = y + 26;
   doc.fill('#000000').font('Helvetica').fontSize(9.5);
+  // Re-anchor cursor at left margin below header — prevents blank page caused by x=48 cursor state
+  doc.text('', 40, y + 26, { lineBreak: false });
 }
 
 // ────────────────────────────────────────────────────
