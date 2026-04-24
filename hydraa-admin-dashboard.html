@@ -2502,6 +2502,17 @@ let _adminPetCurrentStation = null;
 let _adminPetAllStations   = [];
 let _adminPetComplaint     = null;
 
+const _PET_DISTRICTS = [
+  'Adilabad','Jagityal','Jayashankar Bhupalpally','Jogulamba Gadwal','Kamareddy',
+  'Kothagudem','Kumarambheem Asifabad','Mahabubabad','Mahabubnagar','Medak',
+  'Mulugu','Nagarkurnool','Nalgonda','Narayanapet','Nirmal','Rajanna Sircilla',
+  'Sangareddy','Suryapet','Vikarabad','Wanaparthy','Yadadri Bhuvanagiri'
+];
+const _PET_COMMS = [
+  'Cyberabad','Future City','Hyderabad','Karimnagar','Khammam',
+  'Malkagiri','Nizamabad','Ramagundam','Siddipet','Warangal'
+];
+
 async function adminLoadPoliceStationsForPdf() {
   const c = _adminComplaints.find(x => x.id === _adminCfComplaintId) || allComplaints.find(x => x.id === _adminCfComplaintId);
   if (!c) return;
@@ -2519,31 +2530,35 @@ async function adminLoadPoliceStationsForPdf() {
     const allRes = await http.get('/api/casefile/police-stations');
     _adminPetAllStations = allRes.data || [];
 
-    const districts = [...new Set(_adminPetAllStations.map(s => s.district_name).filter(Boolean))].sort();
-    const comms     = [...new Set(_adminPetAllStations.map(s => s.commissionerate).filter(Boolean))].sort();
-
-    // Infer suggested commissionerate from stations that share the complaint's district
+    // Infer suggested commissionerate from stations sharing complaint's district/mandal
     const suggestedComm = (_adminPetAllStations
       .filter(s => s.district_name === c.district_name || s.mandal_name === c.mandal_name)
       .map(s => s.commissionerate).filter(Boolean)[0]) || null;
 
+    // Infer suggested police district — find which of the 21 police districts
+    // is contained in the complaint's admin district name (e.g. "Warangal Rural" → "Warangal" not in list,
+    // but complaint district_name may directly match one of the 21)
+    const suggestedDist = _PET_DISTRICTS.find(d =>
+      c.district_name && c.district_name.toLowerCase().includes(d.toLowerCase())
+    ) || null;
+
     const distSel = document.getElementById('adminPetDistrictSel');
     const commSel = document.getElementById('adminPetCommSel');
 
-    // District dropdown — complaint district on top
+    // District dropdown — 21 hardcoded, suggested on top
     if (distSel) {
-      const matched = districts.filter(d => d === c.district_name);
-      const rest    = districts.filter(d => d !== c.district_name);
+      const matched = suggestedDist ? [suggestedDist] : [];
+      const rest    = _PET_DISTRICTS.filter(d => d !== suggestedDist);
       distSel.innerHTML = '<option value="">— Select District —</option>' +
         (matched.length ? `<optgroup label="📍 Suggested">${matched.map(d=>`<option value="${d}">${d}</option>`).join('')}</optgroup><optgroup label="All Districts">` : '') +
         rest.map(d => `<option value="${d}">${d}</option>`).join('') +
         (matched.length ? '</optgroup>' : '');
     }
 
-    // Commissionerate dropdown — suggested comm on top
+    // Commissionerate dropdown — 10 hardcoded, suggested on top
     if (commSel) {
-      const matched = suggestedComm ? comms.filter(cm => cm === suggestedComm) : [];
-      const rest    = comms.filter(cm => cm !== suggestedComm);
+      const matched = suggestedComm ? [suggestedComm] : [];
+      const rest    = _PET_COMMS.filter(cm => cm !== suggestedComm);
       commSel.innerHTML = '<option value="">— Select Commissionerate —</option>' +
         (matched.length ? `<optgroup label="📍 Suggested">${matched.map(cm=>`<option value="${cm}">${cm}</option>`).join('')}</optgroup><optgroup label="All Commissionerates">` : '') +
         rest.map(cm => `<option value="${cm}">${cm}</option>`).join('') +
@@ -2592,7 +2607,7 @@ function adminPetFilterStations() {
   }
 
   let filtered = _adminPetAllStations;
-  if (distVal) filtered = filtered.filter(s => s.district_name === distVal);
+  if (distVal) filtered = filtered.filter(s => s.district_name && s.district_name.toLowerCase().includes(distVal.toLowerCase()));
   if (commVal) filtered = filtered.filter(s => s.commissionerate === commVal);
 
   // Split: mandal match first, then district match, then rest
