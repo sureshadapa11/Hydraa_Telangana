@@ -109,7 +109,74 @@
     .type-opt .to-icon{font-size:1.6rem;margin-bottom:0.3rem;}
     .type-opt .to-label{font-weight:700;font-size:0.88rem;color:var(--navy);}
     .type-opt .to-sub{font-size:0.72rem;color:var(--text-3);margin-top:2px;}
-    @media(max-width:900px){.stats-row{grid-template-columns:1fr 1fr;}.form-grid{grid-template-columns:1fr;}.fg-full{grid-column:1;}}
+    /* ── Hamburger button ── */
+    .ham-btn{display:none;flex-direction:column;justify-content:center;gap:5px;width:36px;height:36px;padding:4px;background:transparent;border:none;cursor:pointer;border-radius:6px;margin-right:0.8rem;flex-shrink:0;}
+    .ham-btn span{display:block;height:2.5px;background:var(--navy);border-radius:2px;transition:all .22s;}
+    .ham-btn.open span:nth-child(1){transform:translateY(7.5px) rotate(45deg);}
+    .ham-btn.open span:nth-child(2){opacity:0;}
+    .ham-btn.open span:nth-child(3){transform:translateY(-7.5px) rotate(-45deg);}
+    /* ── Sidebar overlay ── */
+    .sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:99;backdrop-filter:blur(2px);}
+    .sb-overlay.show{display:block;}
+
+    @media(max-width:900px){
+      .stats-row{grid-template-columns:1fr 1fr;}
+      .form-grid{grid-template-columns:1fr;}
+      .fg-full{grid-column:1;}
+    }
+    @media(max-width:768px){
+      /* Sidebar */
+      .sidebar{transform:translateX(-100%);transition:transform .25s ease;z-index:200;}
+      .sidebar.sb-open{transform:translateX(0);}
+      /* Main takes full width */
+      .main{margin-left:0;}
+      /* Topbar */
+      .ham-btn{display:flex;}
+      .topbar{padding:0.75rem 1rem;}
+      .tb-date{display:none;}
+      /* Content */
+      .content{padding:1rem;}
+      /* Stats */
+      .stats-row{grid-template-columns:1fr 1fr;gap:0.7rem;margin-bottom:1.2rem;}
+      .stat-card{padding:0.8rem 0.9rem;gap:0.7rem;}
+      .sc-icon{width:36px;height:36px;font-size:1rem;}
+      .sc-val{font-size:1.3rem;}
+      /* Tabs */
+      .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;flex-wrap:nowrap;}
+      .tab-btn{padding:0.6rem 1rem;font-size:0.8rem;flex-shrink:0;}
+      /* Filter bar */
+      .filter-bar{flex-direction:column;gap:0.5rem;}
+      .filter-bar select,.filter-bar input{width:100%!important;font-size:0.85rem;}
+      /* Card body */
+      .card-body{padding:0.9rem;}
+      /* Table → Card list */
+      .tbl-wrap table{display:block;}
+      .tbl-wrap colgroup,.tbl-wrap thead{display:none;}
+      .tbl-wrap tbody{display:flex;flex-direction:column;gap:0.8rem;}
+      .tbl-wrap tbody tr{display:block;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:0.85rem;box-shadow:0 1px 6px rgba(0,30,60,0.06);}
+      .tbl-wrap tbody td{display:block;padding:0.2rem 0;overflow:visible;white-space:normal;}
+      .tbl-wrap tbody td[data-label]::before{content:attr(data-label);font-size:0.6rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:1px;}
+      .tbl-wrap tbody td.td-num{display:none;}
+      .tbl-wrap tbody td.td-name{font-size:0.95rem;font-weight:800;color:var(--navy);border-bottom:1px solid #eef3f6;padding-bottom:0.5rem;margin-bottom:0.4rem;}
+      .tbl-wrap tbody td.td-actions{margin-top:0.6rem;border-top:1px solid #eef3f6;padding-top:0.5rem;display:flex;gap:0.5rem;}
+      .btn-edit,.btn-del{flex:1;text-align:center;padding:0.42rem 0.5rem;font-size:0.78rem;}
+      /* Modal */
+      .modal{padding:0;align-items:flex-end;}
+      .modal-box{border-radius:var(--radius) var(--radius) 0 0;max-height:92vh;max-width:100%;}
+      .modal-body{padding:1rem;}
+      .modal-footer{padding:0.8rem 1rem;}
+      /* Add type toggle */
+      .add-type-toggle{gap:0.5rem;}
+      .type-opt{padding:0.75rem 0.5rem;}
+      .to-icon{font-size:1.3rem;}
+    }
+    @media(max-width:420px){
+      .stats-row{grid-template-columns:1fr 1fr;}
+      .stat-card{padding:0.65rem 0.7rem;gap:0.5rem;}
+      .sc-icon{width:32px;height:32px;font-size:0.9rem;}
+      .sc-val{font-size:1.1rem;}
+      .sc-lbl{font-size:0.62rem;}
+    }
   </style>
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#0097a7">
@@ -155,6 +222,9 @@
 <!-- MAIN -->
 <div class="main">
   <div class="topbar">
+    <button class="ham-btn" id="hamBtn" onclick="toggleSidebar()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
     <div>
       <div class="tb-title">🚔 Police Stations</div>
       <div class="tb-sub">Manage police stations and officer contacts for petition dispatch</div>
@@ -469,6 +539,8 @@
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
+<!-- SIDEBAR OVERLAY -->
+<div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
 
 <script>window.HYDRAA_TOKEN_KEY="hydraa_admin_token";window.HYDRAA_USER_KEY="hydraa_admin_user";</script>
 <script src="http-client.js"></script>
@@ -711,20 +783,17 @@
     tbody.innerHTML = data.map((s, i) => {
       const loc = [s.district_name, s.commissionerate].filter(Boolean);
       const locText = loc.length ? loc.join(' / ') : '—';
+      const contactHtml = `${s.phone ? `<div>📞 ${esc(s.phone)}</div>` : ''}${s.email ? `<div style="color:var(--teal-dark)">✉️ ${esc(s.email)}</div>` : ''}${!s.phone && !s.email ? '<span style="color:var(--text-3)">—</span>' : ''}`;
       return `
       <tr>
-        <td style="color:var(--text-3);font-size:0.75rem">${i+1}</td>
-        <td style="font-weight:700;color:var(--navy)">${esc(s.name)}</td>
-        <td style="font-size:0.78rem;color:var(--text-2)">${esc(locText)}</td>
-        <td style="font-size:0.76rem">
-          ${s.phone ? `<div>📞 ${esc(s.phone)}</div>` : ''}
-          ${s.email ? `<div style="color:var(--teal-dark)">✉️ ${esc(s.email)}</div>` : ''}
-          ${!s.phone && !s.email ? '<span style="color:var(--text-3)">—</span>' : ''}
-        </td>
-        <td>${officerChips(s)}</td>
-        <td style="white-space:nowrap">
+        <td class="td-num" style="color:var(--text-3);font-size:0.75rem">${i+1}</td>
+        <td class="td-name">${esc(s.name)}</td>
+        <td data-label="District / Comm" style="font-size:0.78rem;color:var(--text-2)">${esc(locText)}</td>
+        <td data-label="Contact" style="font-size:0.76rem">${contactHtml}</td>
+        <td data-label="Officers">${officerChips(s)}</td>
+        <td class="td-actions">
           <button class="btn-edit" onclick="openEdit(${s.id})">✏️ Edit</button>
-          <button class="btn-del" onclick="deleteStation(${s.id},'${esc(s.name)}')" style="margin-left:4px">🗑 Del</button>
+          <button class="btn-del" onclick="deleteStation(${s.id},'${esc(s.name)}')">🗑 Del</button>
         </td>
       </tr>`;
     }).join('');
@@ -844,6 +913,16 @@
     const el = document.getElementById('modalMsg');
     el.textContent = msg;
     el.style.color = color;
+  }
+
+  function toggleSidebar() {
+    const sb  = document.querySelector('.sidebar');
+    const btn = document.getElementById('hamBtn');
+    const ov  = document.getElementById('sbOverlay');
+    const open = sb.classList.toggle('sb-open');
+    btn.classList.toggle('open', open);
+    ov.classList.toggle('show', open);
+    document.body.style.overflow = open ? 'hidden' : '';
   }
 
   function logout() { Auth.logout(); window.location.href = '/hydraa-admin-login.html'; }
