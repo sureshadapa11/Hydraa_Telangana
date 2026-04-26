@@ -867,6 +867,42 @@ const getAllComplaints = async (req, res) => {
 };
 
 // ────────────────────────────────────────────────────
+//  GET SINGLE COMPLAINT BY ID (admin — always fresh)
+// ────────────────────────────────────────────────────
+const getComplaintById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [[complaint]] = await db.query(
+      `SELECT
+        c.id, c.complaint_no, c.title, c.description, c.status, c.priority,
+        c.category_id, cat.name AS category_name,
+        c.subcategory_id, subcat.name AS subcategory_name,
+        c.address, c.created_at, c.resolved_at,
+        c.official_id, o.full_name AS official_name,
+        c.admin_remarks, c.official_remarks, c.internal_notes,
+        u.full_name AS user_name, u.email AS user_email,
+        d.name AS district_name, m.name AS mandal_name,
+        c.land_district, c.land_mandal, c.land_village, c.land_address, c.land_survey_no, c.khata_no,
+        c.latitude, c.longitude
+      FROM complaints c
+      JOIN users u ON c.user_id = u.id
+      LEFT JOIN categories cat ON c.category_id = cat.id
+      LEFT JOIN subcategories subcat ON c.subcategory_id = subcat.id
+      LEFT JOIN officials o ON c.official_id = o.id
+      LEFT JOIN districts d ON c.district_id = d.id
+      LEFT JOIN mandals m ON c.mandal_id = m.id
+      WHERE c.id = ?`,
+      [id]
+    );
+    if (!complaint) return res.status(404).json({ success: false, message: 'Complaint not found.' });
+    res.json({ success: true, data: complaint });
+  } catch (err) {
+    console.error('getComplaintById error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+// ────────────────────────────────────────────────────
 //  GET COMMENTS FOR A COMPLAINT
 // ────────────────────────────────────────────────────
 const getComments = async (req, res) => {
@@ -1298,4 +1334,5 @@ module.exports = {
   getDistrictStats,
   getUserProfile,
   updateComplaintLocation,
+  getComplaintById,
 };

@@ -1885,19 +1885,37 @@ function adminCloseCaseFile() {
 }
 document.getElementById('adminCaseFileModal').addEventListener('click', e => { if(e.target===e.currentTarget) adminCloseCaseFile(); });
 
+let _adminCfFreshData = null;
+
 async function adminOpenCaseFile(id) {
   _adminCfComplaintId = id;
-  const c = _adminComplaints.find(x => x.id === id) || allComplaints.find(x => x.id === id);
-  document.getElementById('adminCfComplaintNo').textContent = c ? c.complaint_no : '#' + id;
-  if (c) {
-    document.getElementById('acf_updateStatus').value   = c.status === 'assigned' ? 'in_progress' : (c.status === 'in_progress' ? 'resolved' : 'in_progress');
-    document.getElementById('acf_updatePriority').value = c.priority || '';
-    document.getElementById('acf_updateRemarks').value  = '';
+  _adminCfFreshData = null;
+
+  // Show modal immediately with cached data while fresh fetch runs
+  const cached = _adminComplaints.find(x => x.id === id) || allComplaints.find(x => x.id === id);
+  document.getElementById('adminCfComplaintNo').textContent = cached ? cached.complaint_no : '#' + id;
+  if (cached) {
+    document.getElementById('acf_updateStatus').value   = cached.status === 'assigned' ? 'in_progress' : (cached.status === 'in_progress' ? 'resolved' : 'in_progress');
+    document.getElementById('acf_updatePriority').value = cached.priority || '';
   }
+  document.getElementById('acf_updateRemarks').value  = '';
   document.getElementById('adminCfUpdateMsg').textContent = '';
   document.getElementById('adminCaseFileModal').classList.add('open');
   adminSwitchCfTab('visit');
   adminLoadPoliceStationsForPdf();
+
+  // Fetch fresh data in background — updates location + any stale fields
+  try {
+    const res = await http.get('/api/complaints/admin/' + id);
+    if (res.success && res.data) {
+      _adminCfFreshData = res.data;
+      // Update cache entry so status history and other reads are fresh too
+      const idx = allComplaints.findIndex(x => x.id === id);
+      if (idx !== -1) allComplaints[idx] = { ...allComplaints[idx], ...res.data };
+      // Re-render location now that we have fresh data
+      adminCfLoadLocationStatus();
+    }
+  } catch(e) { console.error('adminOpenCaseFile fresh fetch:', e); }
 }
 
 function adminSwitchCfTab(tab) {
@@ -2150,7 +2168,7 @@ async function adminCfDoUpdate() {
 
 // ── COMPLAINT LOCATION (admin case file) ──
 function adminCfLoadLocationStatus() {
-  const c = _adminComplaints.find(x => x.id === _adminCfComplaintId) || allComplaints.find(x => x.id === _adminCfComplaintId);
+  const c = _adminCfFreshData || _adminComplaints.find(x => x.id === _adminCfComplaintId) || allComplaints.find(x => x.id === _adminCfComplaintId);
   const el = document.getElementById('adminCfLocationStatus');
   if (!el) return;
   if (c && c.latitude && c.longitude) {

@@ -29,6 +29,7 @@ const {
   getDistrictStats,
   getUserProfile,
   updateComplaintLocation,
+  getComplaintById,
 } = require('../controllers/complaintController');
 const { verifyToken } = require('../middleware/auth');
 
@@ -41,6 +42,7 @@ router.post('/rate', verifyToken, rateComplaint);
 // ── Admin Routes ──
 router.get('/admin/dashboard', verifyToken, getAdminDashboard);
 router.get('/admin/all', verifyToken, getAllComplaints);
+router.get('/admin/:id', verifyToken, getComplaintById);
 router.put('/admin/assign/:id', verifyToken, assignComplaint);
 router.put('/admin/reassign/:id', verifyToken, reassignComplaint);
 router.put('/admin/status/:id', verifyToken, updateComplaintStatus);
