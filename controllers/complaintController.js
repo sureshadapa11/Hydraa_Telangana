@@ -627,29 +627,41 @@ const updateComplaintStatus = async (req, res) => {
       [id, oldStatus, status, admin_id, 'admin', remarks]
     );
 
-    // Send email to citizen (non-blocking)
+    // Send email to citizen — track success
+    let emailSent = false;
+    let emailError = null;
     try {
       const [[comp]] = await db.query(
         `SELECT c.complaint_no, c.title, u.email, u.full_name
          FROM complaints c JOIN users u ON c.user_id = u.id WHERE c.id = ?`, [id]
       );
-      if (comp) {
-        await sendSafe(sendStatusUpdate, {
-          to:           comp.email,
-          name:         comp.full_name,
-          complaint_no: comp.complaint_no,
-          title:        comp.title,
-          oldStatus,
-          newStatus:    status,
-          remarks,
-          officialName: 'HYDRAA Admin',
-        });
+      if (comp && comp.email) {
+        try {
+          await sendStatusUpdate({
+            to:           comp.email,
+            name:         comp.full_name,
+            complaint_no: comp.complaint_no,
+            title:        comp.title,
+            oldStatus,
+            newStatus:    status,
+            remarks,
+            officialName: 'HYDRAA Admin',
+          });
+          emailSent = true;
+        } catch (e) {
+          emailError = e.message;
+          console.error('[EMAIL] adminStatusUpdate send failed:', e.message);
+        }
+      } else {
+        emailError = 'No email address found for citizen.';
       }
-    } catch (e) { console.error('Admin status update email error:', e.message); }
+    } catch (e) { emailError = e.message; console.error('Admin status update email error:', e.message); }
 
     res.json({
-      success: true,
-      message: 'Status updated successfully.',
+      success:    true,
+      message:    'Status updated successfully.',
+      emailSent,
+      emailError: emailSent ? null : (emailError || 'Unknown error'),
     });
   } catch (err) {
     console.error('Update complaint status error:', err);
@@ -737,7 +749,9 @@ const resolveComplaint = async (req, res) => {
       [id, oldStatus, status, official_id, 'official', remarks]
     );
 
-    // Send email to citizen (non-blocking)
+    // Send email to citizen — track success
+    let emailSent = false;
+    let emailError = null;
     try {
       const [[comp]] = await db.query(
         `SELECT c.complaint_no, c.title, u.email, u.full_name, ofc.full_name AS official_name
@@ -747,28 +761,34 @@ const resolveComplaint = async (req, res) => {
       );
       console.log('[EMAIL] resolveComplaint — to:', comp?.email, 'status:', status);
       if (comp && comp.email) {
-        // Fetch photos uploaded for this complaint (latest 3 for email size)
         const [photos] = await db.query(
           `SELECT photo_data, caption FROM complaint_photos WHERE complaint_id = ? ORDER BY created_at DESC LIMIT 3`,
           [id]
         );
-        await sendSafe(sendStatusUpdate, {
-          to:           comp.email,
-          name:         comp.full_name,
-          complaint_no: comp.complaint_no,
-          title:        comp.title,
-          oldStatus,
-          newStatus:    status,
-          remarks,
-          officialName: comp.official_name,
-          photos,
-        });
+        try {
+          await sendStatusUpdate({
+            to:           comp.email,
+            name:         comp.full_name,
+            complaint_no: comp.complaint_no,
+            title:        comp.title,
+            oldStatus,
+            newStatus:    status,
+            remarks,
+            officialName: comp.official_name,
+            photos,
+          });
+          emailSent = true;
+        } catch (e) {
+          emailError = e.message;
+          console.error('[EMAIL] resolveComplaint send failed:', e.message);
+        }
       } else {
-        console.warn('[EMAIL] resolveComplaint — no citizen email found for complaint id:', id);
+        emailError = 'No email address found for citizen.';
+        console.warn('[EMAIL] resolveComplaint — no citizen email for complaint id:', id);
       }
-    } catch (e) { console.error('Official resolve email error:', e.message); }
+    } catch (e) { emailError = e.message; console.error('Official resolve email error:', e.message); }
 
-    // Push notification to citizen (non-blocking)
+    // Push notification (non-blocking, non-critical)
     try {
       const { sendPushToUser } = require('../utils/pushService');
       const [[comp2]] = await db.query(
@@ -785,8 +805,10 @@ const resolveComplaint = async (req, res) => {
     } catch (e) { console.error('Push notification error:', e.message); }
 
     res.json({
-      success: true,
-      message: 'Complaint updated successfully.',
+      success:    true,
+      message:    'Complaint updated successfully.',
+      emailSent,
+      emailError: emailSent ? null : (emailError || 'Unknown error'),
     });
   } catch (err) {
     console.error('Resolve complaint error:', err);

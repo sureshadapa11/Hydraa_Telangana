@@ -2015,7 +2015,11 @@ async function cfDoUpdate() {
     if (priority) body.priority = priority;
     const res = await http.put('/api/complaints/official/resolve/' + _cfComplaintId, body);
     if (res.success) {
-      msgEl.textContent = '✅ Complaint updated. Citizen notified by email.'; msgEl.style.color = '#065f46';
+      if (res.emailSent) {
+        msgEl.textContent = '✅ Complaint updated. Citizen notified by email.'; msgEl.style.color = '#065f46';
+      } else {
+        msgEl.innerHTML = '✅ Complaint updated. <span style="color:#b45309">⚠️ Email notification failed — ' + (res.emailError || 'check email configuration') + '</span>'; msgEl.style.color = '#065f46';
+      }
       loadComplaints();
       setTimeout(() => loadCfStatusHistory(), 600);
     } else { msgEl.textContent = res.message || 'Failed.'; msgEl.style.color = '#e53935'; }

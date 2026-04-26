@@ -2121,7 +2121,11 @@ async function adminCfDoUpdate() {
     if (priority) body.priority = priority;
     const res = await http.put('/api/complaints/admin/status/' + _adminCfComplaintId, body);
     if (res.success) {
-      msgEl.textContent = '✅ Complaint updated successfully.'; msgEl.style.color = '#065f46';
+      if (res.emailSent) {
+        msgEl.textContent = '✅ Complaint updated. Citizen notified by email.'; msgEl.style.color = '#065f46';
+      } else {
+        msgEl.innerHTML = '✅ Complaint updated. <span style="color:#b45309">⚠️ Email failed — ' + (res.emailError || 'check email config') + '</span>'; msgEl.style.color = '#065f46';
+      }
       loadComplaints({ silent: true });
       setTimeout(() => adminLoadCfStatusHistory(), 600);
     } else { msgEl.textContent = res.message || 'Failed.'; msgEl.style.color = '#e53935'; }
