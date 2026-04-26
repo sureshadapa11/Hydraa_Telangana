@@ -1568,7 +1568,7 @@ setInterval(() => {
       <button onclick="adminCloseCaseFile()" style="background:rgba(255,255,255,0.12);border:none;color:#fff;border-radius:8px;padding:0.4rem 0.9rem;cursor:pointer;font-size:0.82rem;font-family:inherit;font-weight:600;margin-left:0.5rem">✕ Close</button>
     </div>
 
-    <div style="display:flex;gap:0;border-bottom:1px solid var(--border);background:#f8fcfd;">
+    <div class="cf-tabs-row">
       <button class="cf-tab active" id="acft-visit"   onclick="adminSwitchCfTab('visit')">🏕 Site Visit</button>
       <button class="cf-tab"        id="acft-accused" onclick="adminSwitchCfTab('accused')">👤 Accused</button>
       <button class="cf-tab"        id="acft-notes"   onclick="adminSwitchCfTab('notes')">💬 Notes</button>
@@ -1852,9 +1852,25 @@ setInterval(() => {
 </div>
 
 <style>
-  .cf-tab{padding:0.6rem 1.1rem;border:none;background:transparent;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;color:var(--text-2);border-bottom:2px solid transparent;transition:all 0.18s;}
+  .cf-tab{padding:0.6rem 1.1rem;border:none;background:transparent;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;color:var(--text-2);border-bottom:2px solid transparent;transition:all 0.18s;white-space:nowrap;flex-shrink:0;}
   .cf-tab.active{color:var(--teal);border-bottom-color:var(--teal);background:rgba(0,151,167,0.05);}
   .cf-tab:hover:not(.active){color:var(--navy);}
+  .cf-tabs-row{display:flex;gap:0;border-bottom:1px solid var(--border);background:#f8fcfd;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .cf-tabs-row::-webkit-scrollbar{display:none;}
+  @media(max-width:640px){
+    .modal{padding:0.4rem;}
+    .modal-box{border-radius:14px;max-height:95vh;}
+    #adminCaseFileModal .modal-box{max-height:96vh;}
+    #adminCaseFileModal .modal-hdr{padding:0.75rem 1rem;flex-wrap:nowrap;gap:0.5rem;}
+    #adminCaseFileModal .mh-icon{width:30px;height:30px;font-size:0.85rem;flex-shrink:0;}
+    #adminCaseFileModal .mh-title{font-size:0.95rem;}
+    #adminCaseFileModal .modal-hdr>div:nth-child(2){flex:1;min-width:0;}
+    #adminCaseFileModal #adminCfComplaintNo{font-size:0.68rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    #adminCaseFileModal .modal-body{padding:0.85rem 0.75rem;max-height:calc(96vh - 130px);}
+    #adminCaseFileModal [style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important;}
+    #adminCaseFileModal [style*="grid-template-columns: 1fr 1fr"]{grid-template-columns:1fr!important;}
+    .cf-tab{padding:0.55rem 0.75rem;font-size:0.75rem;}
+  }
 </style>
 
 <script>
