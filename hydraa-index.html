@@ -400,6 +400,65 @@
 </head>
 <body>
 
+<!-- SPLASH SCREEN -->
+<div id="hydraa-splash">
+  <div class="splash-inner">
+    <img src="/icons/hydraa-logo-splash.png" alt="HYDRAA Telangana" class="splash-logo">
+    <div class="splash-loader">
+      <div class="splash-bar"></div>
+    </div>
+    <p class="splash-tagline">Protecting Land &bull; Preserving Lakes &bull; Securing Future</p>
+  </div>
+</div>
+<style>
+  #hydraa-splash{
+    position:fixed;inset:0;z-index:99999;
+    background:#0b1f3a;
+    display:flex;align-items:center;justify-content:center;
+    transition:opacity 0.6s ease-out;
+  }
+  #hydraa-splash.splash-hide{opacity:0;pointer-events:none;}
+  .splash-inner{display:flex;flex-direction:column;align-items:center;gap:1.5rem;padding:2rem;}
+  .splash-logo{
+    width:min(72vw,300px);
+    animation:splash-in 0.7s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  @keyframes splash-in{
+    from{opacity:0;transform:scale(0.7);}
+    to{opacity:1;transform:scale(1);}
+  }
+  .splash-loader{
+    width:min(60vw,220px);height:4px;
+    background:rgba(255,255,255,0.12);border-radius:4px;overflow:hidden;
+  }
+  .splash-bar{
+    height:100%;width:0;border-radius:4px;
+    background:linear-gradient(90deg,#0097a7,#00bcd4,#4dd6e8);
+    animation:splash-fill 1.6s ease-out forwards;
+  }
+  @keyframes splash-fill{from{width:0;}to{width:100%;}}
+  .splash-tagline{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;
+    color:rgba(255,255,255,0.35);font-weight:600;text-align:center;
+    animation:splash-in 0.7s 0.3s ease both;
+  }
+</style>
+<script>
+  (function(){
+    var splash = document.getElementById('hydraa-splash');
+    function hideSplash(){
+      splash.classList.add('splash-hide');
+      setTimeout(function(){ splash.remove(); }, 650);
+    }
+    if(document.readyState === 'complete'){
+      setTimeout(hideSplash, 1800);
+    } else {
+      window.addEventListener('load', function(){ setTimeout(hideSplash, 600); });
+    }
+  })();
+</script>
+
 <!-- NAV -->
 <nav>
   <a href="#" class="nav-brand">
