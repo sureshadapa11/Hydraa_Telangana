@@ -741,6 +741,7 @@ document.getElementById('officialLoginForm').addEventListener('submit', async (e
     });
     if (res.success) {
       Auth.setUser(res.user, res.token);
+      localStorage.removeItem('hydraa_official_view'); // always start at dashboard after fresh login
       showLoginAlert('Login successful! Loading portal...', 'success');
       setTimeout(() => initDashboard(), 800);
     } else {
