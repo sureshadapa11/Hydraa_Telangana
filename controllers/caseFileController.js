@@ -776,6 +776,12 @@ function drawPdfHeader(doc, title) {
 // ────────────────────────────────────────────────────
 function sectionHead(doc, text) {
   doc.moveDown(0.5);
+  // If less than 60pt remains on the page, start a new page so the header
+  // never lands alone at the very bottom (which produces a near-empty page)
+  const spaceLeft = doc.page.height - doc.page.margins.bottom - doc.y;
+  if (spaceLeft < 60) {
+    doc.addPage();
+  }
   const y = doc.y;
   doc.rect(40, y, doc.page.width - 80, 20).fill('#0b2040');
   doc.fill('#ffffff').font('Helvetica-Bold').fontSize(9)
