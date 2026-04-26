@@ -201,6 +201,7 @@
     .alert.show { display: flex; }
     .alert.error { background: rgba(239,68,68,0.08); color: #c62828; border-left: 3px solid #ef4444; }
     .alert.success { background: rgba(16,185,129,0.08); color: #065f46; border-left: 3px solid #10b981; }
+    .alert.warning { background: rgba(245,158,11,0.08); color: #92400e; border-left: 3px solid #f59e0b; }
 
     /* Form card */
     .form-card {
@@ -978,19 +979,26 @@
         const complaintId = res.data && res.data.complaint_id;
 
         // Save accused person if citizen provided one
+        let accusedWarn = '';
         const accName = document.getElementById('acc_name').value.trim();
         if (accName && complaintId) {
-          try {
-            await http.post(`/api/casefile/complaints/${complaintId}/accused`, {
-              name:     accName,
-              phone:    document.getElementById('acc_phone').value.trim() || null,
-              address:  document.getElementById('acc_address').value.trim() || null,
-              relation: document.getElementById('acc_relation').value || null,
-            });
-          } catch(e) { /* non-fatal */ }
+          const accRes = await http.post(`/api/casefile/complaints/${complaintId}/accused`, {
+            name:     accName,
+            phone:    document.getElementById('acc_phone').value.trim() || null,
+            address:  document.getElementById('acc_address').value.trim() || null,
+            relation: document.getElementById('acc_relation').value || null,
+          });
+          if (!accRes || !accRes.success) {
+            console.error('Accused save failed:', accRes);
+            accusedWarn = ' (Note: accused details could not be saved — ' + (accRes && accRes.message ? accRes.message : 'server error') + ')';
+          }
         }
 
-        showAlert('alertBox', 'success', `✅ Complaint submitted successfully! Complaint No: ${complaintNo}`);
+        if (accusedWarn) {
+          showAlert('alertBox', 'warning', `✅ Complaint submitted! No: ${complaintNo}.${accusedWarn}`);
+        } else {
+          showAlert('alertBox', 'success', `✅ Complaint submitted successfully! Complaint No: ${complaintNo}`);
+        }
         document.getElementById('complaintForm').reset();
         setTimeout(() => window.location.href = '/hydraa-my-complaints.html', 3000);
       } else {

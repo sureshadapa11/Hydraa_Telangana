@@ -30,7 +30,8 @@ const getAccused = async (req, res) => {
 const addAccused = async (req, res) => {
   const { complaint_id } = req.params;
   const { name, phone, email, address, aadhaar_no, relation, occupation } = req.body;
-  const addedBy = req.user.role === 'user' ? 'citizen' : (req.user.role || 'official');
+  const roleMap = { user: 'citizen', official: 'official', admin: 'admin' };
+  const addedBy = roleMap[req.user.role] || 'official';
 
   if (!name || !name.trim()) {
     return res.status(400).json({ success: false, message: 'Accused name is required.' });

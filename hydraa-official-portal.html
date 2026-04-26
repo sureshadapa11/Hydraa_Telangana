@@ -2422,11 +2422,15 @@ async function downloadVisitPdf(visitId, visitNo) {
 
 // ── ACCUSED ──
 async function loadAccused() {
-  try {
-    const res = await http.get(`/api/casefile/complaints/${_cfComplaintId}/accused`);
-    _cfAccusedList = res.data || [];
-    renderAccusedList();
-  } catch(e) {}
+  const el = document.getElementById('accusedList');
+  el.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:0.83rem">Loading...</div>';
+  const res = await http.get(`/api/casefile/complaints/${_cfComplaintId}/accused`);
+  if (!res.success) {
+    el.innerHTML = `<div style="text-align:center;padding:1.5rem;color:#e53935;font-size:0.83rem">Failed to load accused persons. ${res.message || ''}</div>`;
+    return;
+  }
+  _cfAccusedList = res.data || [];
+  renderAccusedList();
 }
 
 function renderAccusedList() {
