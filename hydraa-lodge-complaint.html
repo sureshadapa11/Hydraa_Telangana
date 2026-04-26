@@ -673,7 +673,7 @@
                 <button type="button" id="locBtn" onclick="captureLocation()" style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem 1.1rem;background:rgba(0,137,123,0.08);border:1.5px solid rgba(0,137,123,0.35);color:#00695c;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.2s;">
                   📍 Use My Location
                 </button>
-                <span id="locStatus" style="font-size:0.78rem;color:var(--text-3);">Not captured yet</span>
+                <span id="locStatus" style="font-size:0.78rem;color:var(--text-3);line-height:1.5;">Not captured yet</span>
               </div>
             </div>
           </div>
@@ -1197,11 +1197,22 @@
       function(err) {
         btn.textContent = '📍 Use My Location';
         btn.disabled = false;
-        const msgs = { 1:'Location permission denied.', 2:'Location unavailable.', 3:'Request timed out.' };
-        status.textContent = '⚠️ ' + (msgs[err.code] || 'Could not get location.');
+        if (err.code === 1) {
+          status.innerHTML =
+            '<strong>⚠️ Location permission denied.</strong><br>' +
+            '<span style="font-size:0.78rem;color:#555">' +
+            'To enable: <br>' +
+            '📱 <b>iPhone</b> — Settings → Safari → Location → Allow<br>' +
+            '🤖 <b>Android</b> — tap the lock icon in the address bar → Permissions → Location → Allow' +
+            '</span>';
+        } else if (err.code === 2) {
+          status.innerHTML = '⚠️ Location unavailable. Please check your GPS/network and try again.';
+        } else {
+          status.innerHTML = '⚠️ Location request timed out. Please try again.';
+        }
         status.style.color = '#e53935';
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
   }
 </script>
