@@ -1,5 +1,5 @@
 // =====================================================
-//   Auth Middleware — HYDRAA
+//   Auth Middleware — HYDRAA (HARDENED)
 //   JWT verification and role checking
 // =====================================================
 
@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 // ────────────────────────────────────────────────────
-//  VERIFY TOKEN
+//  VERIFY TOKEN (with algorithm pinning)
 // ────────────────────────────────────────────────────
 const verifyToken = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
@@ -20,10 +20,20 @@ const verifyToken = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // ✅ FIX: Pin algorithm to HS256 to prevent algorithm switching attacks
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+      algorithms: ['HS256'],
+    });
     req.user = decoded;
     next();
   } catch (err) {
+    // ✅ FIX: Distinguish expired vs invalid tokens
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Token has expired. Please login again.',
+      });
+    }
     return res.status(401).json({
       success: false,
       message: 'Invalid or expired token.',

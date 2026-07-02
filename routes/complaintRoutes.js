@@ -1,5 +1,5 @@
 // =====================================================
-//   Complaint Routes — HYDRAA
+//   Complaint Routes — HYDRAA (HARDENED)
 //   Routes for complaint management
 // =====================================================
 
@@ -31,7 +31,7 @@ const {
   updateComplaintLocation,
   getComplaintById,
 } = require('../controllers/complaintController');
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken, isAdmin } = require('../middleware/auth');
 
 // ── User Routes (requires auth) ──
 router.post('/lodge', verifyToken, lodgeComplaint);
@@ -39,13 +39,13 @@ router.get('/track/:complaint_no', trackComplaint); // Public - no auth required
 router.get('/my-complaints', verifyToken, getMyComplaints);
 router.post('/rate', verifyToken, rateComplaint);
 
-// ── Admin Routes ──
-router.get('/admin/dashboard', verifyToken, getAdminDashboard);
-router.get('/admin/all', verifyToken, getAllComplaints);
-router.get('/admin/:id', verifyToken, getComplaintById);
-router.put('/admin/assign/:id', verifyToken, assignComplaint);
-router.put('/admin/reassign/:id', verifyToken, reassignComplaint);
-router.put('/admin/status/:id', verifyToken, updateComplaintStatus);
+// ── Admin Routes (with isAdmin guard) ──
+router.get('/admin/dashboard', verifyToken, isAdmin, getAdminDashboard);
+router.get('/admin/all', verifyToken, isAdmin, getAllComplaints);
+router.get('/admin/:id', verifyToken, isAdmin, getComplaintById);
+router.put('/admin/assign/:id', verifyToken, isAdmin, assignComplaint);
+router.put('/admin/reassign/:id', verifyToken, isAdmin, reassignComplaint);
+router.put('/admin/status/:id', verifyToken, isAdmin, updateComplaintStatus);
 
 // ── Official Routes ──
 router.get('/official/assigned', verifyToken, getOfficialComplaints);
@@ -53,8 +53,8 @@ router.put('/official/resolve/:id', verifyToken, resolveComplaint);
 router.post('/official/reassign-request', verifyToken, requestReassignment);
 
 // ── Admin Reassignment Queue ──
-router.get('/admin/reassign-requests', verifyToken, getReassignmentRequests);
-router.put('/admin/reassign-requests/:id', verifyToken, handleReassignmentRequest);
+router.get('/admin/reassign-requests', verifyToken, isAdmin, getReassignmentRequests);
+router.put('/admin/reassign-requests/:id', verifyToken, isAdmin, handleReassignmentRequest);
 
 // ── Location update (admin or official) ──
 router.put('/:id/location', verifyToken, updateComplaintLocation);

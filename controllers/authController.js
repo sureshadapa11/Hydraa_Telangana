@@ -1,7 +1,7 @@
 // =====================================================
-//   HYDRAA — Updated authController.js
+//   HYDRAA — authController.js (HARDENED)
 //   Drop-in replacement for backend/controllers/authController.js
-//   Changes: adds email on register, change-password, forgot-password
+//   Changes: DB OTP store, attempt throttling, no plaintext passwords in emails
 // =====================================================
 
 const bcrypt = require('bcryptjs');
@@ -13,6 +13,9 @@ const {
   sendPasswordChangedEmail,
   sendForgotPasswordOTP,
   sendSafe,
+  sendOfficialWelcome,
+  sendAccountDeleted,
+  sendAccountRestored,
 } = require('../utils/emailService');
 require('dotenv').config();
 
@@ -20,10 +23,6 @@ const generateToken = (id, role) =>
   jwt.sign({ id, role }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   });
-
-// In-memory OTP store  { email: { otp, expiresAt, name, role } }
-// For production use Redis or a DB table instead
-const otpStore = {};
 
 // ────────────────────────────────────────────────────
 //  USER: Register
@@ -227,16 +226,20 @@ const changePassword = async (req, res) => {
 };
 
 // ────────────────────────────────────────────────────
-//  FORGOT PASSWORD — Step 1: Request OTP
+//  FORGOT PASSWORD — Step 1: Request OTP (DB-backed with throttling)
 // ────────────────────────────────────────────────────
 const forgotPasswordRequest = async (req, res) => {
   const { email, role = 'user' } = req.body;
   if (!email)
     return res.status(400).json({ success: false, message: 'Email is required.' });
 
+  // ✅ FIX: Validate role against allowlist to prevent privilege escalation
+  const allowedRoles = ['user', 'admin', 'official'];
+  const validRole = allowedRoles.includes(role) ? role : 'user';
+
   try {
-    const table = role === 'admin' ? 'admins' : role === 'official' ? 'officials' : 'users';
-    const nameCol = role === 'admin' ? 'username' : 'full_name';
+    const table = validRole === 'admin' ? 'admins' : validRole === 'official' ? 'officials' : 'users';
+    const nameCol = validRole === 'admin' ? 'username' : 'full_name';
     const [rows] = await db.query(`SELECT id, email, ${nameCol} AS name FROM ${table} WHERE email = ?`, [email]);
 
     // Always return success to prevent email enumeration
@@ -246,10 +249,32 @@ const forgotPasswordRequest = async (req, res) => {
     const user = rows[0];
     const otp  = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
 
-    // Store OTP (10 min expiry)
-    otpStore[email] = { otp, role, name: user.name, expiresAt: Date.now() + 10 * 60 * 1000 };
+    // ✅ FIX: Store OTP in DB with rate limiting (max 3 attempts per 5 min)
+    // Check recent attempts
+    const [[attempt]] = await db.query(
+      `SELECT COUNT(*) as count FROM otp_requests WHERE email = ? AND created_at > DATE_SUB(NOW(), INTERVAL 5 MINUTE)`,
+      [email]
+    );
 
-    sendSafe(sendForgotPasswordOTP, { to: email, name: user.name, otp, role });
+    if (attempt.count >= 3) {
+      return res.status(429).json({
+        success: false,
+        message: 'Too many OTP requests. Please try again after 5 minutes.',
+      });
+    }
+
+    // ✅ FIX: Store OTP in database instead of in-memory (survives restarts)
+    // Clear old OTPs for this email
+    await db.query(`DELETE FROM otp_requests WHERE email = ? AND created_at < DATE_SUB(NOW(), INTERVAL 1 HOUR)`, [email]);
+
+    // Insert new OTP (10 min expiry)
+    await db.query(
+      `INSERT INTO otp_requests (email, otp, role, user_name, expires_at, created_at)
+       VALUES (?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 10 MINUTE), NOW())`,
+      [email, otp, validRole, user.name]
+    );
+
+    sendSafe(sendForgotPasswordOTP, { to: email, name: user.name, otp, role: validRole });
 
     res.json({ success: true, message: 'OTP sent to your email address. Valid for 10 minutes.' });
   } catch (err) {
@@ -266,27 +291,48 @@ const forgotPasswordReset = async (req, res) => {
   if (!email || !otp || !new_password)
     return res.status(400).json({ success: false, message: 'Email, OTP and new password are required.' });
 
-  const stored = otpStore[email];
-  if (!stored)
-    return res.status(400).json({ success: false, message: 'No OTP found for this email. Please request again.' });
-  if (Date.now() > stored.expiresAt)
-    return res.status(400).json({ success: false, message: 'OTP has expired. Please request a new one.' });
-  if (stored.otp !== otp)
-    return res.status(400).json({ success: false, message: 'Invalid OTP. Please check and try again.' });
+  // ✅ FIX: Validate role against allowlist
+  const allowedRoles = ['user', 'admin', 'official'];
+  const validRole = allowedRoles.includes(role) ? role : 'user';
 
   try {
-    const table  = stored.role === 'admin' ? 'admins' : stored.role === 'official' ? 'officials' : 'users';
+    // ✅ FIX: Fetch OTP from DB instead of in-memory store
+    const [[stored]] = await db.query(
+      `SELECT id, otp, expires_at FROM otp_requests WHERE email = ? AND role = ? ORDER BY created_at DESC LIMIT 1`,
+      [email, validRole]
+    );
+
+    if (!stored)
+      return res.status(400).json({ success: false, message: 'No OTP found for this email. Please request again.' });
+
+    if (new Date() > new Date(stored.expires_at))
+      return res.status(400).json({ success: false, message: 'OTP has expired. Please request a new one.' });
+
+    if (stored.otp !== otp)
+      return res.status(400).json({ success: false, message: 'Invalid OTP. Please check and try again.' });
+
+    const table  = validRole === 'admin' ? 'admins' : validRole === 'official' ? 'officials' : 'users';
     const hashed = await bcrypt.hash(new_password, 10);
     await db.query(`UPDATE ${table} SET password = ? WHERE email = ?`, [hashed, email]);
 
-    // Clear OTP
-    delete otpStore[email];
+    // ✅ FIX: Clear used OTP
+    await db.query(`DELETE FROM otp_requests WHERE id = ?`, [stored.id]);
 
     // Notify user
-    sendSafe(sendPasswordChangedEmail, { to: email, name: stored.name, role: stored.role });
+    const [[user]] = await db.query(
+      `SELECT full_name FROM ${table} WHERE email = ?`,
+      [email]
+    );
+
+    sendSafe(sendPasswordChangedEmail, {
+      to: email,
+      name: user?.full_name || 'User',
+      role: validRole,
+    });
 
     res.json({ success: true, message: 'Password reset successfully. You can now login with your new password.' });
   } catch (err) {
+    console.error('Reset password error:', err);
     res.status(500).json({ success: false, message: 'Server error.' });
   }
 };
